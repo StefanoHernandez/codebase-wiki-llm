@@ -32,6 +32,11 @@
     ],
     "brandColor": "#2563EB",
     "composerIcon": "./assets/icon.svg",
-    "logo": "./assets/icon.svg"
-  }
+    "logo": "./assets/icon.svg",
+    "websiteURL": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+    "privacyPolicyURL": "https://github.com/StefanoHernandez/codebase-wiki-llm/blob/main/README.md",
+    "termsOfServiceURL": "https://github.com/StefanoHernandez/codebase-wiki-llm/blob/main/LICENSE"
+  },
+  "homepage": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+  "repository": "https://github.com/StefanoHernandez/codebase-wiki-llm"
 }

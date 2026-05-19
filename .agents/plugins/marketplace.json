@@ -1,0 +1,20 @@
+{
+  "name": "codebase-wiki-llm",
+  "interface": {
+    "displayName": "Codebase Wiki LLM"
+  },
+  "plugins": [
+    {
+      "name": "codebase-wiki-llm",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codebase-wiki-llm"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

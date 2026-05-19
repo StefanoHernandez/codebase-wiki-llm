@@ -1,32 +1,46 @@
 # Codebase Wiki LLM
 
-Global Codex plugin for maintaining a living LLM wiki per codebase.
+Codex marketplace for maintaining a living LLM wiki per codebase.
 
-The plugin is installed once, but each repository owns its own `wiki/`
-directory. Running `/wiki-init` in a new project creates that project's wiki;
-running `/wiki-sync`, `/wiki-ingest`, or `/wiki-lint` later updates or audits
-that same local wiki.
+The marketplace contains the `codebase-wiki-llm` plugin. The plugin is installed
+once in Codex, but each repository owns its own `wiki/` directory. Running
+`/wiki-init` in a project creates that project's wiki; running `/wiki-sync`,
+`/wiki-ingest`, or `/wiki-lint` later updates or audits that same local wiki.
 
-## Mental model
+## Install in Codex from GitHub
 
-- Plugin location: global, for example `~/plugins/codebase-wiki-llm`.
-- Wiki location: per repository, always `<repo>/wiki/`.
-- Schema location: per repository, `wiki/SCHEMA.md`.
-- History location: per repository, `wiki/log.md` plus git history.
+In Codex, add a new marketplace and use this Git URL:
 
-The plugin only provides Codex skills. It does not create a shared global wiki.
+```text
+https://github.com/StefanoHernandez/codebase-wiki-llm.git
+```
 
-## Install in Codex
+Codex reads this repository's marketplace file:
 
-Clone the plugin from GitHub into your home-local plugins directory:
+```text
+.agents/plugins/marketplace.json
+```
+
+That marketplace exposes the plugin at:
+
+```text
+plugins/codebase-wiki-llm
+```
+
+After adding the marketplace, install or enable **Codebase Wiki LLM** from the
+Codex plugin UI.
+
+## Manual local install
+
+If you prefer a manual home-local install:
 
 ```bash
 mkdir -p ~/plugins
-git clone https://github.com/StefanoHernandez/codebase-wiki-llm.git ~/plugins/codebase-wiki-llm
+git clone https://github.com/StefanoHernandez/codebase-wiki-llm.git /tmp/codebase-wiki-llm
+cp -R /tmp/codebase-wiki-llm/plugins/codebase-wiki-llm ~/plugins/codebase-wiki-llm
 ```
 
-Create or update the Codex marketplace file at `~/.agents/plugins/marketplace.json`.
-If the file does not exist yet, use this full file:
+Then create or update `~/.agents/plugins/marketplace.json` with:
 
 ```json
 {
@@ -51,20 +65,18 @@ If the file does not exist yet, use this full file:
 }
 ```
 
-If you already have a marketplace file, add only the object above to its
-`plugins` array. Keep the `source.path` as `./plugins/codebase-wiki-llm`: with a
-home-local marketplace, Codex resolves that path to `~/plugins/codebase-wiki-llm`.
+Restart or refresh Codex plugin discovery after changing marketplaces.
 
-Restart or refresh Codex plugin discovery after changing the marketplace file.
+## Mental model
 
-## Update
+- Marketplace location: this Git repository.
+- Plugin location inside the marketplace: `plugins/codebase-wiki-llm`.
+- Wiki location: per repository, always `<repo>/wiki/`.
+- Schema location: per repository, `wiki/SCHEMA.md`.
+- History location: per repository, `wiki/log.md` plus git history.
 
-```bash
-cd ~/plugins/codebase-wiki-llm
-git pull
-```
-
-Restart or refresh Codex after updating if the plugin metadata changed.
+The plugin does not create a shared global wiki. It provides reusable Codex
+skills that operate on the current repository's local `wiki/` directory.
 
 ## Commands
 
@@ -75,6 +87,15 @@ When the user types one of these phrases, the corresponding skill handles it:
 - `/wiki-ingest [path]` - deep-dive into a file, directory, or topic.
 - `/wiki-sync` - small incremental update from recent source changes.
 - `/wiki-lint` - read-only health report for drift, gaps, and staleness.
+
+## Repository layout
+
+```text
+.agents/plugins/marketplace.json
+plugins/codebase-wiki-llm/.codex-plugin/plugin.json
+plugins/codebase-wiki-llm/skills/
+plugins/codebase-wiki-llm/assets/
+```
 
 ## Guardrail
 
