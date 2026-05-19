@@ -1,6 +1,6 @@
 {
   "name": "codebase-wiki-llm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
