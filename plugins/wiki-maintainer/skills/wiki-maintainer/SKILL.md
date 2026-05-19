@@ -1,6 +1,6 @@
 ---
 name: wiki-maintainer
-description: Use when working with files under wiki/ or running any /wiki-* command (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint). Teaches how to maintain a living, LLM-owned wiki of a codebase — the architecture, operations, and lifecycle model that keeps wiki/ in sync with source code.
+description: Knowledge for maintaining a living, LLM-owned wiki of a codebase — the architecture, operations, and lifecycle model that keeps wiki/ in sync with source code. Load this whenever working with files under wiki/ or running any /wiki-* workflow.
 ---
 
 # Wiki Maintainer
@@ -10,21 +10,6 @@ This skill teaches you how to maintain a **living wiki of a codebase**: a set of
 You (the agent) own the wiki. The human reads it. Your job is to write it, keep it consistent, and surface drift.
 
 This is an adaptation of the "LLM Wiki" pattern (Karpathy, 2026) for source code. The original pattern assumes immutable documents. Code is not immutable — that difference drives everything below.
-
----
-
-## When to use this skill
-
-- The user invokes `/wiki-init`, `/wiki-ingest`, `/wiki-sync`, or `/wiki-lint`.
-- You are reading or editing any file under `<repo>/wiki/`.
-- The user asks about project context, onboarding, or "where is X documented".
-- At the start of a session in a repo that has `wiki/index.md`: read `wiki/index.md` early. It is the catalog of what this project is and how it's laid out. Prefer answering questions from wiki pages over re-reading source code whenever the wiki covers the topic.
-
-**Sync is manual.** After completing a task that modified source files, the user runs `/wiki-sync` when they want. Do not run it unprompted. You may, at the end of a task that touched source files, suggest: "wiki may be stale — run `/wiki-sync` when ready." Nothing more.
-
-**When the wiki doesn't exist**: do nothing wiki-related. Do not prompt the user to create one unless they ask about project context, documentation, or how to onboard future agents — in which case mentioning `/wiki-init` is appropriate.
-
-**Never silently edit source code during wiki operations.** Wiki commands (`/wiki-init`, `/wiki-ingest`, `/wiki-lint`, `/wiki-sync`) must not modify source files. They may propose changes in reports, but execution requires explicit user approval outside the wiki flow.
 
 ---
 
@@ -81,7 +66,7 @@ Prefer markdown tables, Mermaid diagrams, and standard relative markdown links f
 Analyze source files and write/update wiki pages describing them. A single ingest may touch 5–15 wiki pages because one source file typically affects the module page, overview, glossary, architecture notes, and index.
 
 ### 2. Sync (`/wiki-sync`)
-Incremental update from recent diffs (`git diff`, recently modified files). Run manually after tasks that touched source code. Cheaper than full ingest because it only re-reads what changed.
+Incremental update from recent diffs (`git diff`, recently modified files). Runs frequently — after tasks, on command. Cheaper than full ingest because it only re-reads what changed.
 
 ### 3. Lint (`/wiki-lint`)
 Health check. Scan the wiki for:
@@ -191,7 +176,7 @@ Update index.md on every ingest that adds or removes pages.
 
 - `/wiki-init` — new repo setup. Walk through the codebase top-down, ask the human to confirm the scope, write initial pages.
 - `/wiki-ingest [path]` — deliberate deep-dive. Path is optional; if omitted, ask the user what to ingest before proceeding.
-- `/wiki-sync` — fast, manual. User invokes after tasks that changed code. Reports only what changed.
+- `/wiki-sync` — fast, automatic-feeling. Runs after tasks without ceremony. Reports only what changed.
 - `/wiki-lint` — produces a report. Human reviews. If they say "apply the fixes," do them as a follow-up pass.
 
 When in doubt about scope, ask once, then proceed.

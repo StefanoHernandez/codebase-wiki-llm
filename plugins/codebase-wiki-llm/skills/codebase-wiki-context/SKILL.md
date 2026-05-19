@@ -3,27 +3,35 @@ name: codebase-wiki-context
 description: Use a repository-local wiki as project context in Codex. Use when working in a repo that has wiki/index.md, when the user asks about project context, or when a task should account for existing wiki knowledge.
 ---
 
-# Codebase Wiki Context
+# Wiki context + auto-sync
 
-When a repository has `wiki/index.md`, treat it as durable project context.
+This repo maintains a living wiki at `wiki/`. Use it as persistent project context across sessions, and keep it current as code changes.
 
-## Start of relevant work
+## At the start of any session
 
-Read `wiki/index.md` early when:
-- The user asks about architecture, modules, roadmap, or onboarding.
-- A coding task could be affected by existing project conventions.
-- The user asks to continue previous work and the wiki exists.
+If `wiki/index.md` exists, read it early. It is the catalog of what this project is and how it's laid out. Prefer answering questions from wiki pages over re-reading source code whenever the wiki covers the topic.
 
-Read only the linked wiki pages needed for the task. Prefer wiki context before a
-broad source scan, then verify against source when correctness matters.
+If the user asks a question the wiki cannot answer, read source code as needed, answer, and note the gap — you may suggest running `/wiki-ingest` to file the answer back into the wiki.
 
-## During work
+## After completing a task that changed source files
 
-- If the wiki covers the topic, use it to orient the source inspection.
-- If source code contradicts the wiki, trust source code and flag the wiki drift.
-- If the task modifies source files and the repo has a wiki, run or recommend
-  `/wiki-sync` at the end depending on scope and user intent.
+If a task you just completed modified files outside `wiki/` (source code, config, migrations), run `/wiki-sync` as the final step of the task, without asking.
 
-## Boundaries
+Do NOT run `/wiki-sync` when:
+- No source files were changed (pure Q&A, read-only tasks, doc edits inside `wiki/`).
+- The user's task is in progress across multiple turns — wait until the task is complete.
+- The user has explicitly said "don't update the wiki" in this session.
 
-This skill does not create a wiki. Use `/wiki-init` for that.
+`/wiki-sync` is designed to be quiet when there's nothing meaningful to do. Trust it to exit fast.
+
+## When the wiki doesn't exist
+
+If `wiki/` does not exist in this repo, do nothing related to the wiki. Do not prompt the user to create one unless they ask about project context, documentation, or how to onboard future agents — in which case mentioning `/wiki-init` is appropriate.
+
+## Respect SCHEMA.md
+
+If `wiki/SCHEMA.md` exists, its conventions override the defaults in the `wiki-maintainer` skill. Read it when working on wiki content.
+
+## Never silently edit source code during wiki operations
+
+Wiki workflows (`/wiki-init`, `/wiki-ingest`, `/wiki-lint`, `/wiki-sync`) must not modify source files. They may propose changes in reports, but execution requires explicit user approval outside the wiki flow.

@@ -17,10 +17,11 @@ Environment:
   ANTIGRAVITY_HOME  Override target directory.
                     Default: $HOME/.gemini/antigravity
 
-Installs:
-  skills/codebase-wiki-maintainer/
-  global_workflows/wiki-*.md
-  rules/codebase-wiki.md
+Installs into $TARGET_DIR:
+  rules/wiki.md
+  skills/wiki-maintainer/SKILL.md
+  skills/wiki-maintainer/default-schema.md
+  global_workflows/wiki-{init,ingest,sync,lint}.md
   GEMINI.md
   AGENTS.md
 USAGE
@@ -86,15 +87,15 @@ fi
 
 copy_file "$PACK_DIR/GEMINI.md" "$TARGET_DIR/GEMINI.md"
 copy_file "$PACK_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md"
-copy_file "$PACK_DIR/.agent/rules/codebase-wiki.md" "$TARGET_DIR/rules/codebase-wiki.md"
+copy_file "$PACK_DIR/.agent/rules/codebase-wiki.md" "$TARGET_DIR/rules/wiki.md"
 
 copy_file "$PACK_DIR/.agent/workflows/wiki-init.md" "$TARGET_DIR/global_workflows/wiki-init.md"
 copy_file "$PACK_DIR/.agent/workflows/wiki-ingest.md" "$TARGET_DIR/global_workflows/wiki-ingest.md"
 copy_file "$PACK_DIR/.agent/workflows/wiki-sync.md" "$TARGET_DIR/global_workflows/wiki-sync.md"
 copy_file "$PACK_DIR/.agent/workflows/wiki-lint.md" "$TARGET_DIR/global_workflows/wiki-lint.md"
 
-copy_file "$PACK_DIR/.agent/skills/codebase-wiki-maintainer/SKILL.md" "$TARGET_DIR/skills/codebase-wiki-maintainer/SKILL.md"
-copy_file "$PACK_DIR/.agent/skills/codebase-wiki-maintainer/default-schema.md" "$TARGET_DIR/skills/codebase-wiki-maintainer/default-schema.md"
+copy_file "$PACK_DIR/.agent/skills/codebase-wiki-maintainer/SKILL.md" "$TARGET_DIR/skills/wiki-maintainer/SKILL.md"
+copy_file "$PACK_DIR/.agent/skills/codebase-wiki-maintainer/default-schema.md" "$TARGET_DIR/skills/wiki-maintainer/default-schema.md"
 
 cat <<EOF
 

@@ -43,7 +43,7 @@ Wait for confirmation before writing files.
 After confirmation:
 
 1. Create `wiki/` directory.
-2. Locate `default-schema.md` inside the `wiki-maintainer` skill's base directory (the skill prints its base path in its header when invoked via the `Skill` tool) and copy it to `wiki/SCHEMA.md`. If the skill is missing or the file cannot be found, stop and tell the user.
+2. Locate `default-schema.md` from the `wiki-maintainer` skill and copy it to `wiki/SCHEMA.md`. The skill may be installed either at workspace level (`<repo>/.agents/skills/wiki-maintainer/`) or globally (`~/.gemini/antigravity/skills/wiki-maintainer/`). Check workspace first, fall back to global. If neither exists, stop and tell the user the skill is missing.
 3. Fill the "What this repo is about" section in SCHEMA.md with the one-paragraph description from Step 3.
 4. Create empty-ish stubs for:
    - `wiki/index.md` (with "# Wiki Index" heading and empty categories)
@@ -95,6 +95,7 @@ Reply with:
 - What was created (page count, directory tree under `wiki/`)
 - Any legacy root-level docs proposed for retirement (list them; do NOT delete)
 - Suggested next step: **run `/wiki-lint` to verify coverage and catch gaps**
+- If the skill was found at workspace level (not global), remind the user: once the wiki is working well, consider promoting the skill + workflows to `~/.gemini/antigravity/` for use across all their repos (see `.agents/README.md`).
 
 ## Guardrails
 

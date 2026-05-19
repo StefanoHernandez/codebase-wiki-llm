@@ -1,16 +1,14 @@
 ---
 description: Deliberate deep-dive into a file, directory, or topic. Reads the target, updates or creates affected wiki pages, updates index.md, and logs the operation. Use when you've added or substantially changed a feature and want the wiki to reflect it properly.
-argument-hint: "[path or topic]"
 ---
 
 # /wiki-ingest [path]
 
 Deliberate, focused update of the wiki based on a specific file, directory, or topic.
 
-User argument: `$ARGUMENTS`
-
-- If non-empty: that's the target (file path, directory, or short topic description like "the new rate limiter").
-- If empty: ask the user what to ingest.
+Argument:
+- `[path]` — optional. A file path, directory, or a short topic description (e.g. "the new rate limiter", "src/routes/search.ts").
+- If omitted, ask the user what to ingest.
 
 **Requires**: the `wiki-maintainer` skill. Load it and follow its conventions. Respect `wiki/SCHEMA.md`.
 
@@ -21,9 +19,9 @@ User argument: `$ARGUMENTS`
 
 ## Step 2 — Resolve the target
 
-- If the argument is a file or directory that exists: that's the target.
+- If `[path]` is a file or directory that exists: that's the target.
 - If it's a topic description: scan the repo to identify the relevant files (grep for keywords, look at recent git log, ask the user if ambiguous).
-- If no argument was given: ask the user which area of the code to ingest.
+- If no path was given: ask the user which area of the code to ingest.
 
 Announce the resolved target to the user before proceeding.
 
@@ -60,7 +58,7 @@ For each affected page:
 3. Update frontmatter: `updated`, `sources`, `source_commit` (if git available), `confidence`.
 4. If you are correcting a previous claim, add a **supersession note**:
    > **Superseded YYYY-MM-DD**: previously said "...", replaced because <reason>.
-5. Preserve cross-references. Add new ones where helpful.
+5. Preserve wikilinks and cross-references. Add new ones where helpful.
 
 If a page needs to be created:
 1. Give it proper frontmatter.

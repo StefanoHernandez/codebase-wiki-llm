@@ -1,34 +1,37 @@
-# Codebase Wiki Rule
+---
+title: Wiki context + auto-sync
+activation: always-on
+---
 
-Apply these rules whenever work involves a repository-local `wiki/` directory
-or a wiki command such as `/wiki-init`, `/wiki-ingest`, `/wiki-sync`, or
-`/wiki-lint`.
+# Wiki context + auto-sync
 
-## Scope
+This repo maintains a living wiki at `wiki/`. Use it as persistent project context across sessions, and keep it current as code changes.
 
-The wiki belongs to the current project. It lives under `<repo>/wiki/` and is
-not a shared global wiki.
+## At the start of any session
 
-## Mandatory behavior
+If `wiki/index.md` exists, read it early. It is the catalog of what this project is and how it's laid out. Prefer answering questions from wiki pages over re-reading source code whenever the wiki covers the topic.
 
-- If `wiki/index.md` exists and the user asks about architecture, modules,
-  onboarding, roadmap, or project context, read it early.
-- If `wiki/SCHEMA.md` exists, read it before editing wiki pages.
-- Treat source code and project docs outside `wiki/` as evidence.
-- During wiki operations, write only under `wiki/`.
-- Never change source files as part of a wiki operation.
-- Use standard Markdown links, frontmatter, concise factual prose, tables, and
-  Mermaid diagrams where useful.
-- Add or update `wiki/index.md` when wiki pages are created, renamed, removed,
-  or retitled.
-- Append `wiki/log.md` at the end of write operations.
-- Propose deletions or retirement of legacy docs; do not execute them silently.
+If the user asks a question the wiki cannot answer, read source code as needed, answer, and note the gap — you may suggest running `/wiki-ingest` to file the answer back into the wiki.
 
-## Confidence
+## After completing a task that changed source files
 
-Use `confidence: high`, `medium`, or `low` in wiki frontmatter.
+If a task you just completed modified files outside `wiki/` (source code, config, migrations), run `/wiki-sync` as the final step of the task, without asking.
 
-- `high`: verified directly against current sources.
-- `medium`: mostly verified, but some claims are inferred or source changes are
-  nearby.
-- `low`: stale, ambiguous, or based on incomplete evidence.
+Do NOT run `/wiki-sync` when:
+- No source files were changed (pure Q&A, read-only tasks, doc edits inside `wiki/`).
+- The user's task is in progress across multiple turns — wait until the task is complete.
+- The user has explicitly said "don't update the wiki" in this session.
+
+`/wiki-sync` is designed to be quiet when there's nothing meaningful to do. Trust it to exit fast.
+
+## When the wiki doesn't exist
+
+If `wiki/` does not exist in this repo, do nothing related to the wiki. Do not prompt the user to create one unless they ask about project context, documentation, or how to onboard future agents — in which case mentioning `/wiki-init` is appropriate.
+
+## Respect SCHEMA.md
+
+If `wiki/SCHEMA.md` exists, its conventions override the defaults in the `wiki-maintainer` skill. Read it when working on wiki content.
+
+## Never silently edit source code during wiki operations
+
+Wiki workflows (`/wiki-init`, `/wiki-ingest`, `/wiki-lint`, `/wiki-sync`) must not modify source files. They may propose changes in reports, but execution requires explicit user approval outside the wiki flow.

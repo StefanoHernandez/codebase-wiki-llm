@@ -1,12 +1,12 @@
 ---
-description: Fast incremental update from recent diffs. Run manually after tasks that changed source files. Quiet by default — only reports what changed.
+description: Fast incremental update from recent diffs. Meant to run automatically after tasks that changed source files. Quiet by default — only reports what changed.
 ---
 
 # /wiki-sync
 
 Fast, low-ceremony update of the wiki based on what has changed recently.
 
-Manual command — the user invokes this after tasks that touched source files. Designed to feel invisible when there's nothing to do, concise when there is.
+This is the workflow that runs automatically (via the workspace rule) after tasks that touched source files. It's meant to feel invisible when there's nothing to do, and concise when there is.
 
 **Requires**: the `wiki-maintainer` skill. Respect `wiki/SCHEMA.md`.
 
@@ -44,7 +44,7 @@ Build a dedup'd list of pages to update.
 
 **Limit**: if more than ~10 pages would be affected, this is probably not a "sync" — it's a significant change. Exit with:
 
-> `wiki-sync: <N> pages affected — this looks substantial. Suggest /wiki-ingest for a deliberate pass, or /wiki-lint to catch drift. Not syncing automatically.`
+> `wiki-sync: <N> pages affected — this looks substantial. Suggest `/wiki-ingest` for a deliberate pass, or `/wiki-lint` to catch drift. Not syncing automatically.`
 
 The goal of sync is the small-update case. Large changes deserve deliberate attention.
 
@@ -85,11 +85,12 @@ One of:
 - **Small update applied**: brief summary: `wiki-sync: updated <list of pages> based on changes to <files>. <one-line note of anything interesting>.`
 - **Too big for sync**: as described in Step 3 — recommend `/wiki-ingest` or `/wiki-lint`, do nothing else.
 
-Keep the report under ~5 lines whenever possible.
+Keep the report under ~5 lines whenever possible. This runs often; it should not be noisy.
 
 ## Guardrails
 
 - **Never create new pages during sync** — that's ingest territory.
 - **Never delete pages during sync.**
 - **Never touch source code.**
+- **Never run if the user is mid-conversation on something unrelated** — the rule should only fire sync after a task that plausibly changed code (see the workspace rule for trigger logic).
 - If unsure whether a change is significant, err toward quiet — don't edit. Let `/wiki-lint` catch it later.
