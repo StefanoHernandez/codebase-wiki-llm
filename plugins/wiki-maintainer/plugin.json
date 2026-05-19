@@ -1,7 +1,7 @@
 {
   "name": "wiki-maintainer",
-  "version": "0.3.0",
-  "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint.",
+  "version": "0.3.1",
+  "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",
     "url": "https://github.com/StefanoHernandez"

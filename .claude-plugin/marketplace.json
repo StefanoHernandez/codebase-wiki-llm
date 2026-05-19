@@ -1,6 +1,6 @@
 {
   "name": "stefano-wiki",
-  "description": "Living wiki for codebases — keeps wiki/ in sync with source code via /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint.",
+  "description": "Living wiki for codebases — keeps wiki/ in sync with source code via /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and wiki context skills.",
   "owner": {
     "name": "Stefano Paradisi",
     "url": "https://github.com/StefanoHernandez"
@@ -9,8 +9,8 @@
     {
       "name": "wiki-maintainer",
       "source": "./plugins/wiki-maintainer",
-      "description": "Maintain a living, LLM-owned wiki of a codebase under wiki/. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint.",
-      "version": "0.3.0"
+      "description": "Maintain a living, LLM-owned wiki of a codebase under wiki/. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
+      "version": "0.3.1"
     }
   ]
 }

@@ -17,7 +17,7 @@ The wiki is designed for real software work:
 The same workflow is shipped for three hosts:
 
 - **Codex** — exposed as the `codebase-wiki-llm` plugin (split skills).
-- **Claude Code** — exposed as the `wiki-maintainer` plugin (slash commands + monolithic skill).
+- **Claude Code** — exposed as the `wiki-maintainer` plugin (slash commands + skills).
 - **Antigravity** — exposed as an installable customization pack (rules + workflows + skill).
 
 All variants share this single Git repository. Codex and Claude Code read their own marketplace manifests. Antigravity uses the install script to copy its customization pack into the expected Gemini/Antigravity folders.
@@ -120,6 +120,51 @@ The installer copies the Antigravity pack from [plugins/antigravity-wiki-llm](pl
 
 It does not edit `~/.gemini/GEMINI.md` or `~/.gemini/AGENTS.md`, so Gemini CLI global rules are not modified.
 
+## Uninstall
+
+### From Codex
+
+If you added this repository as a Codex marketplace, remove the marketplace:
+
+```bash
+codex plugin marketplace remove codebase-wiki-llm
+```
+
+If you used the manual local install below, also remove the local plugin copy
+and the marketplace entry you added to `~/.agents/plugins/marketplace.json`.
+
+### From Claude Code
+
+Uninstall the plugin:
+
+```text
+/plugin uninstall wiki-maintainer@stefano-wiki
+```
+
+Optionally remove the marketplace too:
+
+```text
+/plugin marketplace remove stefano-wiki
+```
+
+### From Antigravity
+
+Run the uninstall script from this repository:
+
+```bash
+scripts/uninstall-antigravity-wiki-llm.sh
+```
+
+For non-interactive removal:
+
+```bash
+scripts/uninstall-antigravity-wiki-llm.sh --yes
+```
+
+The script removes only the files installed by
+`scripts/install-antigravity-wiki-llm.sh`. It respects `ANTIGRAVITY_HOME`; when
+unset, it targets `~/.gemini/antigravity`.
+
 ## Why three plugin folders?
 
 Codex, Claude Code, and Antigravity use different plugin formats:
@@ -129,7 +174,7 @@ Codex, Claude Code, and Antigravity use different plugin formats:
 | Discovery    | `.agents/plugins/marketplace.json` | `.claude-plugin/marketplace.json` | `scripts/install-antigravity-wiki-llm.sh` |
 | Package path | `plugins/codebase-wiki-llm`        | `plugins/wiki-maintainer`         | `plugins/antigravity-wiki-llm`           |
 | Manifest     | `.codex-plugin/plugin.json`        | `plugin.json`                     | `GEMINI.md`, `AGENTS.md`, `.agent/`      |
-| Triggers     | Skills (one per operation)         | Slash commands + skill            | Workflows + rules + skill                |
+| Triggers     | Skills (one per operation)         | Slash commands + skills           | Workflows + rules + skill                |
 | Package name | `codebase-wiki-llm`                | `wiki-maintainer`                 | `antigravity-wiki-llm`                   |
 
 The host-specific paths do not collide, so a single repo serves all variants while keeping each host's expected format intact.
@@ -161,7 +206,7 @@ scripts/check-generated.sh
 The generator writes the host-specific files required by each environment:
 
 - Codex skills under `plugins/codebase-wiki-llm/skills/`
-- Claude Code commands and skill under `plugins/wiki-maintainer/`
+- Claude Code commands and skills under `plugins/wiki-maintainer/`
 - Antigravity rules, workflows, and skill under `plugins/antigravity-wiki-llm/.agent/`
 
 Generated files include a `Generated from ...` marker and should not be edited directly. Commit both the canonical changes and the generated package updates before pushing.
@@ -228,7 +273,9 @@ plugins/
 ├── wiki-maintainer/                        Claude Code variant
 │   ├── plugin.json
 │   ├── commands/                           (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint)
-│   └── skills/wiki-maintainer/
+│   └── skills/
+│       ├── wiki-maintainer/
+│       └── wiki-context/
 └── antigravity-wiki-llm/                   Antigravity variant
     ├── GEMINI.md
     ├── AGENTS.md

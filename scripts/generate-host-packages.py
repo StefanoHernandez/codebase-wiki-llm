@@ -129,6 +129,15 @@ def generate_claude() -> None:
         "default-schema.md",
         read("default-schema.md"),
     )
+    write(
+        "plugins/wiki-maintainer/skills/wiki-context/SKILL.md",
+        "rules/wiki-context.md",
+        skill_content(
+            "wiki-context",
+            "Use a repository-local wiki as project context and keep agent continuity current.",
+            "rules/wiki-context.md",
+        ),
+    )
     for slug, meta in WORKFLOWS.items():
         write(
             f"plugins/wiki-maintainer/commands/{slug}.md",
