@@ -14,6 +14,10 @@ customization model:
 - `GEMINI.md` and `AGENTS.md` are lightweight entrypoints that tell
   Antigravity where to find the pack.
 
+The rule, workflow, skill, and default schema files are generated from the
+repository-level `canonical/` sources. Edit those canonical files, then run
+`scripts/generate-host-packages.py`.
+
 ## Global install
 
 From the repository root:

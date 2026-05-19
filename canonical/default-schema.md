@@ -4,8 +4,6 @@ updated: 2026-05-19
 confidence: high
 ---
 
-<!-- Generated from default-schema.md. Do not edit directly. -->
-
 # Wiki Schema for This Repo
 
 This file is the repo-specific constitution for the wiki. Edit it when the

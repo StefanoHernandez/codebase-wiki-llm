@@ -3,35 +3,46 @@ title: Wiki context + auto-sync
 activation: always-on
 ---
 
+<!-- Generated from rules/wiki-context.md. Do not edit directly. -->
+
 # Wiki context + auto-sync
 
-This repo maintains a living wiki at `wiki/`. Use it as persistent project context across sessions, and keep it current as code changes.
+Use the repository-local wiki at `wiki/` as durable project context whenever it
+exists.
 
-## At the start of any session
+## At the start of work
 
-If `wiki/index.md` exists, read it early. It is the catalog of what this project is and how it's laid out. Prefer answering questions from wiki pages over re-reading source code whenever the wiki covers the topic.
+If `wiki/index.md` exists, read it early. It is the catalog of project
+knowledge. Prefer wiki pages over re-reading source code when the wiki already
+covers the topic, but verify source files when accuracy matters or the wiki is
+low confidence.
 
-If the user asks a question the wiki cannot answer, read source code as needed, answer, and note the gap — you may suggest running `/wiki-ingest` to file the answer back into the wiki.
+If `wiki/agent/context.md` or `wiki/agent/handoff.md` exists, read it when the
+task depends on prior agent work, current project state, or unfinished work.
 
-## After completing a task that changed source files
+## When the wiki cannot answer
 
-If a task you just completed modified files outside `wiki/` (source code, config, migrations), run `/wiki-sync` as the final step of the task, without asking.
+Read source code or project documents as needed. If the answer reveals durable
+knowledge that belongs in the wiki, mention the gap or run `/wiki-ingest` when
+the user asks you to update the wiki.
 
-Do NOT run `/wiki-sync` when:
-- No source files were changed (pure Q&A, read-only tasks, doc edits inside `wiki/`).
-- The user's task is in progress across multiple turns — wait until the task is complete.
-- The user has explicitly said "don't update the wiki" in this session.
+## After completing a non-trivial task
 
-`/wiki-sync` is designed to be quiet when there's nothing meaningful to do. Trust it to exit fast.
+If source/config/project files changed and `wiki/` exists:
 
-## When the wiki doesn't exist
+1. Run `/wiki-sync` unless the user opted out.
+2. Update `wiki/agent/activity.md` and `wiki/agent/handoff.md` when the task
+   changed project state, made decisions, or created useful handoff context.
 
-If `wiki/` does not exist in this repo, do nothing related to the wiki. Do not prompt the user to create one unless they ask about project context, documentation, or how to onboard future agents — in which case mentioning `/wiki-init` is appropriate.
+Do not run `/wiki-sync` when:
 
-## Respect SCHEMA.md
+- no source/config/project files changed;
+- the user task is still in progress across turns;
+- the user explicitly said not to update the wiki.
 
-If `wiki/SCHEMA.md` exists, its conventions override the defaults in the `wiki-maintainer` skill. Read it when working on wiki content.
+## Boundaries
 
-## Never silently edit source code during wiki operations
-
-Wiki workflows (`/wiki-init`, `/wiki-ingest`, `/wiki-lint`, `/wiki-sync`) must not modify source files. They may propose changes in reports, but execution requires explicit user approval outside the wiki flow.
+Wiki workflows may read source files as evidence, but they must not modify files
+outside `wiki/` unless the user explicitly asks for a non-wiki project change.
+Host-specific packaging files are source files for this plugin repository and
+are not part of a target project's wiki content.

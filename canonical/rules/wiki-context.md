@@ -1,10 +1,3 @@
----
-name: codebase-wiki-context
-description: Use a repository-local wiki as project context and keep agent continuity current.
----
-
-<!-- Generated from rules/wiki-context.md. Do not edit directly. -->
-
 # Wiki context + auto-sync
 
 Use the repository-local wiki at `wiki/` as durable project context whenever it

@@ -1,10 +1,3 @@
----
-title: Wiki Lint
-description: Run a read-only health check for staleness, drift, gaps, and unsupported claims.
----
-
-<!-- Generated from workflows/wiki-lint.md. Do not edit directly. -->
-
 # /wiki-lint
 
 Read-only health check for the repository-local wiki.

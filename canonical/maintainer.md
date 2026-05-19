@@ -1,10 +1,3 @@
----
-name: codebase-wiki-maintainer
-description: Knowledge for maintaining an engineering-first software project wiki under wiki/.
----
-
-<!-- Generated from maintainer.md. Do not edit directly. -->
-
 # Wiki Maintainer
 
 This skill maintains an engineering-first software project wiki under

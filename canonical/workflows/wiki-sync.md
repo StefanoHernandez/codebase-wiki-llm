@@ -1,9 +1,3 @@
----
-description: Surgically sync existing wiki pages after small source or project changes.
----
-
-<!-- Generated from workflows/wiki-sync.md. Do not edit directly. -->
-
 # /wiki-sync
 
 Fast, surgical wiki update based on small recent changes.

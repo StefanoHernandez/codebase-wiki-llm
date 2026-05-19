@@ -1,10 +1,3 @@
----
-title: Wiki Ingest
-description: Deep-dive into a file, directory, feature, or topic and update the wiki.
----
-
-<!-- Generated from workflows/wiki-ingest.md. Do not edit directly. -->
-
 # /wiki-ingest [path]
 
 Deliberate, focused update of the wiki based on a specific file, directory,

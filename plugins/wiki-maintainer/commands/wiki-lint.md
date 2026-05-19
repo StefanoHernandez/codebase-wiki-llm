@@ -1,132 +1,129 @@
 ---
-description: Health check the wiki. Scan for staleness, drift, orphans, gaps, contradictions, and redundant legacy docs. Produces a report — does not silently edit.
+description: Run a read-only health check for staleness, drift, gaps, and unsupported claims.
 ---
+
+<!-- Generated from workflows/wiki-lint.md. Do not edit directly. -->
 
 # /wiki-lint
 
-Audit the wiki for health. Produce a report of issues found. Do NOT fix anything automatically — let the human review and decide.
+Read-only health check for the repository-local wiki.
 
-**Requires**: the `wiki-maintainer` skill. Respect `wiki/SCHEMA.md` (especially the decay policy).
+Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
 
-## Step 1 — Preconditions
+## Step 1 - Preconditions
 
-- If `wiki/` does not exist, tell the user to run `/wiki-init` first. Stop.
-- If the repo is a git repo, prefer `git log` / `git diff` over filesystem mtimes for accuracy.
+- If `wiki/` does not exist, tell the user to run `/wiki-init` first.
+- Prefer git over mtimes when available.
 
-## Step 2 — Gather the facts
+## Step 2 - Gather facts
 
-Build a mental picture:
+Read:
 
-1. List every page under `wiki/`. For each, read its frontmatter (`updated`, `sources`, `source_commit`, `confidence`).
-2. Check `wiki/SCHEMA.md` for decay policy and legacy docs list.
-3. Identify the current set of source files in scope (per SCHEMA.md's in-scope rules).
-4. If git is available: for each page, compute how many commits have touched its `sources:` files since its `source_commit`.
-5. Read `wiki/index.md` and build a list of pages referenced vs pages that exist.
-6. Check for root-level legacy docs (`context_map.md`, `project_status.md`, `BUILD_PHASES.md`, any listed in SCHEMA.md).
+1. every wiki page frontmatter;
+2. `wiki/SCHEMA.md`;
+3. `wiki/index.md`;
+4. current in-scope source/config/project files;
+5. git status and recent commits;
+6. root-level legacy docs listed by the schema.
 
-## Step 3 — Run the seven checks
+Do targeted source reads only where needed to verify claims.
 
-### Check 1: Staleness
-A page is **stale** if any of these is true (thresholds follow the skill's confidence model; SCHEMA.md may override):
-- `updated` date is more than 30 days old AND its `sources:` files have been modified since, OR
-- 5+ commits have touched its `sources:` files since `source_commit` (same threshold that pushes confidence to `low`), OR
-- Its `confidence` is already `low`.
+## Step 3 - Checks
 
-### Check 2: Drift
-A page **drifts** if its content makes specific claims that contradict the current code. Look for:
-- Numbered lists that name fields, endpoints, or config keys — do they still exist?
-- Phase/status tables — do they still match reality?
-- "X uses Y" claims — still true?
+### Staleness
 
-Do a **targeted** drift check: don't re-read every source file. Spot-check pages with low confidence or recent source changes.
+Flag pages when:
 
-### Check 3: Orphans
-A page is **orphaned** if no other wiki page or `index.md` links to it. Ignore `log.md`, `index.md`, and `SCHEMA.md` themselves.
+- `updated` is older than schema policy and sources changed;
+- five or more commits touched listed sources since `source_commit`;
+- confidence is `low`;
+- listed sources are missing.
 
-### Check 4: Gaps
-A **gap** is code that exists but no wiki page covers. Look for:
-- Top-level source directories with no corresponding module page.
-- Recently added files (git log, last 14 days) not mentioned anywhere in the wiki.
-- Exported public APIs (functions, classes, endpoints) not referenced in any page.
+### Drift
 
-### Check 5: Contradictions
-Two or more pages that disagree with each other. Common: `overview.md` vs a `modules/*.md` having different descriptions of the same thing; architecture page vs actual data model page.
+Flag claims contradicted by code, tests, configs, CI, or current project docs.
 
-### Check 6: Redundant legacy docs
-Root-level legacy docs (per SCHEMA.md's list) whose content is now fully absorbed into the wiki. For each, check:
-- Is every significant claim in the legacy doc present in the wiki?
-- If yes → **propose retirement**.
-- If no → flag what's missing so an ingest can absorb it.
+### Orphans
 
-### Check 7: Frontmatter hygiene
-- Missing required frontmatter fields.
-- `updated` date format wrong.
-- `sources:` pointing to files that no longer exist.
+Flag pages not linked from `index.md` or another useful page. Ignore
+`index.md`, `SCHEMA.md`, and append-only logs.
 
-## Step 4 — Produce the report
+### Gaps
 
-Output a structured markdown report. Keep it scannable.
+Flag important source areas, public interfaces, tests, config, operations,
+project state, or agent handoff context that should be documented but is not.
+
+### Engineering quality
+
+Flag module pages missing important sections such as invariants, safe-change
+guidance, verification, related tests, or failure modes when evidence exists.
+
+### Project consistency
+
+Flag roadmap/status/risk/requirement claims that are unsupported by project or
+engineering evidence.
+
+### Project-docs support
+
+Flag communication claims that lack links to engineering, project, or source
+evidence.
+
+### Agent continuity
+
+Flag missing or stale `wiki/agent/context.md`, `wiki/agent/activity.md`, or
+`wiki/agent/handoff.md` when the schema expects them and recent non-trivial work
+is visible.
+
+### Contradictions
+
+Flag disagreements across overview, engineering, modules, project,
+project-docs, and source evidence.
+
+### Legacy docs
+
+For root-level legacy docs, propose retirement only when content is absorbed.
+Never delete.
+
+### Frontmatter hygiene
+
+Flag missing fields, invalid dates, invalid confidence, and missing source
+files.
+
+## Step 4 - Report
+
+Produce a concise markdown report:
 
 ```markdown
-# Wiki Lint Report — YYYY-MM-DD
+# Wiki Lint Report - YYYY-MM-DD
 
 ## Summary
-<N> issues found across <M> pages.
-- Stale: <n>    Drift: <n>    Orphans: <n>    Gaps: <n>    Contradictions: <n>    Legacy redundant: <n>    Frontmatter: <n>
+<N> issues across <M> pages.
+- Stale: <n>
+- Drift: <n>
+- Orphans: <n>
+- Gaps: <n>
+- Engineering quality: <n>
+- Project consistency: <n>
+- Project-docs support: <n>
+- Agent continuity: <n>
+- Contradictions: <n>
+- Legacy: <n>
+- Frontmatter: <n>
 
-## Stale pages
-- `modules/routes.md` — last updated 2026-03-02, 12 commits to src/routes/ since. Confidence was `high`, downgrade to `low`.
-- ...
-
-## Drift
-- `architecture/decisions.md` ADR-003 claims SHA-1 hashing; code now uses SHA-256 (src/utils/id.ts:42). Needs supersession.
-- ...
-
-## Orphans
-- `architecture/data-model.md` — no inbound links. Either add to index.md or consider merging into overview.md.
-- ...
-
-## Gaps
-- src/services/rate_limiter.ts — no wiki page mentions this file. Added 2026-04-10.
-- Public endpoint POST /v1/admin/reset — not documented in modules/routes.md.
-- ...
-
-## Contradictions
-- overview.md says "3 route groups"; modules/routes.md lists 5. Reconcile.
-- ...
-
-## Redundant legacy docs (proposed retirement)
-- `context_map.md` — content absorbed into overview.md + modules/. **Propose**: move to `.archive/` or delete after one more review.
-- `BUILD_PHASES.md` — Phase tracking no longer reflects reality. **Propose**: retire; project-status belongs in a separate tracker.
-- **Do not delete without user approval.**
-
-## Frontmatter hygiene
-- `glossary.md` — missing `updated` field.
-- ...
+## Findings
+...
 
 ## Suggested follow-ups
-1. Run `/wiki-ingest src/services/rate_limiter.ts` to close the biggest gap.
-2. Reconcile the overview vs modules/routes contradiction.
-3. Decide on legacy doc retirement.
+...
 ```
 
-## Step 5 — Append to log.md
+## Step 5 - Read-only by default
 
-```markdown
-## [YYYY-MM-DD] lint | <N> issues across <M> pages
-- Stale: <n>, Drift: <n>, Orphans: <n>, Gaps: <n>, Contradictions: <n>, Legacy: <n>, Frontmatter: <n>
-- Report: see chat (or wiki/lint-reports/YYYY-MM-DD.md if the user asked to save it)
-```
-
-## Step 6 — Offer next steps
-
-End the report with a short prompt:
-
-> "Want me to fix a specific issue? Say e.g. 'fix the gap on rate_limiter' or 'update the stale routes page'. Or 'fix all of category X' for bulk. I won't touch anything until you say so."
+Do not edit the wiki during lint. If the user explicitly asks to save the
+report, write it under `wiki/lint-reports/` and append to `wiki/log.md`.
 
 ## Guardrails
 
-- **Never modify the wiki during lint.** Read-only pass.
-- **Never delete or move legacy docs.** Propose only.
-- If the lint finds zero issues, say so plainly — don't pad the report.
-- If the wiki is clearly broken (missing index, missing SCHEMA.md), flag that first and recommend `/wiki-init` or a targeted repair instead of running a full lint.
+- Do not modify source files.
+- Do not delete or move legacy docs.
+- If there are zero issues, say so plainly.

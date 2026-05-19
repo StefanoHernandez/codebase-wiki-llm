@@ -1,105 +1,147 @@
 ---
-description: Bootstrap a living wiki in this repo. Creates wiki/ with SCHEMA.md, index.md, log.md, overview.md, and module pages, based on an initial analysis of the codebase.
+description: Bootstrap an engineering-first software project wiki under wiki/.
 ---
+
+<!-- Generated from workflows/wiki-init.md. Do not edit directly. -->
 
 # /wiki-init
 
 Bootstrap the wiki for this repository. Run once per repo.
 
-**Requires**: the `wiki-maintainer` skill. Load it and follow its conventions.
+Requires the wiki maintainer skill. Follow `wiki/SCHEMA.md` if it exists;
+otherwise use the default schema.
 
-## Step 1 — Check preconditions
+## Step 1 - Check preconditions
 
-- If `wiki/` already exists with an `index.md`, stop and ask the user whether to (a) skip, (b) re-init (they must confirm deletion), or (c) run `/wiki-ingest` instead to refresh content.
-- If the current directory does not look like a code repo (no source files, no package manifest), ask the user to confirm before proceeding.
+- If `wiki/index.md` already exists, stop and ask whether to skip, re-init, or
+  run `/wiki-ingest` instead. Re-init requires explicit confirmation before
+  deleting or replacing anything.
+- If the current directory does not look like a code repo or software project,
+  ask for confirmation before proceeding.
 
-## Step 2 — Survey the repo
+## Step 2 - Survey the repo
 
-Do a read-only scan to understand the shape of the codebase:
+Do a read-only scan. Do not read every source file yet.
 
-1. List the top-level directories and files.
-2. Read `README.md` if present.
-3. Read any obviously architecture-shaping docs (`ARCHITECTURE.md`, `context_map.md`, `project_status.md`, `BUILD_PHASES.md`, `docs/architecture/*`).
-4. Read the package manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, etc.) to identify framework/stack.
-5. Identify the main source directory (`src/`, `lib/`, `app/`, or the repo root if it's a flat project like a single HTML file).
-6. Note any existing tests directory.
+Collect:
 
-Do **not** read every source file yet — just enough to form a mental map.
+1. top-level files and directories;
+2. README and architecture/project docs;
+3. package manifests and toolchain files;
+4. main source directories and entrypoints;
+5. tests, CI, build, lint, and deploy signals;
+6. config/env/migration/runtime signals;
+7. project docs, roadmap, status, proposal, or communication material;
+8. existing agent/context/changelog files that should be migrated into
+   `wiki/agent/` if in scope.
 
-## Step 3 — Propose the plan to the user
+## Step 3 - Propose the plan
 
-Show the user, in a concise message:
+Tell the user:
 
-- One-sentence summary of what this project appears to be.
-- The default wiki structure that will be created.
-- The list of modules/areas you plan to create pages for (derived from top-level source directories or natural groupings if the repo is flat).
-- Any existing root-level docs that will be superseded and proposed for retirement *after* ingest (do not delete yet).
-- Ask: **"Proceed with this plan? Adjust anything?"**
+- one sentence describing the project;
+- which engineering pages will be populated;
+- which modules/areas will get module pages;
+- which project pages have enough evidence to populate;
+- which project-docs pages will be stubs versus evidence-backed pages;
+- any legacy docs proposed for later retirement;
+- the initial agent context/activity/handoff pages that will be created.
 
-Wait for confirmation before writing files.
+Ask: `Proceed with this plan? Adjust anything?`
 
-## Step 4 — Create the wiki scaffold
+Wait for confirmation before writing.
+
+## Step 4 - Create the scaffold
 
 After confirmation:
 
-1. Create `wiki/` directory.
-2. Locate `default-schema.md` from the `wiki-maintainer` skill and copy it to `wiki/SCHEMA.md`. The skill may be installed either at workspace level (`<repo>/.agents/skills/wiki-maintainer/`) or globally (`~/.gemini/antigravity/skills/wiki-maintainer/`). Check workspace first, fall back to global. If neither exists, stop and tell the user the skill is missing.
-3. Fill the "What this repo is about" section in SCHEMA.md with the one-paragraph description from Step 3.
-4. Create empty-ish stubs for:
-   - `wiki/index.md` (with "# Wiki Index" heading and empty categories)
-   - `wiki/log.md` (with the first log entry — see Step 7)
-   - `wiki/overview.md` (write this from your Step 2 survey)
-   - `wiki/architecture/decisions.md` (empty stub — ADRs will be added as you discover them)
-   - `wiki/architecture/data-model.md` (empty stub, or populate if data shapes are already clear)
-   - `wiki/glossary.md` (empty stub)
-   - `wiki/modules/` directory (leave empty; Step 5 populates it)
+1. Create `wiki/` and the default directory tree.
+2. Copy or adapt the default schema to `wiki/SCHEMA.md`.
+3. Create pages with frontmatter: `title`, `updated`, `sources`,
+   `source_commit` when git is available, and `confidence`.
+4. Populate only what is supported by evidence. Use explicit stubs for pages
+   that matter but have no verified content yet.
 
-Every created page gets frontmatter per the skill's conventions (`title`, `updated`, `sources`, `source_commit` if git is available, `confidence`).
+Create at least:
 
-## Step 5 — Write module pages
+- `wiki/index.md`
+- `wiki/log.md`
+- `wiki/overview.md`
+- core `wiki/engineering/*` pages
+- relevant `wiki/modules/*` pages
+- `wiki/project/status.md` if any project-state evidence exists
+- `wiki/agent/context.md`, `wiki/agent/activity.md`, `wiki/agent/handoff.md`
+- `wiki/glossary.md`
 
-For each module/area identified in Step 3:
+## Step 5 - Write engineering pages first
 
-1. Read the files in that module.
-2. Write `wiki/modules/<name>.md` covering:
-   - What this module does (1-3 sentences)
-   - Key files and their roles (markdown table)
-   - Public interface (exported functions/classes/endpoints)
-   - Dependencies (what it uses, what uses it)
-   - A Mermaid diagram if a flow or structure is non-obvious
-3. Set confidence based on how well the code reads (`high` if the code is clearly written, `medium` if there's meaningful ambiguity).
+Engineering is authoritative. Populate:
 
-For flat projects (e.g. a single HTML file), create a single module page per logical concern (e.g. `modules/ui.md`, `modules/api-client.md`) if the file is large enough to warrant splitting, otherwise skip module pages and put everything in `overview.md`.
+- architecture and data model from code/config/docs;
+- development/testing from package scripts, test files, CI, and README;
+- operations from deploy/runtime/config evidence;
+- troubleshooting only from observed or documented failure modes;
+- change-map with "if you need to change X, start here" guidance.
 
-## Step 6 — Update index.md
+## Step 6 - Write module pages
 
-Populate `wiki/index.md` with a navigable catalog of every page created. Group by category (Overview, Architecture, Modules, Reference). One line per entry: `- [page title](path.md) — one-line summary`.
+For each selected module/area, write:
 
-## Step 7 — Write the initial log entry
+- purpose;
+- key files;
+- public interface;
+- data/control flow;
+- invariants;
+- how to change this safely;
+- verification;
+- common failure modes;
+- dependencies;
+- related tests;
+- open risks.
 
-Append to `wiki/log.md`:
+Omit unsupported sections rather than inventing.
+
+## Step 7 - Write project and project-docs pages
+
+Populate `project/` from evidence only. Link risks, requirements, milestones,
+and decisions back to engineering pages.
+
+Populate `project-docs/` as reusable communication material only when claims
+are supported. Put unsupported but useful future claims in `project-docs/evidence.md`
+as gaps or hypotheses.
+
+## Step 8 - Update index and log
+
+Make `index.md` a complete catalog grouped by Overview, Engineering, Modules,
+Project, Project Docs, Agent, and Reference.
+
+Append to `log.md`:
 
 ```markdown
 ## [YYYY-MM-DD] init | bootstrapped wiki
 - Scope: <one line>
 - Pages created: <count>
 - Modules: <list>
-- Proposed for retirement: <list of legacy docs, or "none">
+- Project/project-docs pages populated: <list or none>
+- Proposed for retirement: <list or none>
 - Follow-up: run /wiki-lint to verify coverage
 ```
 
-## Step 8 — Report to user
+Append the initial entry to `wiki/agent/activity.md` with agent, trigger,
+intent, actions, changed wiki files, validation, decisions, and follow-up.
 
-Reply with:
+## Step 9 - Report
 
-- What was created (page count, directory tree under `wiki/`)
-- Any legacy root-level docs proposed for retirement (list them; do NOT delete)
-- Suggested next step: **run `/wiki-lint` to verify coverage and catch gaps**
-- If the skill was found at workspace level (not global), remind the user: once the wiki is working well, consider promoting the skill + workflows to `~/.gemini/antigravity/` for use across all their repos (see `.agents/README.md`).
+Report:
+
+- what was created;
+- what was populated versus left as stubs;
+- proposed legacy retirement;
+- suggested next step: `/wiki-lint`.
 
 ## Guardrails
 
-- Never modify source code during init.
-- Never delete files during init, including legacy docs — only *propose* retirement.
-- If the repo is huge (>500 source files), ask the user to narrow the scope before proceeding.
-- Keep the initial wiki small and accurate. It's better to have 6 confident pages than 20 half-guessed ones. The wiki grows through `/wiki-ingest` and `/wiki-sync`.
+- Never modify source files during init.
+- Never delete legacy docs during init.
+- If the repo is huge, ask the user to narrow scope.
+- Prefer fewer accurate pages over many generic pages.

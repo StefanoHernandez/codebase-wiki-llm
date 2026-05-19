@@ -1,97 +1,96 @@
 ---
 title: Wiki Sync
-description: Fast incremental update from recent diffs. Meant to run automatically after tasks that changed source files. Quiet by default — only reports what changed.
+description: Surgically sync existing wiki pages after small source or project changes.
 ---
+
+<!-- Generated from workflows/wiki-sync.md. Do not edit directly. -->
 
 # /wiki-sync
 
-Fast, low-ceremony update of the wiki based on what has changed recently.
+Fast, surgical wiki update based on small recent changes.
 
-This is the workflow that runs automatically (via the workspace rule) after tasks that touched source files. It's meant to feel invisible when there's nothing to do, and concise when there is.
+Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
 
-**Requires**: the `wiki-maintainer` skill. Respect `wiki/SCHEMA.md`.
+## Step 1 - Fast preconditions
 
-## Step 1 — Fast preconditions
+- If `wiki/` does not exist, exit silently.
+- If no source/config/project files changed, report `wiki-sync: nothing to do.`
 
-- If `wiki/` does not exist → exit silently. No wiki = nothing to sync.
-- If no source files have changed since the last sync → exit with a single line: `wiki-sync: nothing to do.`
+## Step 2 - Determine changes
 
-## Step 2 — Determine what changed
+Prefer git:
 
-The agent may have just finished a task whose changes are **uncommitted** in the working tree. Sync must detect those, not only committed changes.
+1. `git status --porcelain` for uncommitted and untracked files.
+2. `git diff --name-only HEAD` for working-tree changes.
+3. For each wiki page source, `git log <source_commit>..HEAD -- <source>` for
+   committed changes since the page was written.
 
-**If git is available** (preferred):
+If git is unavailable, use mtimes.
 
-1. Get the list of currently-modified files (staged + unstaged + untracked, minus ignored):
-   - `git status --porcelain` — shows uncommitted changes
-   - `git diff --name-only HEAD` — shows changes vs HEAD (staged + unstaged)
-2. Additionally, for each wiki page, collect files in its `sources:` frontmatter whose current git hash differs from the page's `source_commit`:
-   - `git log --oneline <source_commit>..HEAD -- <sources_file>` — commits that touched the file since the page was written
-3. Union these two sets to get the full list of changed files (uncommitted + committed-since-last-page-update).
+Filter out paths excluded by `wiki/SCHEMA.md` and `wiki/` itself.
 
-**If not a git repo**: use file mtimes. Find source files whose mtime is newer than the `updated` date of any wiki page that lists them in `sources:`.
+## Step 3 - Map changes to pages
 
-Filter out files that are out of scope per SCHEMA.md (node_modules, build output, etc.) and the `wiki/` directory itself.
+For each changed file, find pages whose `sources:` include it or whose prose
+references the relevant module/area.
 
-If the change list is empty → exit with `wiki-sync: nothing to do.`
+Also map common change types:
 
-## Step 3 — Map changed files to affected pages
+- source/API changes -> `modules/*`, `engineering/architecture.md`,
+  `engineering/data-model.md`, `engineering/change-map.md`;
+- tests/CI changes -> `engineering/testing.md`;
+- setup/tooling changes -> `engineering/development.md`;
+- deploy/config/env changes -> `engineering/operations.md`;
+- bugfix/failure-mode changes -> `engineering/troubleshooting.md`;
+- roadmap/status/risk docs -> `project/*`;
+- reusable evidence or demos -> `project-docs/evidence.md`,
+  `project-docs/demo-materials.md`;
+- non-trivial agent work -> `agent/activity.md`, `agent/handoff.md`.
 
-For each changed source file:
-- Find wiki pages whose `sources:` frontmatter includes that file.
-- Also consider pages that reference that file's module in prose.
+If more than roughly 10 pages are affected, stop and recommend `/wiki-ingest`
+or `/wiki-lint`.
 
-Build a dedup'd list of pages to update.
+## Step 4 - Update affected existing pages
 
-**Limit**: if more than ~10 pages would be affected, this is probably not a "sync" — it's a significant change. Exit with:
+Apply minimum edits:
 
-> `wiki-sync: <N> pages affected — this looks substantial. Suggest `/wiki-ingest` for a deliberate pass, or `/wiki-lint` to catch drift. Not syncing automatically.`
+- fix factual claims;
+- update verification commands or failure modes;
+- update frontmatter;
+- add supersession notes for corrected claims;
+- lower confidence when evidence is incomplete.
 
-The goal of sync is the small-update case. Large changes deserve deliberate attention.
+Do not create new pages during sync. If a new page is needed, report the gap and
+recommend `/wiki-ingest`.
 
-## Step 4 — Update affected pages
+## Step 5 - Update index only if necessary
 
-For each affected page (in the small-update case):
+Touch `index.md` only when summaries, titles, or page availability changed.
 
-1. Re-read the page and the changed source files.
-2. Apply **minimum edits** to keep it accurate:
-   - Fix factual claims that no longer match the code.
-   - Update frontmatter: `updated`, `source_commit`, possibly lower `confidence` if there's ambiguity.
-   - If a claim needs correcting, add a supersession note (per skill conventions).
-3. If a new file exists that has no page but belongs to an existing module, extend that module's page rather than creating a new page. (Creating new pages is `/wiki-ingest` territory.)
-4. Do NOT reorganize, restructure, or rewrite broadly. Sync is surgical.
+## Step 6 - Append log/activity
 
-If you would need to create a new page to capture a change, **don't** — note it in the report and recommend `/wiki-ingest`.
-
-## Step 5 — Update index.md (only if necessary)
-
-Usually index.md doesn't change during sync. Only touch it if:
-- A page's one-line summary is now misleading given the changes.
-- A page was retitled.
-
-## Step 6 — Append to log.md
+Append to `log.md`:
 
 ```markdown
 ## [YYYY-MM-DD] sync | <N> pages updated
 - Changed files: <short list or count>
 - Pages updated: <list>
-- Follow-ups: <any "recommended /wiki-ingest" or "none">
+- Follow-ups: <none or recommended ingest/lint>
 ```
 
-## Step 7 — Report briefly
+Append to `agent/activity.md` if the sync closes a non-trivial task or records a
+decision useful to future agents.
 
-One of:
+## Step 7 - Report briefly
 
-- **Nothing changed**: `wiki-sync: nothing to do.` (one line, done)
-- **Small update applied**: brief summary: `wiki-sync: updated <list of pages> based on changes to <files>. <one-line note of anything interesting>.`
-- **Too big for sync**: as described in Step 3 — recommend `/wiki-ingest` or `/wiki-lint`, do nothing else.
+Keep output short:
 
-Keep the report under ~5 lines whenever possible. This runs often; it should not be noisy.
+- `wiki-sync: nothing to do.`
+- or `wiki-sync: updated <pages> based on <files>. <follow-up>`
 
 ## Guardrails
 
-- **Never create new pages during sync** — that's ingest territory.
-- **Never delete pages during sync.**
-- **Never touch source code.**
-- **Never run if the user is mid-conversation on something unrelated** — the rule should only fire sync after a task that plausibly changed code (see the workspace rule for trigger logic).
-- If unsure whether a change is significant, err toward quiet — don't edit. Let `/wiki-lint` catch it later.
+- Never create new pages during sync.
+- Never delete pages during sync.
+- Never touch source code.
+- If unsure whether the change is small, do not edit; recommend ingest or lint.

@@ -1,86 +1,175 @@
 ---
 title: Wiki Schema
-updated: 2026-04-14
+updated: 2026-05-19
 confidence: high
 ---
 
+<!-- Generated from default-schema.md. Do not edit directly. -->
+
 # Wiki Schema for This Repo
 
-> This file is the repo-specific constitution for the wiki. Edit freely.
-> The wiki-maintainer skill reads this file before any operation and respects its overrides.
+This file is the repo-specific constitution for the wiki. Edit it when the
+repository needs different conventions. Wiki workflows must read this file
+before editing wiki content.
+
+## Mission
+
+This wiki is an engineering-first software project wiki. It exists to help
+engineers change the software safely, help project leads understand state and
+risk, preserve agent activity and handoff context, and prepare reusable project
+documentation.
+
+## Truth hierarchy
+
+1. Source code, tests, migrations, configs, CI, and runtime manifests.
+2. `wiki/engineering/` and `wiki/modules/`.
+3. `wiki/project/`.
+4. `wiki/project-docs/`.
+5. `wiki/agent/` and historical logs.
+
+Engineering is authoritative. Project and project-docs pages must not
+contradict engineering pages or source evidence.
 
 ## Scope
 
-**In scope** (the wiki describes these):
-- Stable foundational code: Core architecture, domain rules, data models
-- Core interfaces: Main API clients, service boundaries, major UI structural layouts
-- Configuration: `package.json`, `*.toml`, `*.yaml`, migrations
-- Architecture-shaping documents: README, existing architecture docs
+**In scope**:
 
-**Out of scope** (ignore these):
-- Fast-moving implementation details, internal function logic, ongoing refactors
-- `node_modules/`, `dist/`, `build/`, `.next/`, `__pycache__/`
-- `outputs/`, generated artifacts, logs, fixtures
-- `.git/`, `.agents/`, `wiki/` itself
-- Any `*.lock` file, large binary assets
+- Core architecture, module boundaries, data/control flows, and invariants.
+- Public interfaces: APIs, CLIs, SDKs, jobs, events, services, and exported
+  functions/classes.
+- Development workflow: setup, commands, tests, linters, build, CI.
+- Runtime/operations: configuration, env vars, deploy, migrations, external
+  services, monitoring, troubleshooting.
+- Project management: status, roadmap, milestones, requirements, risks, and
+  decisions.
+- Reusable project documentation: briefs, value proposition, use cases,
+  audience, impact, evidence, demo material, FAQ.
+- Agent continuity: context, activity, and handoff notes under `wiki/agent/`.
+
+**Out of scope**:
+
+- Generated artifacts, build output, caches, logs, fixtures, and vendored
+  dependencies unless they define public behavior.
+- Internal implementation details that change frequently and do not affect how
+  engineers safely change the system.
+- `.git/`, dependency folders, virtual environments, `dist/`, `build/`,
+  `.next/`, `node_modules/`, `__pycache__/`, and lockfiles unless the repo
+  schema explicitly says otherwise.
+- Unsupported claims in `project-docs/`.
 
 ## Directory layout
 
-Default layout from the skill applies. Override here if needed:
-
-```
+```text
 wiki/
-├── SCHEMA.md           (this file)
 ├── index.md
+├── SCHEMA.md
 ├── log.md
 ├── overview.md
-├── architecture/
-│   ├── decisions.md
-│   └── data-model.md
+├── engineering/
+│   ├── architecture.md
+│   ├── data-model.md
+│   ├── development.md
+│   ├── testing.md
+│   ├── operations.md
+│   ├── troubleshooting.md
+│   └── change-map.md
 ├── modules/
-│   └── <one page per major area>
+│   └── <module-or-area>.md
+├── project/
+│   ├── status.md
+│   ├── roadmap.md
+│   ├── milestones.md
+│   ├── risks.md
+│   ├── requirements.md
+│   └── decisions.md
+├── project-docs/
+│   ├── project-brief.md
+│   ├── value-proposition.md
+│   ├── use-cases.md
+│   ├── audience.md
+│   ├── impact.md
+│   ├── evidence.md
+│   ├── demo-materials.md
+│   └── faq.md
+├── agent/
+│   ├── context.md
+│   ├── activity.md
+│   └── handoff.md
 └── glossary.md
 ```
 
 ## Page granularity
 
-- **One module page per coherent area.** A "module" is whatever unit the codebase naturally divides into — routes, services, components, workers, whatever. Err on the side of fewer, fatter pages at small scale; split when a page exceeds ~200 lines.
-- **One ADR per significant decision.** Significant = "someone would ask why we did it this way."
-- **Glossary entry for any domain term** that isn't obvious to a developer new to the repo.
+- One module page per coherent code area.
+- Keep `engineering/` pages cross-cutting and operational.
+- Keep `project/` pages about delivery state, requirements, risks, and
+  decisions.
+- Keep `project-docs/` pages reusable and evidence-backed.
+- Keep `agent/` pages concise and useful for future sessions.
+
+## Module page template
+
+Use these sections when evidence exists:
+
+```markdown
+## Purpose
+## Key files
+## Public interface
+## Data/control flow
+## Invariants
+## How to change this safely
+## Verification
+## Common failure modes
+## Dependencies
+## Related tests
+## Open risks
+```
 
 ## Decay policy
 
-- **Fast decay** (re-verify on any source change): `modules/*`, `architecture/data-model.md`, `overview.md`
-- **Slow decay** (re-verify only on major restructure): `architecture/decisions.md`, `glossary.md`
-- Lint flags `modules/*` pages as `low` confidence if 5+ commits have touched their `sources:` files since `source_commit`.
+- Fast decay: `modules/*`, `engineering/data-model.md`,
+  `engineering/testing.md`, `engineering/operations.md`,
+  `engineering/change-map.md`.
+- Medium decay: `overview.md`, `engineering/architecture.md`,
+  `project/status.md`, `project/roadmap.md`, `project/risks.md`.
+- Slow decay: `project/decisions.md`, `project-docs/*`, `glossary.md`,
+  `agent/context.md`.
 
-## Redundant legacy docs
+Lint should flag pages as low confidence when five or more commits touched their
+listed sources since `source_commit`, when sources are missing, or when claims
+are unsupported.
 
-If any of these exist at the repo root, lint should propose retiring them after their content is absorbed:
+## Legacy docs
+
+If these root-level docs exist and their content is absorbed into the wiki, lint
+may propose retirement:
+
 - `context_map.md`
 - `project_status.md`
 - `BUILD_PHASES.md`
-- `ARCHITECTURE.md` (if superseded by `wiki/architecture/`)
+- `ARCHITECTURE.md`
+- `ROADMAP.md`
+- `CHANGELOG.md` if it duplicates `wiki/agent/activity.md` or `wiki/log.md`
 
-**Never delete automatically.** Propose, let the human decide.
+Never delete automatically.
 
 ## Style preferences
 
-- Use Mermaid for: request flows, data model relationships, state machines, module dependency graphs.
-- Use markdown tables for: API endpoints, config options, model/tier comparisons.
-- Cross-references: standard relative markdown links (e.g. `[see decisions](architecture/decisions.md)`). Do not use `[[wikilink]]` syntax — keeps pages portable across renderers.
-- Dates: ISO 8601 (`2026-04-14`).
-- Headings: sentence case (`## Data model`, not `## Data Model`).
+- Use markdown tables for file maps, commands, APIs, config, risks,
+  requirements, and claim support.
+- Use Mermaid for flows, module graphs, state machines, and architecture maps.
+- Use standard relative markdown links.
+- Dates use ISO format (`YYYY-MM-DD`).
+- Headings use sentence case.
 
-## Question-asking policy
+## Question policy
 
-- On `/wiki-init`: ask once to confirm the scope before writing anything.
-- On `/wiki-ingest` with no path: ask what to ingest.
-- On `/wiki-sync`: do not ask; just run and report.
-- On `/wiki-lint`: do not ask; produce the report.
+- `/wiki-init`: ask once to confirm scope before writing.
+- `/wiki-ingest` without a target: ask what to ingest.
+- `/wiki-sync`: do not ask; run only for small source changes.
+- `/wiki-lint`: do not ask; produce a read-only report.
 
 ## What this repo is about
 
-> Fill this in during /wiki-init. One paragraph. This sentence seeds every other page.
-
-_(placeholder — /wiki-init will replace this)_
+Replace this section during `/wiki-init` with one concise paragraph describing
+the repository.
