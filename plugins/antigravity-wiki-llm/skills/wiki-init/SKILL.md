@@ -1,6 +1,6 @@
 ---
-title: Wiki Init
-description: Bootstrap an engineering-first software project wiki under wiki/.
+name: wiki-init
+description: Bootstrap an engineering-first software project wiki under wiki/. Use when the user says /wiki-init, wiki init, bootstrap wiki, initialize codebase wiki, or asks to start a project wiki.
 ---
 
 <!-- Generated from workflows/wiki-init.md. Do not edit directly. -->

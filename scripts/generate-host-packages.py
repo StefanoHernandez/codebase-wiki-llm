@@ -146,14 +146,33 @@ def generate_claude() -> None:
         )
 
 
+ANTIGRAVITY_PLUGIN_JSON = """{
+  "name": "wiki-maintainer",
+  "version": "0.4.0",
+  "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
+}
+"""
+
+
+ANTIGRAVITY_WORKFLOW_TRIGGERS = {
+    "wiki-init": "Use when the user says /wiki-init, wiki init, bootstrap wiki, initialize codebase wiki, or asks to start a project wiki.",
+    "wiki-ingest": "Use when the user says /wiki-ingest, wiki ingest, document this area in the wiki, or asks to add source knowledge to wiki/.",
+    "wiki-sync": "Use when the user says /wiki-sync, wiki sync, update wiki from recent changes, or after a completed coding task in a repo that already has wiki/.",
+    "wiki-lint": "Use when the user says /wiki-lint, wiki lint, audit wiki, or check wiki health.",
+}
+
+
 def generate_antigravity() -> None:
+    (ROOT / "plugins/antigravity-wiki-llm/plugin.json").write_text(
+        ANTIGRAVITY_PLUGIN_JSON, encoding="utf-8"
+    )
     write(
-        "plugins/antigravity-wiki-llm/.agent/rules/codebase-wiki.md",
+        "plugins/antigravity-wiki-llm/rules/wiki.md",
         "rules/wiki-context.md",
         rule_content("Wiki context + auto-sync", "rules/wiki-context.md"),
     )
     write(
-        "plugins/antigravity-wiki-llm/.agent/skills/codebase-wiki-maintainer/SKILL.md",
+        "plugins/antigravity-wiki-llm/skills/wiki-maintainer/SKILL.md",
         "maintainer.md",
         skill_content(
             "wiki-maintainer",
@@ -162,15 +181,16 @@ def generate_antigravity() -> None:
         ),
     )
     write(
-        "plugins/antigravity-wiki-llm/.agent/skills/codebase-wiki-maintainer/default-schema.md",
+        "plugins/antigravity-wiki-llm/skills/wiki-maintainer/default-schema.md",
         "default-schema.md",
         read("default-schema.md"),
     )
     for slug, meta in WORKFLOWS.items():
+        description = f"{meta['description']} {ANTIGRAVITY_WORKFLOW_TRIGGERS[slug]}"
         write(
-            f"plugins/antigravity-wiki-llm/.agent/workflows/{slug}.md",
+            f"plugins/antigravity-wiki-llm/skills/{slug}/SKILL.md",
             meta["source"],
-            workflow_content(meta["title"], meta["description"], meta["source"]),
+            skill_content(slug, description, meta["source"]),
         )
 
 

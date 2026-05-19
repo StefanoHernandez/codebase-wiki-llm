@@ -1,6 +1,6 @@
 ---
-title: Wiki Ingest
-description: Deep-dive into a file, directory, feature, or topic and update the wiki.
+name: wiki-ingest
+description: Deep-dive into a file, directory, feature, or topic and update the wiki. Use when the user says /wiki-ingest, wiki ingest, document this area in the wiki, or asks to add source knowledge to wiki/.
 ---
 
 <!-- Generated from workflows/wiki-ingest.md. Do not edit directly. -->

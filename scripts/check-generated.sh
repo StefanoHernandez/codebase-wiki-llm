@@ -14,9 +14,9 @@ GENERATED_PATHS=(
   "plugins/codebase-wiki-llm/skills"
   "plugins/wiki-maintainer/commands"
   "plugins/wiki-maintainer/skills/wiki-maintainer"
-  "plugins/antigravity-wiki-llm/.agent/rules/codebase-wiki.md"
-  "plugins/antigravity-wiki-llm/.agent/workflows"
-  "plugins/antigravity-wiki-llm/.agent/skills/codebase-wiki-maintainer"
+  "plugins/antigravity-wiki-llm/plugin.json"
+  "plugins/antigravity-wiki-llm/rules"
+  "plugins/antigravity-wiki-llm/skills"
 )
 
 cd "$ROOT_DIR"

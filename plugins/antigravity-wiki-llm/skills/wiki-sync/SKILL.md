@@ -1,6 +1,6 @@
 ---
-title: Wiki Sync
-description: Surgically sync existing wiki pages after small source or project changes.
+name: wiki-sync
+description: Surgically sync existing wiki pages after small source or project changes. Use when the user says /wiki-sync, wiki sync, update wiki from recent changes, or after a completed coding task in a repo that already has wiki/.
 ---
 
 <!-- Generated from workflows/wiki-sync.md. Do not edit directly. -->

@@ -101,24 +101,24 @@ Update or remove later:
 
 ### On Antigravity
 
-Clone this repository, then run:
+Antigravity auto-discovers plugins dropped into its plugins directory. Clone the
+repo, then symlink (or copy) the plugin folder:
 
 ```bash
-scripts/install-antigravity-wiki-llm.sh
+git clone https://github.com/StefanoHernandez/codebase-wiki-llm.git
+mkdir -p ~/.gemini/config/plugins
+ln -s "$PWD/codebase-wiki-llm/plugins/antigravity-wiki-llm" ~/.gemini/config/plugins/wiki-maintainer
 ```
 
-The installer copies the Antigravity pack from [plugins/antigravity-wiki-llm](plugins/antigravity-wiki-llm) into:
+Use `cp -R` instead of `ln -s` if you do not want updates via `git pull`.
 
-```text
-~/.gemini/antigravity/
-├── AGENTS.md
-├── GEMINI.md
-├── global_workflows/
-├── rules/
-└── skills/
-```
+For workspace-scoped installs, place the plugin under
+`.agents/plugins/wiki-maintainer/` at the workspace root instead.
 
-It does not edit `~/.gemini/GEMINI.md` or `~/.gemini/AGENTS.md`, so Gemini CLI global rules are not modified.
+The plugin contains a `plugin.json` marker, a `rules/wiki.md` always-on rule,
+and a `skills/` tree where the maintainer knowledge and the four operations
+(`wiki-init`, `wiki-ingest`, `wiki-sync`, `wiki-lint`) live as auto-discovered
+skills — no install script and no workflows file.
 
 ## Uninstall
 
@@ -149,33 +149,27 @@ Optionally remove the marketplace too:
 
 ### From Antigravity
 
-Run the uninstall script from this repository:
+Remove the plugin folder or symlink:
 
 ```bash
-scripts/uninstall-antigravity-wiki-llm.sh
+rm ~/.gemini/config/plugins/wiki-maintainer
 ```
 
-For non-interactive removal:
-
-```bash
-scripts/uninstall-antigravity-wiki-llm.sh --yes
-```
-
-The script removes only the files installed by
-`scripts/install-antigravity-wiki-llm.sh`. It respects `ANTIGRAVITY_HOME`; when
-unset, it targets `~/.gemini/antigravity`.
+If you copied the folder rather than symlinking, use `rm -rf` against the same
+path. For workspace-scoped installs remove `.agents/plugins/wiki-maintainer/`
+under the workspace root instead.
 
 ## Why three plugin folders?
 
 Codex, Claude Code, and Antigravity use different plugin formats:
 
-| Aspect       | Codex                              | Claude Code                       | Antigravity                              |
-| ------------ | ---------------------------------- | --------------------------------- | ---------------------------------------- |
-| Discovery    | `.agents/plugins/marketplace.json` | `.claude-plugin/marketplace.json` | `scripts/install-antigravity-wiki-llm.sh` |
-| Package path | `plugins/codebase-wiki-llm`        | `plugins/wiki-maintainer`         | `plugins/antigravity-wiki-llm`           |
-| Manifest     | `.codex-plugin/plugin.json`        | `plugin.json`                     | `GEMINI.md`, `AGENTS.md`, `.agent/`      |
-| Triggers     | Skills (one per operation)         | Slash commands + skills           | Workflows + rules + skill                |
-| Package name | `codebase-wiki-llm`                | `wiki-maintainer`                 | `antigravity-wiki-llm`                   |
+| Aspect       | Codex                              | Claude Code                       | Antigravity                                 |
+| ------------ | ---------------------------------- | --------------------------------- | ------------------------------------------- |
+| Discovery    | `.agents/plugins/marketplace.json` | `.claude-plugin/marketplace.json` | `~/.gemini/config/plugins/` auto-scan       |
+| Package path | `plugins/codebase-wiki-llm`        | `plugins/wiki-maintainer`         | `plugins/antigravity-wiki-llm`              |
+| Manifest     | `.codex-plugin/plugin.json`        | `plugin.json`                     | `plugin.json` + `rules/` + `skills/`        |
+| Triggers     | Skills (one per operation)         | Slash commands + skills           | Skills (one per operation) + always-on rule |
+| Package name | `codebase-wiki-llm`                | `wiki-maintainer`                 | `wiki-maintainer`                           |
 
 The host-specific paths do not collide, so a single repo serves all variants while keeping each host's expected format intact.
 
@@ -207,7 +201,7 @@ The generator writes the host-specific files required by each environment:
 
 - Codex skills under `plugins/codebase-wiki-llm/skills/`
 - Claude Code commands and skills under `plugins/wiki-maintainer/`
-- Antigravity rules, workflows, and skill under `plugins/antigravity-wiki-llm/.agent/`
+- Antigravity plugin under `plugins/antigravity-wiki-llm/` (`plugin.json`, `rules/`, `skills/`)
 
 Generated files include a `Generated from ...` marker and should not be edited directly. Commit both the canonical changes and the generated package updates before pushing.
 
@@ -217,7 +211,6 @@ Recommended release workflow:
 # edit canonical/*
 scripts/generate-host-packages.py
 scripts/check-generated.sh
-scripts/test-antigravity-pack.sh
 git diff
 git add .
 git commit -m "Update wiki workflow prompts"
@@ -225,12 +218,9 @@ git push
 ```
 
 After push, Codex and Claude Code marketplaces consume the updated generated
-package files from this repository. Antigravity users should pull the repo and
-rerun:
-
-```bash
-scripts/install-antigravity-wiki-llm.sh --yes
-```
+package files from this repository. Antigravity users who installed via
+symlink see updates after `git pull`; users who copied the folder should rerun
+the copy from the Install section.
 
 ## Commands
 
@@ -263,7 +253,6 @@ commands, rules, and workflows that operate on the current repository's local
 canonical/                                  <- shared prompt sources
 scripts/generate-host-packages.py           <- generates host package files
 scripts/check-generated.sh                  <- verifies generated files are current
-scripts/install-antigravity-wiki-llm.sh     <- Antigravity installer
 plugins/
 ├── codebase-wiki-llm/                      Codex variant
 │   ├── .codex-plugin/plugin.json
@@ -277,12 +266,14 @@ plugins/
 │       ├── wiki-maintainer/
 │       └── wiki-context/
 └── antigravity-wiki-llm/                   Antigravity variant
-    ├── GEMINI.md
-    ├── AGENTS.md
-    └── .agent/
-        ├── rules/
-        ├── workflows/
-        └── skills/codebase-wiki-maintainer/
+    ├── plugin.json
+    ├── rules/wiki.md                       (always-on rule)
+    └── skills/
+        ├── wiki-maintainer/                 (knowledge + default schema)
+        ├── wiki-init/
+        ├── wiki-ingest/
+        ├── wiki-sync/
+        └── wiki-lint/
 ```
 
 ## Manual local install (Codex)

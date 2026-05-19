@@ -1,6 +1,6 @@
 ---
-title: Wiki Lint
-description: Run a read-only health check for staleness, drift, gaps, and unsupported claims.
+name: wiki-lint
+description: Run a read-only health check for staleness, drift, gaps, and unsupported claims. Use when the user says /wiki-lint, wiki lint, audit wiki, or check wiki health.
 ---
 
 <!-- Generated from workflows/wiki-lint.md. Do not edit directly. -->
