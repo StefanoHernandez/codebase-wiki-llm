@@ -1,5 +1,6 @@
 {
   "name": "stefano-wiki",
+  "description": "Living wiki for codebases — keeps wiki/ in sync with source code via /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint.",
   "owner": {
     "name": "Stefano Paradisi",
     "url": "https://github.com/StefanoHernandez"

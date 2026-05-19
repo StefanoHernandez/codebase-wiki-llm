@@ -23,14 +23,19 @@ The `wiki-maintainer` skill defines the conventions: page frontmatter, confidenc
 
 ## Installation
 
-In Claude Code:
+In Claude Code, run each command on its own line (press Enter between them):
 
 ```
-/plugin marketplace add StefanoHernandez/claude-wiki-plugin
+/plugin marketplace add https://github.com/StefanoHernandez/claude-wiki-plugin.git
+```
+
+```
 /plugin install wiki-maintainer@stefano-wiki
 ```
 
 That's it. The four `/wiki-*` commands are now available and the skill loads automatically when you work under `wiki/`.
+
+> **Note**: use the full HTTPS URL above, not the `User/Repo` shorthand. On some Claude Code builds (notably Linux) the shorthand resolves to an SSH clone (`git@github.com:...`) which fails for users without an SSH key configured. HTTPS works for everyone, including anonymous clones.
 
 ### Update
 
