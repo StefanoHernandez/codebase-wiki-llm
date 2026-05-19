@@ -38,9 +38,9 @@ The installer copies files to:
 │   ├── wiki-sync.md
 │   └── wiki-lint.md
 ├── rules/
-│   └── codebase-wiki.md
+│   └── wiki.md
 └── skills/
-    └── codebase-wiki-maintainer/
+    └── wiki-maintainer/
         ├── SKILL.md
         └── default-schema.md
 ```

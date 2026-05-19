@@ -5,9 +5,9 @@ ingest, sync, lint, or consult a repository-local wiki.
 
 Pack locations after global install:
 
-- Skill: `~/.gemini/antigravity/skills/codebase-wiki-maintainer/SKILL.md`
+- Skill: `~/.gemini/antigravity/skills/wiki-maintainer/SKILL.md`
 - Workflows: `~/.gemini/antigravity/global_workflows/wiki-*.md`
-- Rules: `~/.gemini/antigravity/rules/codebase-wiki.md`
+- Rules: `~/.gemini/antigravity/rules/wiki.md`
 
 Core rule: wiki operations may read source files as evidence, but they write
 only under the current repository's `wiki/` directory unless the user explicitly
