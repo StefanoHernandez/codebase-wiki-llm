@@ -106,11 +106,14 @@ repo, then symlink (or copy) the plugin folder:
 
 ```bash
 git clone https://github.com/StefanoHernandez/codebase-wiki-llm.git
+cd codebase-wiki-llm
 mkdir -p ~/.gemini/config/plugins
-ln -s "$PWD/codebase-wiki-llm/plugins/antigravity-wiki-llm" ~/.gemini/config/plugins/wiki-maintainer
+ln -s "$PWD/plugins/antigravity-wiki-llm" ~/.gemini/config/plugins/wiki-maintainer
 ```
 
-Use `cp -R` instead of `ln -s` if you do not want updates via `git pull`.
+Use `cp -R` instead of `ln -s` if you do not want updates via `git pull`. Both
+forms accept absolute paths; the `cd` above keeps `$PWD` unambiguous regardless
+of where you cloned.
 
 For workspace-scoped installs, place the plugin under
 `.agents/plugins/wiki-maintainer/` at the workspace root instead.
