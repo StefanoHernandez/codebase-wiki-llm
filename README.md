@@ -1,11 +1,12 @@
 # Codebase Wiki LLM
 
-Unified marketplace for the **wiki-maintainer** plugin — a living, LLM-owned wiki per codebase. Same idea, two host-specific implementations:
+Unified marketplace for the **wiki-maintainer** plugin — a living, LLM-owned wiki per codebase. Same idea, host-specific implementations:
 
 - **Codex** — exposed as the `codebase-wiki-llm` plugin (split skills).
 - **Claude Code** — exposed as the `wiki-maintainer` plugin (slash commands + monolithic skill).
+- **Antigravity** — exposed as an installable customization pack (rules + workflows + skill).
 
-Both share this single Git repository. Each host reads its own marketplace manifest and picks the plugin folder that fits its format.
+All variants share this single Git repository. Codex and Claude Code read their own marketplace manifests. Antigravity uses the install script to copy its customization pack into the expected Gemini/Antigravity folders.
 
 ## Install
 
@@ -37,18 +38,40 @@ Update or remove later:
 /plugin marketplace remove stefano-wiki
 ```
 
-## Why two plugin folders?
+### On Antigravity
 
-Codex and Claude Code use different plugin formats:
+Clone this repository, then run:
 
-| Aspect            | Codex                                          | Claude Code                        |
-| ----------------- | ---------------------------------------------- | ---------------------------------- |
-| Marketplace file  | `.agents/plugins/marketplace.json`             | `.claude-plugin/marketplace.json`  |
-| Plugin manifest   | `plugins/<name>/.codex-plugin/plugin.json`     | `plugins/<name>/plugin.json`       |
-| Triggers          | Skills (one per operation)                     | Slash commands + skill             |
-| Plugin name       | `codebase-wiki-llm`                            | `wiki-maintainer`                  |
+```bash
+scripts/install-antigravity-wiki-llm.sh
+```
 
-The two manifest paths do not collide, so a single repo serves both marketplaces. Each host only sees its own folder.
+The installer copies the Antigravity pack from [plugins/antigravity-wiki-llm](plugins/antigravity-wiki-llm) into:
+
+```text
+~/.gemini/antigravity/
+├── AGENTS.md
+├── GEMINI.md
+├── global_workflows/
+├── rules/
+└── skills/
+```
+
+It does not edit `~/.gemini/GEMINI.md` or `~/.gemini/AGENTS.md`, so Gemini CLI global rules are not modified.
+
+## Why three plugin folders?
+
+Codex, Claude Code, and Antigravity use different plugin formats:
+
+| Aspect       | Codex                              | Claude Code                       | Antigravity                              |
+| ------------ | ---------------------------------- | --------------------------------- | ---------------------------------------- |
+| Discovery    | `.agents/plugins/marketplace.json` | `.claude-plugin/marketplace.json` | `scripts/install-antigravity-wiki-llm.sh` |
+| Package path | `plugins/codebase-wiki-llm`        | `plugins/wiki-maintainer`         | `plugins/antigravity-wiki-llm`           |
+| Manifest     | `.codex-plugin/plugin.json`        | `plugin.json`                     | `GEMINI.md`, `AGENTS.md`, `.agent/`      |
+| Triggers     | Skills (one per operation)         | Slash commands + skill            | Workflows + rules + skill                |
+| Package name | `codebase-wiki-llm`                | `wiki-maintainer`                 | `antigravity-wiki-llm`                   |
+
+The host-specific paths do not collide, so a single repo serves all variants while keeping each host's expected format intact.
 
 ## Commands
 
@@ -62,7 +85,7 @@ Once installed, in any repository:
 ## Mental model
 
 - Marketplace location: this Git repository.
-- Plugin location: `plugins/codebase-wiki-llm` (Codex) or `plugins/wiki-maintainer` (Claude Code).
+- Plugin location: `plugins/codebase-wiki-llm` (Codex), `plugins/wiki-maintainer` (Claude Code), or `plugins/antigravity-wiki-llm` (Antigravity).
 - Wiki location: per repository, always `<repo>/wiki/`.
 - Schema location: per repository, `wiki/SCHEMA.md`.
 - History location: per repository, `wiki/log.md` plus git history.
@@ -72,18 +95,26 @@ The plugin does not create a shared global wiki. It provides reusable skills/com
 ## Repository layout
 
 ```text
-.agents/plugins/marketplace.json            ← Codex
-.claude-plugin/marketplace.json             ← Claude Code
+.agents/plugins/marketplace.json            <- Codex
+.claude-plugin/marketplace.json             <- Claude Code
+scripts/install-antigravity-wiki-llm.sh     <- Antigravity installer
 plugins/
 ├── codebase-wiki-llm/                      Codex variant
 │   ├── .codex-plugin/plugin.json
 │   ├── skills/                              (6 split skills)
 │   ├── assets/icon.svg
 │   └── README.md
-└── wiki-maintainer/                        Claude Code variant
-    ├── plugin.json
-    ├── commands/                           (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint)
-    └── skills/wiki-maintainer/
+├── wiki-maintainer/                        Claude Code variant
+│   ├── plugin.json
+│   ├── commands/                           (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint)
+│   └── skills/wiki-maintainer/
+└── antigravity-wiki-llm/                   Antigravity variant
+    ├── GEMINI.md
+    ├── AGENTS.md
+    └── .agent/
+        ├── rules/
+        ├── workflows/
+        └── skills/codebase-wiki-maintainer/
 ```
 
 ## Manual local install (Codex)
