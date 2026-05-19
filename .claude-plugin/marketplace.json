@@ -10,7 +10,7 @@
       "name": "wiki-maintainer",
       "source": "./plugins/wiki-maintainer",
       "description": "Maintain a living, LLM-owned wiki of a codebase under wiki/. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }
