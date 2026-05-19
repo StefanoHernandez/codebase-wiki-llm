@@ -1,36 +1,92 @@
 # Codebase Wiki LLM
 
-Codex marketplace for maintaining a living LLM wiki per codebase.
+Unified marketplace for the **wiki-maintainer** plugin — a living, LLM-owned wiki per codebase. Same idea, two host-specific implementations:
 
-The marketplace contains the `codebase-wiki-llm` plugin. The plugin is installed
-once in Codex, but each repository owns its own `wiki/` directory. Running
-`/wiki-init` in a project creates that project's wiki; running `/wiki-sync`,
-`/wiki-ingest`, or `/wiki-lint` later updates or audits that same local wiki.
+- **Codex** — exposed as the `codebase-wiki-llm` plugin (split skills).
+- **Claude Code** — exposed as the `wiki-maintainer` plugin (slash commands + monolithic skill).
 
-## Install in Codex from GitHub
+Both share this single Git repository. Each host reads its own marketplace manifest and picks the plugin folder that fits its format.
 
-In Codex, add a new marketplace and use this Git URL:
+## Install
+
+### On Codex
+
+In Codex, add a new marketplace with this Git URL:
 
 ```text
 https://github.com/StefanoHernandez/codebase-wiki-llm.git
 ```
 
-Codex reads this repository's marketplace file:
+Codex discovers [.agents/plugins/marketplace.json](.agents/plugins/marketplace.json) and exposes the **Codebase Wiki LLM** plugin from [plugins/codebase-wiki-llm](plugins/codebase-wiki-llm). Install or enable it from the Codex plugin UI.
+
+### On Claude Code
 
 ```text
-.agents/plugins/marketplace.json
+/plugin marketplace add https://github.com/StefanoHernandez/codebase-wiki-llm.git
+/plugin install wiki-maintainer@stefano-wiki
 ```
 
-That marketplace exposes the plugin at:
+Claude Code discovers [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) and installs the **wiki-maintainer** plugin from [plugins/wiki-maintainer](plugins/wiki-maintainer).
+
+Update or remove later:
 
 ```text
-plugins/codebase-wiki-llm
+/plugin marketplace update stefano-wiki
+/plugin install wiki-maintainer@stefano-wiki
+/plugin uninstall wiki-maintainer@stefano-wiki
+/plugin marketplace remove stefano-wiki
 ```
 
-After adding the marketplace, install or enable **Codebase Wiki LLM** from the
-Codex plugin UI.
+## Why two plugin folders?
 
-## Manual local install
+Codex and Claude Code use different plugin formats:
+
+| Aspect            | Codex                                          | Claude Code                        |
+| ----------------- | ---------------------------------------------- | ---------------------------------- |
+| Marketplace file  | `.agents/plugins/marketplace.json`             | `.claude-plugin/marketplace.json`  |
+| Plugin manifest   | `plugins/<name>/.codex-plugin/plugin.json`     | `plugins/<name>/plugin.json`       |
+| Triggers          | Skills (one per operation)                     | Slash commands + skill             |
+| Plugin name       | `codebase-wiki-llm`                            | `wiki-maintainer`                  |
+
+The two manifest paths do not collide, so a single repo serves both marketplaces. Each host only sees its own folder.
+
+## Commands
+
+Once installed, in any repository:
+
+- `/wiki-init` — bootstrap `wiki/` in the current repository.
+- `/wiki-ingest [path]` — deep-dive into a file, directory, or topic.
+- `/wiki-sync` — small incremental update from recent source changes.
+- `/wiki-lint` — read-only health report for drift, gaps, and staleness.
+
+## Mental model
+
+- Marketplace location: this Git repository.
+- Plugin location: `plugins/codebase-wiki-llm` (Codex) or `plugins/wiki-maintainer` (Claude Code).
+- Wiki location: per repository, always `<repo>/wiki/`.
+- Schema location: per repository, `wiki/SCHEMA.md`.
+- History location: per repository, `wiki/log.md` plus git history.
+
+The plugin does not create a shared global wiki. It provides reusable skills/commands that operate on the current repository's local `wiki/` directory.
+
+## Repository layout
+
+```text
+.agents/plugins/marketplace.json            ← Codex
+.claude-plugin/marketplace.json             ← Claude Code
+plugins/
+├── codebase-wiki-llm/                      Codex variant
+│   ├── .codex-plugin/plugin.json
+│   ├── skills/                              (6 split skills)
+│   ├── assets/icon.svg
+│   └── README.md
+└── wiki-maintainer/                        Claude Code variant
+    ├── plugin.json
+    ├── commands/                           (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint)
+    └── skills/wiki-maintainer/
+```
+
+## Manual local install (Codex)
 
 If you prefer a manual home-local install:
 
@@ -40,25 +96,17 @@ git clone https://github.com/StefanoHernandez/codebase-wiki-llm.git /tmp/codebas
 cp -R /tmp/codebase-wiki-llm/plugins/codebase-wiki-llm ~/plugins/codebase-wiki-llm
 ```
 
-Then create or update `~/.agents/plugins/marketplace.json` with:
+Then create or update `~/.agents/plugins/marketplace.json`:
 
 ```json
 {
   "name": "stefano-local",
-  "interface": {
-    "displayName": "Stefano Local Plugins"
-  },
+  "interface": { "displayName": "Stefano Local Plugins" },
   "plugins": [
     {
       "name": "codebase-wiki-llm",
-      "source": {
-        "source": "local",
-        "path": "./plugins/codebase-wiki-llm"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
+      "source": { "source": "local", "path": "./plugins/codebase-wiki-llm" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
       "category": "Productivity"
     }
   ]
@@ -67,41 +115,9 @@ Then create or update `~/.agents/plugins/marketplace.json` with:
 
 Restart or refresh Codex plugin discovery after changing marketplaces.
 
-## Mental model
-
-- Marketplace location: this Git repository.
-- Plugin location inside the marketplace: `plugins/codebase-wiki-llm`.
-- Wiki location: per repository, always `<repo>/wiki/`.
-- Schema location: per repository, `wiki/SCHEMA.md`.
-- History location: per repository, `wiki/log.md` plus git history.
-
-The plugin does not create a shared global wiki. It provides reusable Codex
-skills that operate on the current repository's local `wiki/` directory.
-
-## Commands
-
-Codex does not need separate executable slash-command files for this plugin.
-When the user types one of these phrases, the corresponding skill handles it:
-
-- `/wiki-init` - bootstrap `wiki/` in the current repository.
-- `/wiki-ingest [path]` - deep-dive into a file, directory, or topic.
-- `/wiki-sync` - small incremental update from recent source changes.
-- `/wiki-lint` - read-only health report for drift, gaps, and staleness.
-
-## Repository layout
-
-```text
-.agents/plugins/marketplace.json
-plugins/codebase-wiki-llm/.codex-plugin/plugin.json
-plugins/codebase-wiki-llm/skills/
-plugins/codebase-wiki-llm/assets/
-```
-
 ## Guardrail
 
-Wiki operations may read source files but must not modify source files. They
-write only under `wiki/`, except when the user explicitly asks for another
-project change outside the wiki workflow.
+Wiki operations may read source files but must not modify source files. They write only under `wiki/`, except when the user explicitly asks for another project change outside the wiki workflow.
 
 ## License
 
