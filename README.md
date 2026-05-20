@@ -14,6 +14,9 @@ The wiki is designed for real software work:
 - future agents get durable context, activity history, and handoff notes under
   `agent/`.
 
+> [!NOTE]
+> **Inspiration & Credits**: This project is directly inspired by Andrej Karpathy's philosophy on LLM-managed knowledge bases (often referred to as the **LLM Wiki** pattern). By using LLM agents to compile, maintain, and link structured Markdown files as a durable knowledge layer, this workspace establishes long-term memory and execution safety for both human developers and AI copilots.
+
 The same workflow is shipped for three hosts:
 
 - **Codex** — exposed as the `codebase-wiki-llm` plugin (split skills).
