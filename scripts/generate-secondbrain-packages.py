@@ -84,7 +84,7 @@ WORKFLOWS = {
 
 CODEX_PLUGIN_JSON = """{
   "name": "secondbrain-wiki-llm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Global Codex plugin for maintaining a personal and work knowledge vault.",
   "author": {
     "name": "Stefano"
@@ -130,7 +130,7 @@ CODEX_PLUGIN_JSON = """{
 
 CLAUDE_PLUGIN_JSON = """{
   "name": "secondbrain-wiki-llm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint.",
   "author": {
     "name": "Stefano Paradisi",
@@ -146,7 +146,7 @@ CLAUDE_PLUGIN_JSON = """{
 
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "secondbrain-wiki-llm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint."
 }
 """

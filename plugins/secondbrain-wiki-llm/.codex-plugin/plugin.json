@@ -1,6 +1,6 @@
 {
   "name": "secondbrain-wiki-llm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Global Codex plugin for maintaining a personal and work knowledge vault.",
   "author": {
     "name": "Stefano"

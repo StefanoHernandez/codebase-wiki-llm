@@ -84,7 +84,7 @@ WORKFLOWS = {
 
 CODEBASE_CODEX_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
@@ -129,7 +129,7 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
 
 CODEBASE_CLAUDE_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",
@@ -145,7 +145,7 @@ CODEBASE_CLAUDE_PLUGIN_JSON = """{
 
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
 }
 """
