@@ -46,6 +46,8 @@ Tell the user:
 - which project-docs pages will be stubs versus evidence-backed pages;
 - any legacy docs proposed for later retirement;
 - the initial agent context/activity/handoff pages that will be created.
+- the portable project overview page name:
+  `wiki/overview-<project-slug>.md`.
 
 Ask: `Proceed with this plan? Adjust anything?`
 
@@ -67,6 +69,7 @@ Create at least:
 - `wiki/index.md`
 - `wiki/log.md`
 - `wiki/overview.md`
+- `wiki/overview-<project-slug>.md`
 - core `wiki/engineering/*` pages
 - relevant `wiki/modules/*` pages
 - `wiki/project/status.md` if any project-state evidence exists
@@ -110,6 +113,25 @@ Populate `project-docs/` as reusable communication material only when claims
 are supported. Put unsupported but useful future claims in `project-docs/evidence.md`
 as gaps or hypotheses.
 
+Also create `wiki/overview-<project-slug>.md` as the portable project card. The
+slug must be lowercase kebab-case. Include:
+
+- what the project is;
+- why it exists;
+- current status;
+- main stack or technical areas;
+- milestones or next steps;
+- important decisions to remember;
+- links to the most relevant wiki pages;
+- `## Personal Wiki Export`.
+
+In `## Personal Wiki Export`, write content suitable for import into a
+SecondBrain vault under `raw/projects/`. Include project name, short
+description, current status, role in the user's work/life, personal motivation
+if known, technologies or skills represented, important next steps, and
+long-term notes. Do not invent personal meaning; use `Da confermare.` for
+unknown personal context.
+
 ## Step 8 - Update index and log
 
 Make `index.md` a complete catalog grouped by Overview, Engineering, Modules,
@@ -123,6 +145,7 @@ Append to `log.md`:
 - Pages created: <count>
 - Modules: <list>
 - Project/project-docs pages populated: <list or none>
+- Portable overview: overview-<project-slug>.md
 - Proposed for retirement: <list or none>
 - Follow-up: run /wiki-lint to verify coverage
 ```

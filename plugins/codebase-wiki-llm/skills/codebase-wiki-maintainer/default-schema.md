@@ -65,6 +65,7 @@ wiki/
 ├── SCHEMA.md
 ├── log.md
 ├── overview.md
+├── overview-<project-slug>.md
 ├── engineering/
 │   ├── architecture.md
 │   ├── data-model.md
@@ -106,6 +107,45 @@ wiki/
   decisions.
 - Keep `project-docs/` pages reusable and evidence-backed.
 - Keep `agent/` pages concise and useful for future sessions.
+- Keep `overview-<project-slug>.md` as the portable project card for
+  SecondBrain import.
+
+## Portable project overview
+
+Each project wiki must include:
+
+```text
+wiki/overview-<project-slug>.md
+```
+
+Use lowercase kebab-case for `<project-slug>`. This page is a concise,
+portable summary of the project. It must link back to the detailed technical
+wiki and include a `## Personal Wiki Export` section.
+
+Required content:
+
+- what the project is;
+- why it exists;
+- current status;
+- main stack or technical areas;
+- milestones or next steps;
+- important decisions to remember;
+- links to the most relevant engineering, module, project, and project-docs
+  pages;
+- `## Personal Wiki Export` for import into a general SecondBrain vault.
+
+The `Personal Wiki Export` section should include:
+
+- project name and short description;
+- current status;
+- role of the project in the user's work/life;
+- personal motivation, only if known;
+- technologies or skills represented;
+- important next steps;
+- long-term notes.
+
+Do not invent personal motivation, career goals, subjective meaning, or user
+priorities. If unknown, write `Da confermare.`
 
 ## Module page template
 
@@ -131,7 +171,8 @@ Use these sections when evidence exists:
   `engineering/testing.md`, `engineering/operations.md`,
   `engineering/change-map.md`.
 - Medium decay: `overview.md`, `engineering/architecture.md`,
-  `project/status.md`, `project/roadmap.md`, `project/risks.md`.
+  `overview-<project-slug>.md`, `project/status.md`, `project/roadmap.md`,
+  `project/risks.md`.
 - Slow decay: `project/decisions.md`, `project-docs/*`, `glossary.md`,
   `agent/context.md`.
 

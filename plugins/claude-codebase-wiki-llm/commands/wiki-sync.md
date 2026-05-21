@@ -44,6 +44,9 @@ Also map common change types:
 - roadmap/status/risk docs -> `project/*`;
 - reusable evidence or demos -> `project-docs/evidence.md`,
   `project-docs/demo-materials.md`;
+- project status, scope, milestones, important decisions, portfolio relevance,
+  work relevance, research relevance, demos, publications, or reusable project
+  material -> `overview-<project-slug>.md`;
 - non-trivial agent work -> `agent/activity.md`, `agent/handoff.md`.
 
 If more than roughly 10 pages are affected, stop and recommend `/wiki-ingest`
@@ -58,6 +61,9 @@ Apply minimum edits:
 - update frontmatter;
 - add supersession notes for corrected claims;
 - lower confidence when evidence is incomplete.
+- update `overview-<project-slug>.md` when the project card or
+  `Personal Wiki Export` changed, while preserving `Da confermare.` for
+  unknown personal context.
 
 Do not create new pages during sync. If a new page is needed, report the gap and
 recommend `/wiki-ingest`.

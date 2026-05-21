@@ -54,6 +54,7 @@ wiki/
 ├── SCHEMA.md
 ├── log.md
 ├── overview.md
+├── overview-<project-slug>.md
 ├── engineering/
 │   ├── architecture.md
 │   ├── data-model.md
@@ -90,6 +91,44 @@ wiki/
 For small repositories, create the structure but keep unsupported pages as short
 stubs with explicit "No verified content yet" notes. Do not fill project or
 communication pages by guessing.
+
+## Portable project overview
+
+Every project wiki should include a portable overview file:
+
+```text
+wiki/overview-<project-slug>.md
+```
+
+The project slug must be lowercase kebab-case with no spaces, for example:
+
+- `overview-securegraph-rag.md`
+- `overview-popup.md`
+- `overview-template-latex.md`
+
+This file is the canonical short project card. It bridges the technical project
+wiki and the user's general SecondBrain vault. It should let someone understand
+the project in a few minutes without reading the whole technical wiki.
+
+It must include:
+
+- what the project is;
+- why it exists;
+- current status;
+- main stack or technical areas;
+- milestones or next steps;
+- important decisions to remember;
+- links to the most relevant technical wiki pages;
+- `## Personal Wiki Export`.
+
+`## Personal Wiki Export` is written for import into a personal/work
+SecondBrain vault, usually under `raw/projects/` before ingestion. It should
+include project name, short description, current status, role in the user's
+work/life, personal motivation if known, technologies or skills represented,
+important next steps, and long-term notes.
+
+Do not invent personal motivation, career goals, subjective meaning, or user
+priorities. If personal information is not known, write `Da confermare.`
 
 ## Page conventions
 
@@ -236,3 +275,7 @@ user explicitly asks to save a report.
 7. Update `index.md` whenever pages are added, renamed, or removed.
 8. Update `log.md` after init, ingest, and sync. Lint is read-only by default.
 9. Respect `wiki/SCHEMA.md` over these defaults.
+10. Keep `overview-<project-slug>.md` current when project status, scope,
+    milestones, important decisions, portfolio relevance, work relevance,
+    research relevance, demos, publications, or reusable project material
+    change.

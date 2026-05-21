@@ -69,6 +69,21 @@ engineering evidence.
 Flag communication claims that lack links to engineering, project, or source
 evidence.
 
+### Portable overview
+
+Flag missing `wiki/overview-<project-slug>.md`.
+
+Flag portable overview pages that:
+
+- do not use lowercase kebab-case in the filename;
+- lack `## Personal Wiki Export`;
+- lack current status, technical areas, next steps, important decisions, or
+  links to relevant technical wiki pages when evidence exists;
+- contain personal motivation, career meaning, subjective importance, or user
+  priorities that are not sourced or marked `Da confermare.`;
+- contradict `overview.md`, `project/status.md`, `project/decisions.md`,
+  engineering pages, or source evidence.
+
 ### Agent continuity
 
 Flag missing or stale `wiki/agent/context.md`, `wiki/agent/activity.md`, or
@@ -106,6 +121,7 @@ Produce a concise markdown report:
 - Engineering quality: <n>
 - Project consistency: <n>
 - Project-docs support: <n>
+- Portable overview: <n>
 - Agent continuity: <n>
 - Contradictions: <n>
 - Legacy: <n>
