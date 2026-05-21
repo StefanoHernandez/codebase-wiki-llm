@@ -3,7 +3,7 @@ name: codebase-wiki-lint
 description: Run a read-only health check for staleness, drift, gaps, and unsupported claims.
 ---
 
-<!-- Generated from workflows/wiki-lint.md. Do not edit directly. -->
+<!-- Generated from codebase/workflows/wiki-lint.md. Do not edit directly. -->
 
 # /wiki-lint
 

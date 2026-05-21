@@ -1,16 +1,22 @@
 {
   "name": "stefano-wiki",
-  "description": "Living wiki for codebases — keeps wiki/ in sync with source code via /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and wiki context skills.",
+  "description": "Wiki plugins for codebase documentation and personal/work knowledge vaults.",
   "owner": {
     "name": "Stefano Paradisi",
     "url": "https://github.com/StefanoHernandez"
   },
   "plugins": [
     {
-      "name": "wiki-maintainer",
-      "source": "./plugins/wiki-maintainer",
+      "name": "codebase-wiki-llm",
+      "source": "./plugins/claude-codebase-wiki-llm",
       "description": "Maintain a living, LLM-owned wiki of a codebase under wiki/. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
-      "version": "0.4.0"
+      "version": "0.5.0"
+    },
+    {
+      "name": "secondbrain-wiki-llm",
+      "source": "./plugins/claude-secondbrain-wiki-llm",
+      "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint.",
+      "version": "0.1.0"
     }
   ]
 }

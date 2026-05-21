@@ -1,0 +1,13 @@
+{
+  "name": "codebase-wiki-llm",
+  "version": "0.5.0",
+  "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
+  "author": {
+    "name": "Stefano Paradisi",
+    "url": "https://github.com/StefanoHernandez"
+  },
+  "homepage": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+  "repository": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+  "license": "MIT",
+  "keywords": ["wiki", "documentation", "knowledge-base", "skill", "claude-code"]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "secondbrain-wiki-llm",
+  "version": "0.1.0",
+  "description": "Global Codex plugin for maintaining a personal and work knowledge vault.",
+  "author": {
+    "name": "Stefano"
+  },
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "secondbrain",
+    "vault",
+    "knowledge",
+    "markdown",
+    "personal-ops"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SecondBrain Wiki LLM",
+    "shortDescription": "Maintain personal and work knowledge vaults.",
+    "longDescription": "SecondBrain Wiki LLM maintains adaptive Markdown vaults for projects, work documents, personal documents, meetings, research, tasks, expenses, skills, people, publications, and long-term operational memory.",
+    "developerName": "Stefano",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Project Context"
+    ],
+    "defaultPrompt": [
+      "/secondbrain-init",
+      "/secondbrain-ingest raw/",
+      "/secondbrain-lint"
+    ],
+    "brandColor": "#0F766E",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/icon.svg",
+    "websiteURL": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+    "privacyPolicyURL": "https://github.com/StefanoHernandez/codebase-wiki-llm/blob/main/README.md",
+    "termsOfServiceURL": "https://github.com/StefanoHernandez/codebase-wiki-llm/blob/main/LICENSE"
+  },
+  "homepage": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+  "repository": "https://github.com/StefanoHernandez/codebase-wiki-llm"
+}

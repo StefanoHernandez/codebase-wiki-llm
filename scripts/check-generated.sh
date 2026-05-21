@@ -11,12 +11,22 @@ cleanup() {
 trap cleanup EXIT
 
 GENERATED_PATHS=(
+  "plugins/codebase-wiki-llm/.codex-plugin/plugin.json"
   "plugins/codebase-wiki-llm/skills"
-  "plugins/wiki-maintainer/commands"
-  "plugins/wiki-maintainer/skills/wiki-maintainer"
-  "plugins/antigravity-wiki-llm/plugin.json"
-  "plugins/antigravity-wiki-llm/rules"
-  "plugins/antigravity-wiki-llm/skills"
+  "plugins/claude-codebase-wiki-llm/plugin.json"
+  "plugins/claude-codebase-wiki-llm/commands"
+  "plugins/claude-codebase-wiki-llm/skills"
+  "plugins/antigravity-codebase-wiki-llm/plugin.json"
+  "plugins/antigravity-codebase-wiki-llm/rules"
+  "plugins/antigravity-codebase-wiki-llm/skills"
+  "plugins/secondbrain-wiki-llm/.codex-plugin/plugin.json"
+  "plugins/secondbrain-wiki-llm/skills"
+  "plugins/claude-secondbrain-wiki-llm/plugin.json"
+  "plugins/claude-secondbrain-wiki-llm/commands"
+  "plugins/claude-secondbrain-wiki-llm/skills"
+  "plugins/antigravity-secondbrain-wiki-llm/plugin.json"
+  "plugins/antigravity-secondbrain-wiki-llm/rules"
+  "plugins/antigravity-secondbrain-wiki-llm/skills"
 )
 
 cd "$ROOT_DIR"

@@ -1,0 +1,5 @@
+{
+  "name": "secondbrain-wiki-llm",
+  "version": "0.1.0",
+  "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint."
+}

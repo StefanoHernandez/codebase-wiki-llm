@@ -3,7 +3,7 @@ name: codebase-wiki-ingest
 description: Deep-dive into a file, directory, feature, or topic and update the wiki.
 ---
 
-<!-- Generated from workflows/wiki-ingest.md. Do not edit directly. -->
+<!-- Generated from codebase/workflows/wiki-ingest.md. Do not edit directly. -->
 
 # /wiki-ingest [path]
 

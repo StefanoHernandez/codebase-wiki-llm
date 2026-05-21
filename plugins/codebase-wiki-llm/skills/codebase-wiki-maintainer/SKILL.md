@@ -3,7 +3,7 @@ name: codebase-wiki-maintainer
 description: Knowledge for maintaining an engineering-first software project wiki under wiki/.
 ---
 
-<!-- Generated from maintainer.md. Do not edit directly. -->
+<!-- Generated from codebase/maintainer.md. Do not edit directly. -->
 
 # Wiki Maintainer
 

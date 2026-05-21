@@ -1,0 +1,13 @@
+{
+  "name": "secondbrain-wiki-llm",
+  "version": "0.1.0",
+  "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint.",
+  "author": {
+    "name": "Stefano Paradisi",
+    "url": "https://github.com/StefanoHernandez"
+  },
+  "homepage": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+  "repository": "https://github.com/StefanoHernandez/codebase-wiki-llm",
+  "license": "MIT",
+  "keywords": ["secondbrain", "vault", "knowledge-base", "skill", "claude-code"]
+}

@@ -3,7 +3,7 @@ name: codebase-wiki-init
 description: Bootstrap an engineering-first software project wiki under wiki/.
 ---
 
-<!-- Generated from workflows/wiki-init.md. Do not edit directly. -->
+<!-- Generated from codebase/workflows/wiki-init.md. Do not edit directly. -->
 
 # /wiki-init
 
