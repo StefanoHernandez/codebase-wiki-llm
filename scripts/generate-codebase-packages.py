@@ -82,9 +82,16 @@ WORKFLOWS = {
 }
 
 
+REFERENCES = (
+    "references/agent-context-template.md",
+    "references/agent-handoff-template.md",
+    "references/work-tracker-template.md",
+)
+
+
 CODEBASE_CODEX_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
@@ -129,7 +136,7 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
 
 CODEBASE_CLAUDE_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",
@@ -145,7 +152,7 @@ CODEBASE_CLAUDE_PLUGIN_JSON = """{
 
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
 }
 """
@@ -177,6 +184,12 @@ def generate_codex() -> None:
         "default-schema.md",
         read("default-schema.md"),
     )
+    for ref in REFERENCES:
+        write(
+            f"plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer/{ref}",
+            ref,
+            read(ref),
+        )
     write(
         "plugins/codebase-wiki-llm/skills/codebase-wiki-context/SKILL.md",
         "rules/wiki-context.md",
@@ -212,6 +225,12 @@ def generate_claude() -> None:
         "default-schema.md",
         read("default-schema.md"),
     )
+    for ref in REFERENCES:
+        write(
+            f"plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/{ref}",
+            ref,
+            read(ref),
+        )
     write(
         "plugins/claude-codebase-wiki-llm/skills/wiki-context/SKILL.md",
         "rules/wiki-context.md",
@@ -252,6 +271,12 @@ def generate_antigravity() -> None:
         "default-schema.md",
         read("default-schema.md"),
     )
+    for ref in REFERENCES:
+        write(
+            f"plugins/antigravity-codebase-wiki-llm/skills/wiki-maintainer/{ref}",
+            ref,
+            read(ref),
+        )
     for slug, meta in WORKFLOWS.items():
         description = f"{meta['description']} {ANTIGRAVITY_WORKFLOW_TRIGGERS[slug]}"
         write(
@@ -261,10 +286,49 @@ def generate_antigravity() -> None:
         )
 
 
+def generate_agent_skills() -> None:
+    write(
+        "skills/codebase-wiki-llm/SKILL.md",
+        "maintainer.md",
+        skill_content(
+            "codebase-wiki-llm",
+            "Use when maintaining a repository-local engineering wiki, agent handoff, project status, or reusable project documentation.",
+            "maintainer.md",
+        ),
+    )
+    write(
+        "skills/codebase-wiki-llm/default-schema.md",
+        "default-schema.md",
+        read("default-schema.md"),
+    )
+    for ref in REFERENCES:
+        write(
+            f"skills/codebase-wiki-llm/{ref}",
+            ref,
+            read(ref),
+        )
+    write(
+        "skills/codebase-wiki-context/SKILL.md",
+        "rules/wiki-context.md",
+        skill_content(
+            "codebase-wiki-context",
+            "Use when a repository has wiki/ and coding work should use or update agent context, handoff, activity, and work tracking.",
+            "rules/wiki-context.md",
+        ),
+    )
+    for slug, meta in WORKFLOWS.items():
+        write(
+            f"skills/codebase-{slug}/SKILL.md",
+            meta["source"],
+            skill_content(f"codebase-{slug}", meta["description"], meta["source"]),
+        )
+
+
 def main() -> None:
     generate_codex()
     generate_claude()
     generate_antigravity()
+    generate_agent_skills()
 
 
 if __name__ == "__main__":

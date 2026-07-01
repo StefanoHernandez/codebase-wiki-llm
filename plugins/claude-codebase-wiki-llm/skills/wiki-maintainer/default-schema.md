@@ -78,6 +78,7 @@ wiki/
 │   └── <module-or-area>.md
 ├── project/
 │   ├── status.md
+│   ├── work-tracker.md
 │   ├── roadmap.md
 │   ├── milestones.md
 │   ├── risks.md
@@ -105,6 +106,8 @@ wiki/
 - Keep `engineering/` pages cross-cutting and operational.
 - Keep `project/` pages about delivery state, requirements, risks, and
   decisions.
+- Keep `project/work-tracker.md` as the compact active/planned/completed/blocked
+  work register that links project state to agent handoff tasks.
 - Keep `project-docs/` pages reusable and evidence-backed.
 - Keep `agent/` pages concise and useful for future sessions.
 - Keep `overview-<project-slug>.md` as the portable project card for
@@ -165,6 +168,44 @@ Use these sections when evidence exists:
 ## Open risks
 ```
 
+## Agent continuity
+
+`wiki/agent/context.md` is the fast onboarding page for coding agents. It should
+include:
+
+- project snapshot;
+- architecture or main areas;
+- non-negotiable technical rules;
+- setup, test, lint, and build commands;
+- files to read first;
+- risks and invariants;
+- links to the most important wiki pages.
+
+`wiki/agent/handoff.md` is the pass-the-baton page. It must include:
+
+- current work state;
+- last completed step;
+- prioritized next tasks;
+- blockers and risks;
+- commands already run and results;
+- work not to redo;
+- git branch, last commit, and clean/dirty worktree when git is available;
+- `## Baton For Next Coding Agent`.
+
+The baton section must use this table:
+
+```markdown
+| Order | Task | Start files | Done when | Verification command | Notes / blockers |
+| --- | --- | --- | --- | --- | --- |
+```
+
+Each task must have start files, done criteria, and a verification command. If
+verification is not possible, write `Not verified - <reason>`.
+
+`wiki/agent/activity.md` is append-only. Add an entry after non-trivial source,
+config, project, or wiki operations with agent, trigger, intent, actions, files
+changed, validation, decisions, and follow-up.
+
 ## Decay policy
 
 - Fast decay: `modules/*`, `engineering/data-model.md`,
@@ -172,7 +213,7 @@ Use these sections when evidence exists:
   `engineering/change-map.md`.
 - Medium decay: `overview.md`, `engineering/architecture.md`,
   `overview-<project-slug>.md`, `project/status.md`, `project/roadmap.md`,
-  `project/risks.md`.
+  `project/risks.md`, `project/work-tracker.md`, `agent/handoff.md`.
 - Slow decay: `project/decisions.md`, `project-docs/*`, `glossary.md`,
   `agent/context.md`.
 

@@ -56,7 +56,8 @@ Consider:
 - `engineering/change-map.md`;
 - `modules/<area>.md`;
 - `project/status.md`, `project/roadmap.md`, `project/risks.md`,
-  `project/requirements.md`, `project/decisions.md`;
+  `project/work-tracker.md`, `project/requirements.md`,
+  `project/decisions.md`;
 - `project-docs/evidence.md` and other project-docs pages when reusable claims
   or proof points emerge;
 - `agent/context.md`, `agent/activity.md`, `agent/handoff.md`;
@@ -80,6 +81,19 @@ If creating a module page, use the module quality bar from the maintainer skill.
 
 If creating or updating project-docs claims, link each claim to engineering,
 project, or source evidence. Mark unsupported claims as gaps/hypotheses.
+
+If ingest changes project status, architecture decisions, active work, next
+tasks, blockers, or verification commands, update:
+
+- `project/work-tracker.md`;
+- `agent/context.md` when onboarding facts, commands, risks, invariants, or
+  read-first files changed;
+- `agent/handoff.md` when the next coding task, plan, blocker, git state, or
+  verification state changed.
+
+Keep `agent/handoff.md` task-oriented. Its `Baton For Next Coding Agent` table
+must keep start files, done criteria, and verification commands for each next
+task.
 
 ## Step 6 - Update index and log
 

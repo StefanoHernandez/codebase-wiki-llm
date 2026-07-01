@@ -36,12 +36,17 @@ Also map common change types:
 - deploy/config/env changes -> `engineering/operations.md`;
 - bugfix/failure-mode changes -> `engineering/troubleshooting.md`;
 - roadmap/status/risk docs -> `project/*`;
+- plan, active work, next task, done criteria, verification state, or blockers
+  -> `project/work-tracker.md`, `agent/handoff.md`;
+- architecture decisions, technical commands, risk/invariant changes, or
+  read-first file changes -> `agent/context.md`;
 - reusable evidence or demos -> `project-docs/evidence.md`,
   `project-docs/demo-materials.md`;
 - project status, scope, milestones, important decisions, portfolio relevance,
   work relevance, research relevance, demos, publications, or reusable project
   material -> `overview-<project-slug>.md`;
-- non-trivial agent work -> `agent/activity.md`, `agent/handoff.md`.
+- non-trivial agent work -> `agent/activity.md`, `agent/handoff.md`,
+  `project/work-tracker.md`.
 
 If more than roughly 10 pages are affected, stop and recommend `/wiki-ingest`
 or `/wiki-lint`.
@@ -58,6 +63,13 @@ Apply minimum edits:
 - update `overview-<project-slug>.md` when the project card or
   `Personal Wiki Export` changed, while preserving `Da confermare.` for
   unknown personal context.
+- update `agent/handoff.md` when the plan, next task, blocker, verification
+  result, or git state changed. Preserve the `Baton For Next Coding Agent`
+  table with start files, done criteria, and verification commands.
+- update `agent/context.md` when project onboarding facts, commands, risks,
+  invariants, or high-value links changed.
+- update `project/work-tracker.md` when active, planned, completed, or blocked
+  work changed.
 
 Do not create new pages during sync. If a new page is needed, report the gap and
 recommend `/wiki-ingest`.
@@ -78,7 +90,8 @@ Append to `log.md`:
 ```
 
 Append to `agent/activity.md` if the sync closes a non-trivial task or records a
-decision useful to future agents.
+decision useful to future agents. The activity entry should include agent,
+trigger, intent, actions, files changed, validation, decisions, and follow-up.
 
 ## Step 7 - Report briefly
 

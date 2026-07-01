@@ -27,6 +27,7 @@ GENERATED_PATHS=(
   "plugins/antigravity-secondbrain-wiki-llm/plugin.json"
   "plugins/antigravity-secondbrain-wiki-llm/rules"
   "plugins/antigravity-secondbrain-wiki-llm/skills"
+  "skills"
 )
 
 cd "$ROOT_DIR"

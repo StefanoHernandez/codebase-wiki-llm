@@ -46,7 +46,8 @@ Tell the user:
 - which project pages have enough evidence to populate;
 - which project-docs pages will be stubs versus evidence-backed pages;
 - any legacy docs proposed for later retirement;
-- the initial agent context/activity/handoff pages that will be created.
+- the initial agent context/activity/handoff pages that will be created;
+- the initial work tracker page that will be created;
 - the portable project overview page name:
   `wiki/overview-<project-slug>.md`.
 
@@ -74,6 +75,7 @@ Create at least:
 - core `wiki/engineering/*` pages
 - relevant `wiki/modules/*` pages
 - `wiki/project/status.md` if any project-state evidence exists
+- `wiki/project/work-tracker.md`
 - `wiki/agent/context.md`, `wiki/agent/activity.md`, `wiki/agent/handoff.md`
 - `wiki/glossary.md`
 
@@ -133,7 +135,41 @@ if known, technologies or skills represented, important next steps, and
 long-term notes. Do not invent personal meaning; use `Da confermare.` for
 unknown personal context.
 
-## Step 8 - Update index and log
+## Step 8 - Write agent continuity pages
+
+Create `wiki/agent/context.md` as a fast onboarding page for coding agents. Use
+the structure from `references/agent-context-template.md` and include:
+
+- project snapshot;
+- architecture or main areas;
+- non-negotiable technical rules;
+- setup, test, lint, and build commands;
+- files to read first;
+- risks and invariants;
+- links to the most important wiki pages.
+
+Create `wiki/agent/handoff.md` as a pass-the-baton page. Use the structure from
+`references/agent-handoff-template.md` and include git state when available:
+branch, last commit, and clean/dirty worktree.
+
+`wiki/agent/handoff.md` must include:
+
+```markdown
+## Baton For Next Coding Agent
+
+| Order | Task | Start files | Done when | Verification command | Notes / blockers |
+| --- | --- | --- | --- | --- | --- |
+```
+
+Every task must have start files, done criteria, and a verification command. If
+no concrete task is known, write one row that says `No active coding task` and
+mark verification as `Not verified - no active task`.
+
+Create `wiki/project/work-tracker.md` using
+`references/work-tracker-template.md`. Keep it compact and link active work to
+`wiki/agent/handoff.md`.
+
+## Step 9 - Update index and log
 
 Make `index.md` a complete catalog grouped by Overview, Engineering, Modules,
 Project, Project Docs, Agent, and Reference.
@@ -146,6 +182,7 @@ Append to `log.md`:
 - Pages created: <count>
 - Modules: <list>
 - Project/project-docs pages populated: <list or none>
+- Agent continuity: context, handoff, activity, work tracker
 - Portable overview: overview-<project-slug>.md
 - Proposed for retirement: <list or none>
 - Follow-up: run /wiki-lint to verify coverage
@@ -154,7 +191,7 @@ Append to `log.md`:
 Append the initial entry to `wiki/agent/activity.md` with agent, trigger,
 intent, actions, changed wiki files, validation, decisions, and follow-up.
 
-## Step 9 - Report
+## Step 10 - Report
 
 Report:
 

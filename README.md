@@ -93,7 +93,8 @@ wiki/
 │   ├── milestones.md
 │   ├── risks.md
 │   ├── requirements.md
-│   └── decisions.md
+│   ├── decisions.md
+│   └── work-tracker.md
 ├── project-docs/
 │   ├── project-brief.md
 │   ├── value-proposition.md
@@ -112,7 +113,40 @@ wiki/
 
 Engineering pages are the source of technical truth. `project/` summarizes delivery state and decisions. `project-docs/` reuses supported claims for README, presentations, client docs, bids, proposals, and public project material. `agent/` keeps continuity between agent sessions.
 
+The agent continuity pages are intentionally short and operational:
+
+- `agent/context.md` is the fast onboarding page for a new coding agent: project snapshot, architecture, technical rules, setup/test/lint/build commands, read-first files, risks, invariants, and high-value links.
+- `agent/handoff.md` is the pass-the-baton page: current work state, last completed step, prioritized next tasks, blocker/risk state, commands already run, what not to redo, and git state when available.
+- `agent/activity.md` is append-only history for non-trivial agent work.
+- `project/work-tracker.md` keeps project work items evidence-backed and linked to source files, decisions, and verification.
+
+Every handoff includes a `Baton For Next Coding Agent` table. Each next task must have start files, done criteria, and a verification command; when verification is impossible, the handoff must say `Not verified - <reason>`.
+
 ## Install
+
+### One-command installer target
+
+This repository keeps two install surfaces committed:
+
+- `plugins/` for host-native plugin marketplaces and Antigravity plugin
+  discovery;
+- `skills/` for generic Agent Skills installers that expect a top-level skills
+  directory.
+
+The desired cross-agent install model is:
+
+```bash
+npx skills@latest add StefanoHernandez/codebase-wiki-llm
+```
+
+That command style is compatible with the public `skills` CLI ecosystem used by
+multi-agent skill repositories. The top-level `skills/` directory is generated
+from the same canonical prompts as the host-native plugins, so generic agents
+can install the shared skills while Codex, Claude Code, Antigravity, OpenCode,
+Cursor, and similar tools can still use host-specific packaging when available.
+
+Until that installer layer is finalized, use the host-native install paths
+below.
 
 ### On Codex
 
@@ -281,6 +315,7 @@ The generator writes the host-specific files required by each environment:
 - Codex SecondBrain skills under `plugins/secondbrain-wiki-llm/skills/`
 - Claude Code SecondBrain commands and skills under `plugins/claude-secondbrain-wiki-llm/`
 - Antigravity SecondBrain plugin under `plugins/antigravity-secondbrain-wiki-llm/`
+- generic Agent Skills under `skills/`
 
 Generated files include a `Generated from ...` marker and should not be edited directly. Commit both the canonical changes and the generated package updates before pushing.
 
@@ -290,6 +325,7 @@ Recommended release workflow:
 # edit canonical/codebase/* or canonical/secondbrain/*
 scripts/generate-host-packages.py
 scripts/check-generated.sh
+scripts/test-agent-handoff-validator.sh
 git diff
 git add .
 git commit -m "Update wiki workflow prompts"
@@ -313,6 +349,17 @@ Once installed, in any repository:
 - `/secondbrain-ingest [path-or-topic]` — ingest raw material or inbox notes.
 - `/secondbrain-sync` — surgically update existing vault notes.
 - `/secondbrain-lint` — read-only health report for a SecondBrain vault.
+
+Local validator for generated project wikis:
+
+```bash
+scripts/validate-agent-handoff.py path/to/repo/wiki
+```
+
+It checks the minimum continuity contract: `agent/context.md`,
+`agent/handoff.md`, frontmatter metadata, the `Baton For Next Coding Agent`
+section, and at least one next task with start files, done criteria, and a
+verification command.
 
 ## Mental model
 
@@ -339,6 +386,9 @@ scripts/generate-host-packages.py           <- wrapper: generates all host packa
 scripts/generate-codebase-packages.py       <- generates Codebase Wiki packages
 scripts/generate-secondbrain-packages.py    <- generates SecondBrain packages
 scripts/check-generated.sh                  <- verifies generated files are current
+scripts/validate-agent-handoff.py           <- validates agent context/handoff pages in a target wiki
+scripts/test-agent-handoff-validator.sh      <- tests the validator against valid and invalid fixtures
+skills/                                     <- generated generic Agent Skills distribution
 plugins/
 ├── codebase-wiki-llm/                      Codex variant
 │   ├── .codex-plugin/plugin.json

@@ -67,6 +67,7 @@ wiki/
 │   └── <module-or-area>.md
 ├── project/
 │   ├── status.md
+│   ├── work-tracker.md
 │   ├── roadmap.md
 │   ├── milestones.md
 │   ├── risks.md
@@ -187,6 +188,11 @@ Risk entries should include impact, evidence, mitigation, owner if known, and
 status. Decisions should include context, decision, rationale, consequences, and
 links to affected engineering pages.
 
+`project/work-tracker.md` tracks active, planned, completed, and blocked work.
+It connects project status to agent handoff tasks. Keep it compact and
+evidence-backed. Detailed implementation notes belong in `engineering/`,
+`modules/`, or `agent/activity.md`.
+
 ## Project-docs layer
 
 `wiki/project-docs/` stores reusable communication material for READMEs,
@@ -218,14 +224,38 @@ but unsupported, mark it as a gap or hypothesis.
 `wiki/agent/` replaces scattered project-context files. It records what agents
 need to know and what they did.
 
-- `context.md` - concise current context for future agents.
+- `context.md` - fast onboarding for future coding agents: project snapshot,
+  architecture areas, non-negotiable technical rules, setup/test/lint/build
+  commands, files to read first, risks/invariants, and high-value wiki links.
 - `activity.md` - append-only activity log: when, which agent, trigger, intent,
   actions, files changed, validation, decisions, follow-up.
-- `handoff.md` - current task, last completed step, next recommended step,
-  blockers, files to inspect first, commands already run.
+- `handoff.md` - pass-the-baton page: current work state, last completed step,
+  prioritized next tasks, start files, done criteria, verification commands,
+  blockers, risks, commands already run, work not to redo, and git state when
+  available.
+
+Use the reference templates when creating or repairing these pages:
+
+- `references/agent-context-template.md`
+- `references/agent-handoff-template.md`
+- `references/work-tracker-template.md`
+
+`agent/handoff.md` must include a `## Baton For Next Coding Agent` section with
+this table:
+
+```markdown
+| Order | Task | Start files | Done when | Verification command | Notes / blockers |
+| --- | --- | --- | --- | --- | --- |
+```
+
+Every next task must be verifiable. If verification is not currently possible,
+write `Not verified - <reason>` instead of inventing a command.
 
 At the end of a non-trivial task, update `wiki/agent/activity.md` and
 `wiki/agent/handoff.md` if the wiki exists and the user has not opted out.
+Also update `wiki/agent/context.md` and `wiki/project/work-tracker.md` when
+project state, architecture, commands, risks, invariants, plans, blockers, or
+next tasks change.
 
 ## Confidence and decay
 
@@ -279,3 +309,7 @@ user explicitly asks to save a report.
     milestones, important decisions, portfolio relevance, work relevance,
     research relevance, demos, publications, or reusable project material
     change.
+11. Keep agent context and handoff evidence-based. Use `unknown`, `pending`, or
+    `Not verified.` when source evidence is missing.
+12. Each handoff task must include start files, done criteria, and a
+    verification command or an explicit `Not verified - <reason>`.

@@ -85,9 +85,51 @@ Flag portable overview pages that:
 
 ### Agent continuity
 
-Flag missing or stale `wiki/agent/context.md`, `wiki/agent/activity.md`, or
-`wiki/agent/handoff.md` when the schema expects them and recent non-trivial work
-is visible.
+Flag missing `wiki/agent/context.md`, `wiki/agent/activity.md`, or
+`wiki/agent/handoff.md`.
+
+Flag `wiki/agent/context.md` when it is too generic or lacks:
+
+- project snapshot;
+- architecture or main areas;
+- non-negotiable technical rules;
+- setup, test, lint, or build commands when evidence exists;
+- files to read first;
+- risks or invariants;
+- links to important wiki pages.
+
+Flag `wiki/agent/handoff.md` when it lacks:
+
+- current work state;
+- last completed step;
+- `## Baton For Next Coding Agent`;
+- prioritized next tasks;
+- blockers and risks;
+- commands already run and results;
+- work not to redo;
+- git branch, last commit, and worktree state when git is available.
+
+Flag baton rows when any task lacks:
+
+- start files;
+- done criteria;
+- verification command or `Not verified - <reason>`;
+- notes/blockers when the task is blocked or risky.
+
+Flag stale activity when source/config/project/wiki changes are visible but
+`wiki/agent/activity.md` has no recent entry describing agent, trigger, intent,
+actions, changed files, validation, decisions, and follow-up.
+
+Flag claims about project state, git state, completed work, verification, or
+sources when they are not supported by source files, command results, git data,
+or linked wiki pages.
+
+### Work tracker
+
+Flag missing `wiki/project/work-tracker.md`.
+
+Flag work tracker rows that have no status, evidence, next verification, or
+connection to `wiki/agent/handoff.md` for active coding work.
 
 ### Contradictions
 
@@ -122,6 +164,7 @@ Produce a concise markdown report:
 - Project-docs support: <n>
 - Portable overview: <n>
 - Agent continuity: <n>
+- Work tracker: <n>
 - Contradictions: <n>
 - Legacy: <n>
 - Frontmatter: <n>

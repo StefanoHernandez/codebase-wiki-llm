@@ -269,10 +269,43 @@ def generate_antigravity() -> None:
         )
 
 
+def generate_agent_skills() -> None:
+    write(
+        "skills/secondbrain-wiki-llm/SKILL.md",
+        "maintainer.md",
+        skill_content(
+            "secondbrain-wiki-llm",
+            "Use when maintaining a local personal or work knowledge vault for projects, documents, meetings, research, tasks, people, and long-term notes.",
+            "maintainer.md",
+        ),
+    )
+    write(
+        "skills/secondbrain-wiki-llm/default-schema.md",
+        "default-schema.md",
+        read("default-schema.md"),
+    )
+    write(
+        "skills/secondbrain-context/SKILL.md",
+        "rules/secondbrain-context.md",
+        skill_content(
+            "secondbrain-context",
+            "Use when a local SecondBrain vault should provide personal or work knowledge context for the current task.",
+            "rules/secondbrain-context.md",
+        ),
+    )
+    for slug, meta in WORKFLOWS.items():
+        write(
+            f"skills/{slug}/SKILL.md",
+            meta["source"],
+            skill_content(slug, meta["description"], meta["source"]),
+        )
+
+
 def main() -> None:
     generate_codex()
     generate_claude()
     generate_antigravity()
+    generate_agent_skills()
 
 
 if __name__ == "__main__":
