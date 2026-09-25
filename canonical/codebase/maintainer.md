@@ -1,7 +1,7 @@
 # Wiki Maintainer
 
 This skill maintains an engineering-first software project wiki under
-`<repo>/wiki/`. The wiki is durable project knowledge for software engineers,
+`<wiki-root>/`. The wiki is durable project knowledge for software engineers,
 project leads, future agents, and reusable project documentation.
 
 The primary reader is an engineer who needs to change the software safely. The
@@ -15,15 +15,19 @@ agents. Optimize every page for fast, source-grounded answers to:
 - what is the current project state and risk?
 - what claims can be reused in external documentation?
 
+## Wiki root
+
+{{include:partials/resolve-wiki-root.md}}
+
 ## Truth hierarchy
 
 When sources disagree, use this order:
 
 1. Source code, tests, migrations, configs, CI, and runtime manifests.
-2. `wiki/engineering/` and `wiki/modules/`.
-3. `wiki/project/`.
-4. `wiki/project-docs/`.
-5. `wiki/agent/` and historical logs.
+2. `<wiki-root>/engineering/` and `<wiki-root>/modules/`.
+3. `<wiki-root>/project/`.
+4. `<wiki-root>/project-docs/`.
+5. `<wiki-root>/agent/` and historical logs.
 
 `engineering/` and `modules/` are authoritative for technical reality.
 `project/` summarizes delivery state and decisions. `project-docs/` reuses and
@@ -33,16 +37,17 @@ communicates supported claims; it must not invent capabilities.
 
 1. **Raw sources** - code, tests, configs, docs, manifests, CI, issue exports,
    meeting notes, and proposal material. Read them as evidence. During wiki
-   operations, do not modify files outside `wiki/`.
-2. **The wiki** - `<repo>/wiki/`. The agent owns this knowledge layer and keeps
+   operations, do not modify files outside `<wiki-root>/`, except
+   `.wikidir`, which `/wiki-init` writes.
+2. **The wiki** - `<wiki-root>/`. The agent owns this knowledge layer and keeps
    it useful, accurate, and navigable.
-3. **The schema** - `<repo>/wiki/SCHEMA.md`. Repo-specific conventions override
+3. **The schema** - `<wiki-root>/SCHEMA.md`. Repo-specific conventions override
    these defaults. Read it before any wiki operation.
 
 ## Default wiki structure
 
 ```text
-wiki/
+<wiki-root>/
 ├── index.md
 ├── SCHEMA.md
 ├── log.md
@@ -91,7 +96,7 @@ communication pages by guessing.
 Every project wiki should include a portable overview file:
 
 ```text
-wiki/overview-<project-slug>.md
+<wiki-root>/overview-<project-slug>.md
 ```
 
 The project slug must be lowercase kebab-case with no spaces, for example:
@@ -173,7 +178,7 @@ tests". If no reliable verification exists, say that explicitly.
 
 ## Project layer
 
-`wiki/project/` describes project management state: roadmap, milestones, risks,
+`<wiki-root>/project/` describes project management state: roadmap, milestones, risks,
 requirements, and decisions. It should link to technical evidence rather than
 duplicating technical details.
 
@@ -188,7 +193,7 @@ evidence-backed. Detailed implementation notes belong in `engineering/`,
 
 ## Project-docs layer
 
-`wiki/project-docs/` stores reusable communication material for READMEs,
+`<wiki-root>/project-docs/` stores reusable communication material for READMEs,
 presentations, client documentation, grant/bid material, product notes, and
 public explanations.
 
@@ -214,7 +219,7 @@ but unsupported, mark it as a gap or hypothesis.
 
 ## Agent layer
 
-`wiki/agent/` replaces scattered project-context files. It records what agents
+`<wiki-root>/agent/` replaces scattered project-context files. It records what agents
 need to know and what they did.
 
 - `context.md` - fast onboarding for future coding agents: project snapshot,
@@ -244,9 +249,9 @@ this table:
 Every next task must be verifiable. If verification is not currently possible,
 write `Not verified - <reason>` instead of inventing a command.
 
-At the end of a non-trivial task, update `wiki/agent/activity.md` and
-`wiki/agent/handoff.md` if the wiki exists and the user has not opted out.
-Also update `wiki/agent/context.md` and `wiki/project/work-tracker.md` when
+At the end of a non-trivial task, update `<wiki-root>/agent/activity.md` and
+`<wiki-root>/agent/handoff.md` if the wiki exists and the user has not opted out.
+Also update `<wiki-root>/agent/context.md` and `<wiki-root>/project/work-tracker.md` when
 project state, architecture, commands, risks, invariants, plans, blockers, or
 next tasks change.
 
@@ -297,7 +302,7 @@ user explicitly asks to save a report.
 6. Propose deletion or retirement; do not silently delete pages or legacy docs.
 7. Update `index.md` whenever pages are added, renamed, or removed.
 8. Update `log.md` after init, ingest, and sync. Lint is read-only by default.
-9. Respect `wiki/SCHEMA.md` over these defaults.
+9. Respect `<wiki-root>/SCHEMA.md` over these defaults.
 10. Keep `overview-<project-slug>.md` current when project status, scope,
     milestones, important decisions, portfolio relevance, work relevance,
     research relevance, demos, publications, or reusable project material

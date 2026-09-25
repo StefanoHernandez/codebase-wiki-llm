@@ -1,6 +1,6 @@
 {
   "name": "codebase-wiki-llm",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
@@ -17,7 +17,7 @@
   "interface": {
     "displayName": "Codebase Wiki LLM",
     "shortDescription": "Maintain per-repo living wikis for codebases.",
-    "longDescription": "Codebase Wiki LLM adapts the LLM Wiki pattern to mutable source code. The plugin provides global Codex skills for bootstrapping, ingesting, syncing, and linting a repository-local wiki/ directory while keeping every project's wiki content separate.",
+    "longDescription": "Codebase Wiki LLM adapts the LLM Wiki pattern to mutable source code. The plugin provides global Codex skills for bootstrapping, ingesting, syncing, and linting a repository-local wiki folder (wiki/ by default, or one you choose such as .wiki/) while keeping every project's wiki content separate.",
     "developerName": "Stefano",
     "category": "Productivity",
     "capabilities": [

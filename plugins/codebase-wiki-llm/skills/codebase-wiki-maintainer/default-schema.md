@@ -22,10 +22,10 @@ documentation.
 ## Truth hierarchy
 
 1. Source code, tests, migrations, configs, CI, and runtime manifests.
-2. `wiki/engineering/` and `wiki/modules/`.
-3. `wiki/project/`.
-4. `wiki/project-docs/`.
-5. `wiki/agent/` and historical logs.
+2. `engineering/` and `modules/`.
+3. `project/`.
+4. `project-docs/`.
+5. `agent/` and historical logs.
 
 Engineering is authoritative. Project and project-docs pages must not
 contradict engineering pages or source evidence.
@@ -44,7 +44,7 @@ contradict engineering pages or source evidence.
   decisions.
 - Reusable project documentation: briefs, value proposition, use cases,
   audience, impact, evidence, demo material, FAQ.
-- Agent continuity: context, activity, and handoff notes under `wiki/agent/`.
+- Agent continuity: context, activity, and handoff notes under `agent/`.
 
 **Out of scope**:
 
@@ -60,7 +60,7 @@ contradict engineering pages or source evidence.
 ## Directory layout
 
 ```text
-wiki/
+<wiki-root>/
 ├── index.md
 ├── SCHEMA.md
 ├── log.md
@@ -118,7 +118,7 @@ wiki/
 Each project wiki must include:
 
 ```text
-wiki/overview-<project-slug>.md
+overview-<project-slug>.md
 ```
 
 Use lowercase kebab-case for `<project-slug>`. This page is a concise,
@@ -170,7 +170,7 @@ Use these sections when evidence exists:
 
 ## Agent continuity
 
-`wiki/agent/context.md` is the fast onboarding page for coding agents. It should
+`agent/context.md` is the fast onboarding page for coding agents. It should
 include:
 
 - project snapshot;
@@ -181,7 +181,7 @@ include:
 - risks and invariants;
 - links to the most important wiki pages.
 
-`wiki/agent/handoff.md` is the pass-the-baton page. It must include:
+`agent/handoff.md` is the pass-the-baton page. It must include:
 
 - current work state;
 - last completed step;
@@ -202,7 +202,7 @@ The baton section must use this table:
 Each task must have start files, done criteria, and a verification command. If
 verification is not possible, write `Not verified - <reason>`.
 
-`wiki/agent/activity.md` is append-only. Add an entry after non-trivial source,
+`agent/activity.md` is append-only. Add an entry after non-trivial source,
 config, project, or wiki operations with agent, trigger, intent, actions, files
 changed, validation, decisions, and follow-up.
 
@@ -231,7 +231,7 @@ may propose retirement:
 - `BUILD_PHASES.md`
 - `ARCHITECTURE.md`
 - `ROADMAP.md`
-- `CHANGELOG.md` if it duplicates `wiki/agent/activity.md` or `wiki/log.md`
+- `CHANGELOG.md` if it duplicates `agent/activity.md` or `log.md`
 
 Never delete automatically.
 

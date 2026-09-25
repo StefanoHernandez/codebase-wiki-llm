@@ -3,16 +3,26 @@
 
 from __future__ import annotations
 
+import re
+import shutil
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CANONICAL = ROOT / "canonical" / "codebase"
 MARKER_PREFIX = "<!-- Generated from "
+INCLUDE_RE = re.compile(r"^\{\{include:([^}]+)\}\}$", re.MULTILINE)
 
 
 def read(rel: str) -> str:
-    return (CANONICAL / rel).read_text(encoding="utf-8").strip() + "\n"
+    text = (CANONICAL / rel).read_text(encoding="utf-8")
+    text = INCLUDE_RE.sub(
+        lambda match: (CANONICAL / match.group(1)).read_text(encoding="utf-8").strip(),
+        text,
+    )
+    if "{{" in text:
+        raise ValueError(f"unexpanded placeholder in canonical/codebase/{rel}")
+    return text.strip() + "\n"
 
 
 def source(rel: str) -> str:
@@ -59,7 +69,7 @@ WORKFLOWS = {
         "source": "workflows/wiki-init.md",
         "codex_name": "codebase-wiki-init",
         "title": "Wiki Init",
-        "description": "Bootstrap an engineering-first software project wiki under wiki/.",
+        "description": "Bootstrap an engineering-first software project wiki in wiki/, .wiki/, or a folder you choose.",
     },
     "wiki-ingest": {
         "source": "workflows/wiki-ingest.md",
@@ -91,7 +101,7 @@ REFERENCES = (
 
 CODEBASE_CODEX_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
@@ -108,7 +118,7 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
   "interface": {
     "displayName": "Codebase Wiki LLM",
     "shortDescription": "Maintain per-repo living wikis for codebases.",
-    "longDescription": "Codebase Wiki LLM adapts the LLM Wiki pattern to mutable source code. The plugin provides global Codex skills for bootstrapping, ingesting, syncing, and linting a repository-local wiki/ directory while keeping every project's wiki content separate.",
+    "longDescription": "Codebase Wiki LLM adapts the LLM Wiki pattern to mutable source code. The plugin provides global Codex skills for bootstrapping, ingesting, syncing, and linting a repository-local wiki folder (wiki/ by default, or one you choose such as .wiki/) while keeping every project's wiki content separate.",
     "developerName": "Stefano",
     "category": "Productivity",
     "capabilities": [
@@ -136,8 +146,8 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
 
 CODEBASE_CLAUDE_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.7.0",
-  "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
+  "version": "0.8.0",
+  "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",
     "url": "https://github.com/StefanoHernandez"
@@ -150,18 +160,38 @@ CODEBASE_CLAUDE_PLUGIN_JSON = """{
 """
 
 
+RESOLVER_SCRIPT = "scripts/resolve-wiki-root.sh"
+
+
+CLAUDE_HOOKS_JSON = r"""{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-wiki-root.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
+"""
+
+
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.7.0",
-  "description": "Bootstrap and maintain a living wiki under wiki/ that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
+  "version": "0.8.0",
+  "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
 }
 """
 
 
 ANTIGRAVITY_WORKFLOW_TRIGGERS = {
     "wiki-init": "Use when the user says /wiki-init, wiki init, bootstrap wiki, initialize codebase wiki, or asks to start a project wiki.",
-    "wiki-ingest": "Use when the user says /wiki-ingest, wiki ingest, document this area in the wiki, or asks to add source knowledge to wiki/.",
-    "wiki-sync": "Use when the user says /wiki-sync, wiki sync, update wiki from recent changes, or after a completed coding task in a repo that already has wiki/.",
+    "wiki-ingest": "Use when the user says /wiki-ingest, wiki ingest, document this area in the wiki, or asks to add source knowledge to the codebase wiki.",
+    "wiki-sync": "Use when the user says /wiki-sync, wiki sync, update wiki from recent changes, or after a completed coding task in a repo that already has a codebase wiki.",
     "wiki-lint": "Use when the user says /wiki-lint, wiki lint, audit wiki, or check wiki health.",
 }
 
@@ -175,7 +205,7 @@ def generate_codex() -> None:
         "maintainer.md",
         skill_content(
             "codebase-wiki-maintainer",
-            "Knowledge for maintaining an engineering-first software project wiki under wiki/.",
+            "Knowledge for maintaining an engineering-first software project wiki (wiki/ by default, or the folder named in .wikidir).",
             "maintainer.md",
         ),
     )
@@ -211,12 +241,17 @@ def generate_claude() -> None:
     (ROOT / "plugins/claude-codebase-wiki-llm/plugin.json").write_text(
         CODEBASE_CLAUDE_PLUGIN_JSON, encoding="utf-8"
     )
+    claude_root = ROOT / "plugins/claude-codebase-wiki-llm"
+    (claude_root / "hooks").mkdir(parents=True, exist_ok=True)
+    (claude_root / "hooks/hooks.json").write_text(CLAUDE_HOOKS_JSON, encoding="utf-8")
+    (claude_root / RESOLVER_SCRIPT).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(CANONICAL / RESOLVER_SCRIPT, claude_root / RESOLVER_SCRIPT)
     write(
         "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/SKILL.md",
         "maintainer.md",
         skill_content(
             "wiki-maintainer",
-            "Knowledge for maintaining an engineering-first software project wiki under wiki/.",
+            "Knowledge for maintaining an engineering-first software project wiki (wiki/ by default, or the folder named in .wikidir).",
             "maintainer.md",
         ),
     )
@@ -262,7 +297,7 @@ def generate_antigravity() -> None:
         "maintainer.md",
         skill_content(
             "wiki-maintainer",
-            "Knowledge for maintaining an engineering-first software project wiki under wiki/.",
+            "Knowledge for maintaining an engineering-first software project wiki (wiki/ by default, or the folder named in .wikidir).",
             "maintainer.md",
         ),
     )
@@ -312,7 +347,7 @@ def generate_agent_skills() -> None:
         "rules/wiki-context.md",
         skill_content(
             "codebase-wiki-context",
-            "Use when a repository has wiki/ and coding work should use or update agent context, handoff, activity, and work tracking.",
+            "Use when a repository has a codebase wiki (wiki/, or the folder named in .wikidir) and coding work should use or update agent context, handoff, activity, and work tracking.",
             "rules/wiki-context.md",
         ),
     )

@@ -4,7 +4,7 @@ This repository is a cross-agent marketplace for Markdown wiki workflows. It
 ships two related plugins:
 
 - **Codebase Wiki LLM** - an engineering-first software project wiki under
-  `wiki/`.
+  `wiki/` by default, or a folder you choose such as `.wiki/`.
 - **SecondBrain Wiki LLM** - an adaptive personal and work knowledge vault for
   projects, documents, meetings, research, tasks, expenses, skills, people, and
   publications.
@@ -121,6 +121,43 @@ The agent continuity pages are intentionally short and operational:
 - `project/work-tracker.md` keeps project work items evidence-backed and linked to source files, decisions, and verification.
 
 Every handoff includes a `Baton For Next Coding Agent` table. Each next task must have start files, done criteria, and a verification command; when verification is impossible, the handoff must say `Not verified - <reason>`.
+
+## Choosing the wiki folder
+
+`/wiki-init` creates the wiki in `wiki/` unless you choose another folder:
+
+```text
+/wiki-init            # proposes wiki/, or .wiki/ when git already ignores it
+/wiki-init .wiki      # hidden; local-only in repos that ignore .* paths
+/wiki-init kb         # any single folder name
+```
+
+Pick by audience:
+
+- `wiki/` - shared project documentation, committed like `docs/`.
+- `.wiki/` - personal or agent working memory. In company repositories whose
+  `.gitignore` ignores every `.*` path, it stays out of shared git history.
+
+When the folder is not `wiki/`, init writes a one-line pointer at the
+repository root so every later session finds it. Like `.nvmrc` or
+`.python-version`, it contains only the value:
+
+```text
+.wikidir    ->    .wiki
+```
+
+Every workflow resolves the folder the same way: `.wikidir` first, then
+an existing `wiki/SCHEMA.md`. Claude Code also resolves it at session start
+with a plugin `SessionStart` hook; Codex and Antigravity read the pointer in
+the first workflow step. Existing `wiki/` wikis keep working unchanged.
+
+Notes:
+
+- Obsidian ignores folders that start with `.`. Open `.wiki/` itself as the
+  vault instead of the whole repository.
+- A gitignored wiki has no git history, and `git clean -xdf` deletes it.
+- To move an existing wiki: `mv wiki .wiki`, then `echo .wiki > .wikidir`
+  (bash and PowerShell both work: UTF-8, UTF-8 with BOM, and UTF-16 are read).
 
 ## Install
 
@@ -279,8 +316,12 @@ canonical/
 ├── codebase/
 │   ├── maintainer.md
 │   ├── default-schema.md
+│   ├── partials/
+│   │   └── resolve-wiki-root.md
 │   ├── rules/
 │   │   └── wiki-context.md
+│   ├── scripts/
+│   │   └── resolve-wiki-root.sh
 │   └── workflows/
 │       ├── wiki-init.md
 │       ├── wiki-ingest.md
@@ -326,6 +367,7 @@ Recommended release workflow:
 scripts/generate-host-packages.py
 scripts/check-generated.sh
 scripts/test-agent-handoff-validator.sh
+scripts/test-resolve-wiki-root.sh
 git diff
 git add .
 git commit -m "Update wiki workflow prompts"
@@ -341,7 +383,7 @@ the copy from the Install section.
 
 Once installed, in any repository:
 
-- `/wiki-init` — bootstrap an engineering-first project wiki.
+- `/wiki-init [folder]` — bootstrap an engineering-first project wiki (default folder `wiki/`).
 - `/wiki-ingest [path]` — deep-dive into a file, directory, feature, or topic.
 - `/wiki-sync` — surgically update existing wiki pages after small changes.
 - `/wiki-lint` — read-only health report for staleness, drift, gaps, unsupported claims, and frontmatter issues.
@@ -356,6 +398,8 @@ Local validator for generated project wikis:
 scripts/validate-agent-handoff.py path/to/repo/wiki
 ```
 
+Without an argument it validates the folder named in `./.wikidir`, or `./wiki`.
+
 It checks the minimum continuity contract: `agent/context.md`,
 `agent/handoff.md`, frontmatter metadata, the `Baton For Next Coding Agent`
 section, and at least one next task with start files, done criteria, and a
@@ -368,13 +412,13 @@ verification command.
 - SecondBrain plugin location: `plugins/secondbrain-wiki-llm` (Codex), `plugins/claude-secondbrain-wiki-llm` (Claude Code), or `plugins/antigravity-secondbrain-wiki-llm` (Antigravity).
 - Canonical prompt location: `canonical/codebase/` and `canonical/secondbrain/`.
 - Generated package location: `plugins/`.
-- Wiki location: per repository, always `<repo>/wiki/`.
-- Schema location: per repository, `wiki/SCHEMA.md`.
-- History location: per repository, `wiki/log.md`, `wiki/agent/activity.md`, and git history.
+- Wiki location: per repository, `<repo>/wiki/` by default, or the folder named in `<repo>/.wikidir`.
+- Schema location: per repository, `<wiki folder>/SCHEMA.md`.
+- History location: per repository, `<wiki folder>/log.md`, `<wiki folder>/agent/activity.md`, and git history when the wiki is tracked.
 
 The plugin does not create a shared global wiki. It provides reusable skills,
 commands, rules, and workflows that operate on the current repository's local
-`wiki/` directory.
+wiki folder.
 
 ## Repository layout
 
@@ -388,6 +432,7 @@ scripts/generate-secondbrain-packages.py    <- generates SecondBrain packages
 scripts/check-generated.sh                  <- verifies generated files are current
 scripts/validate-agent-handoff.py           <- validates agent context/handoff pages in a target wiki
 scripts/test-agent-handoff-validator.sh      <- tests the validator against valid and invalid fixtures
+scripts/test-resolve-wiki-root.sh            <- tests the wiki folder resolver
 skills/                                     <- generated generic Agent Skills distribution
 plugins/
 ├── codebase-wiki-llm/                      Codex variant
@@ -398,6 +443,8 @@ plugins/
 ├── claude-codebase-wiki-llm/               Claude Code Codebase variant
 │   ├── plugin.json
 │   ├── commands/                           (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint)
+│   ├── hooks/hooks.json                    (SessionStart: resolves the wiki folder)
+│   ├── scripts/resolve-wiki-root.sh
 │   └── skills/
 │       ├── wiki-maintainer/
 │       └── wiki-context/
@@ -467,7 +514,7 @@ Restart or refresh Codex plugin discovery after changing marketplaces.
 
 ## Guardrail
 
-Wiki operations may read source files but must not modify source files. They write only under `wiki/`, except when the user explicitly asks for another project change outside the wiki workflow.
+Wiki operations may read source files but must not modify source files. They write only under the wiki folder (plus `.wikidir` when `/wiki-init` picks a folder other than `wiki/`), except when the user explicitly asks for another project change outside the wiki workflow.
 
 ## License
 

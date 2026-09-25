@@ -1,6 +1,6 @@
 # Agent Context Template
 
-Use this template for `wiki/agent/context.md`. Keep it concise enough that a new
+Use this template for `<wiki-root>/agent/context.md`. Keep it concise enough that a new
 coding agent can read it before searching the codebase.
 
 ```markdown
@@ -9,10 +9,10 @@ title: Agent Context
 updated: YYYY-MM-DD
 sources:
   - README.md
-  - wiki/index.md
-  - wiki/engineering/architecture.md
-  - wiki/engineering/development.md
-  - wiki/engineering/testing.md
+  - <wiki-root>/index.md
+  - <wiki-root>/engineering/architecture.md
+  - <wiki-root>/engineering/development.md
+  - <wiki-root>/engineering/testing.md
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low
 ---

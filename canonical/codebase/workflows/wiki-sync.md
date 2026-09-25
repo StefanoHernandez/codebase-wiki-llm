@@ -2,11 +2,15 @@
 
 Fast, surgical wiki update based on small recent changes.
 
-Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
+Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
+
+## Step 0 - Resolve the wiki root
+
+{{include:partials/resolve-wiki-root.md}}
 
 ## Step 1 - Fast preconditions
 
-- If `wiki/` does not exist, exit silently.
+- If Step 0 found no wiki, exit silently.
 - If no source/config/project files changed, report `wiki-sync: nothing to do.`
 
 ## Step 2 - Determine changes
@@ -20,7 +24,7 @@ Prefer git:
 
 If git is unavailable, use mtimes.
 
-Filter out paths excluded by `wiki/SCHEMA.md` and `wiki/` itself.
+Filter out paths excluded by `<wiki-root>/SCHEMA.md` and `<wiki-root>/` itself.
 
 ## Step 3 - Map changes to pages
 

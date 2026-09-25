@@ -16,6 +16,8 @@ GENERATED_PATHS=(
   "plugins/claude-codebase-wiki-llm/plugin.json"
   "plugins/claude-codebase-wiki-llm/commands"
   "plugins/claude-codebase-wiki-llm/skills"
+  "plugins/claude-codebase-wiki-llm/hooks"
+  "plugins/claude-codebase-wiki-llm/scripts"
   "plugins/antigravity-codebase-wiki-llm/plugin.json"
   "plugins/antigravity-codebase-wiki-llm/rules"
   "plugins/antigravity-codebase-wiki-llm/skills"
@@ -31,6 +33,14 @@ GENERATED_PATHS=(
 )
 
 cd "$ROOT_DIR"
+
+HARDCODED_WIKI="$(grep -rnE '(^|[^A-Za-z<.-])wiki/' canonical/codebase --include='*.md' --exclude-dir=partials || true)"
+if [ -n "$HARDCODED_WIKI" ]; then
+  echo "hardcoded wiki/ paths in canonical/codebase; use <wiki-root>/ instead:" >&2
+  echo "$HARDCODED_WIKI" >&2
+  exit 1
+fi
+
 git diff -- "${GENERATED_PATHS[@]}" > "$BEFORE"
 python3 "$ROOT_DIR/scripts/generate-host-packages.py"
 git diff -- "${GENERATED_PATHS[@]}" > "$AFTER"
@@ -40,5 +50,21 @@ if ! cmp -s "$BEFORE" "$AFTER"; then
   diff -u "$BEFORE" "$AFTER" || true
   exit 1
 fi
+
+STEP0_MARKER="Codebase Wiki LLM: wiki_root:"
+STEP0_FILES=(
+  "plugins/codebase-wiki-llm/skills/codebase-wiki-init/SKILL.md"
+  "plugins/codebase-wiki-llm/skills/codebase-wiki-context/SKILL.md"
+  "plugins/claude-codebase-wiki-llm/commands/wiki-sync.md"
+  "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/SKILL.md"
+  "plugins/antigravity-codebase-wiki-llm/rules/wiki.md"
+  "skills/codebase-wiki-lint/SKILL.md"
+)
+for file in "${STEP0_FILES[@]}"; do
+  if ! grep -q "$STEP0_MARKER" "$file"; then
+    echo "missing wiki root resolution (Step 0) in $file" >&2
+    exit 1
+  fi
+done
 
 echo "generated files are up to date"

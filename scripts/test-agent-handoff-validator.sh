@@ -63,6 +63,20 @@ EOF
 
 "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/wiki"
 
+# Without an argument the validator uses ./wiki, or the folder named in ./.wikidir.
+(cd "$TMP_DIR" && "$ROOT_DIR/scripts/validate-agent-handoff.py")
+
+mkdir -p "$TMP_DIR/repo"
+cp -R "$TMP_DIR/wiki" "$TMP_DIR/repo/.wiki"
+printf '.wiki\n' > "$TMP_DIR/repo/.wikidir"
+(cd "$TMP_DIR/repo" && "$ROOT_DIR/scripts/validate-agent-handoff.py")
+
+# Pointers written by PowerShell: UTF-8 with BOM, and UTF-16LE.
+printf '\357\273\277.wiki\r\n' > "$TMP_DIR/repo/.wikidir"
+(cd "$TMP_DIR/repo" && "$ROOT_DIR/scripts/validate-agent-handoff.py")
+printf '\377\376.\000w\000i\000k\000i\000\r\000\n\000' > "$TMP_DIR/repo/.wikidir"
+(cd "$TMP_DIR/repo" && "$ROOT_DIR/scripts/validate-agent-handoff.py")
+
 cat > "$TMP_DIR/wiki/agent/handoff.md" <<'EOF'
 ---
 title: Agent Handoff

@@ -4,6 +4,8 @@
 Usage:
   scripts/validate-agent-handoff.py [wiki_dir]
 
+Without wiki_dir it validates the folder named in ./.wikidir, or ./wiki.
+
 The validator is intentionally small and dependency-free. It checks the minimum
 contract needed for a new coding agent to continue work from `agent/context.md`
 and `agent/handoff.md`.
@@ -28,6 +30,21 @@ TABLE_COLUMNS = [
     "Notes / blockers",
 ]
 PLACEHOLDER_VALUES = {"", "unknown", "pending", "todo", "tbd", "n/a", "na", "none"}
+POINTER_FILE = ".wikidir"
+WIKI_ROOT_NAME = re.compile(r"^\.?[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$")
+
+
+def default_wiki_dir(cwd: Path) -> Path:
+    pointer = cwd / POINTER_FILE
+    if pointer.is_file():
+        raw = pointer.read_bytes()
+        # PowerShell writes UTF-16 (echo >, Out-File) or UTF-8 with BOM.
+        encoding = "utf-16" if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else "utf-8-sig"
+        lines = [line.strip() for line in raw.decode(encoding).splitlines()]
+        value = next((line for line in lines if line), "")
+        if WIKI_ROOT_NAME.fullmatch(value):
+            return cwd / value
+    return cwd / "wiki"
 
 
 @dataclass
@@ -185,7 +202,7 @@ def validate_context(page: Page) -> list[str]:
 
 
 def main(argv: list[str]) -> int:
-    wiki_dir = Path(argv[1]) if len(argv) > 1 else Path("wiki")
+    wiki_dir = Path(argv[1]) if len(argv) > 1 else default_wiki_dir(Path.cwd())
     context_path = wiki_dir / "agent" / "context.md"
     handoff_path = wiki_dir / "agent" / "handoff.md"
 

@@ -2,7 +2,7 @@
 
 # Agent Handoff Template
 
-Use this template for `wiki/agent/handoff.md`. It is a pass-the-baton document,
+Use this template for `<wiki-root>/agent/handoff.md`. It is a pass-the-baton document,
 not a narrative session summary.
 
 ```markdown
@@ -10,8 +10,8 @@ not a narrative session summary.
 title: Agent Handoff
 updated: YYYY-MM-DD
 sources:
-  - wiki/agent/activity.md
-  - wiki/project/work-tracker.md
+  - <wiki-root>/agent/activity.md
+  - <wiki-root>/project/work-tracker.md
   - <changed-source-or-config-file>
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low

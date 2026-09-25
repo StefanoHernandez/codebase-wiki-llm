@@ -1,6 +1,6 @@
 ---
 name: wiki-sync
-description: Surgically sync existing wiki pages after small source or project changes. Use when the user says /wiki-sync, wiki sync, update wiki from recent changes, or after a completed coding task in a repo that already has wiki/.
+description: Surgically sync existing wiki pages after small source or project changes. Use when the user says /wiki-sync, wiki sync, update wiki from recent changes, or after a completed coding task in a repo that already has a codebase wiki.
 ---
 
 <!-- Generated from codebase/workflows/wiki-sync.md. Do not edit directly. -->
@@ -9,11 +9,34 @@ description: Surgically sync existing wiki pages after small source or project c
 
 Fast, surgical wiki update based on small recent changes.
 
-Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
+Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
+
+## Step 0 - Resolve the wiki root
+
+In these instructions, `<wiki-root>` is this repository's wiki directory,
+relative to the repository root (`wiki` by default). Resolve it once, before
+anything else, use the resolved value in every wiki path, and state it:
+`Wiki root: <value>/`.
+
+1. If your context contains a line `Codebase Wiki LLM: wiki_root: <value>`
+   (added when the session started) and you have not created or changed the
+   wiki root during this session, use `<value>`.
+2. Otherwise, if `.wikidir` exists at the repository root, read that file
+   directly: its first non-empty line is the folder name. Do not look for it
+   with a file search: searches skip hidden and gitignored files.
+3. Otherwise, if `wiki/SCHEMA.md` exists, `<wiki-root>` is `wiki`.
+4. Otherwise the repository has no wiki yet.
+
+The value must be a single directory name matching
+`^\.?[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$` (no trailing dot) and must
+not be one of `.git`, `.github`, `.claude`, `.codex`, `.agents`, `.agent`,
+`.gemini`, `.opencode`, `.obsidian`, `.vscode`, `node_modules`, `.wikidir`,
+compared case-insensitively. If it breaks these rules or names a directory
+that does not exist, stop and tell the user without guessing another location.
 
 ## Step 1 - Fast preconditions
 
-- If `wiki/` does not exist, exit silently.
+- If Step 0 found no wiki, exit silently.
 - If no source/config/project files changed, report `wiki-sync: nothing to do.`
 
 ## Step 2 - Determine changes
@@ -27,7 +50,7 @@ Prefer git:
 
 If git is unavailable, use mtimes.
 
-Filter out paths excluded by `wiki/SCHEMA.md` and `wiki/` itself.
+Filter out paths excluded by `<wiki-root>/SCHEMA.md` and `<wiki-root>/` itself.
 
 ## Step 3 - Map changes to pages
 

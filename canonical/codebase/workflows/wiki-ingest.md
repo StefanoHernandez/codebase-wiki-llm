@@ -8,12 +8,16 @@ Argument:
 - `[path]` can be a file path, directory, or topic.
 - If omitted, ask what to ingest.
 
-Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
+Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
+
+## Step 0 - Resolve the wiki root
+
+{{include:partials/resolve-wiki-root.md}}
 
 ## Step 1 - Preconditions
 
-- If `wiki/` does not exist, tell the user to run `/wiki-init` first.
-- If `wiki/SCHEMA.md` is missing, use defaults and warn the user.
+- If Step 0 found no wiki, tell the user to run `/wiki-init` first.
+- If `<wiki-root>/SCHEMA.md` is missing, use defaults and warn the user.
 
 ## Step 2 - Resolve the target
 

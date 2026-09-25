@@ -1,6 +1,6 @@
 # Work Tracker Template
 
-Use this template for `wiki/project/work-tracker.md`. It connects project state
+Use this template for `<wiki-root>/project/work-tracker.md`. It connects project state
 to agent handoff tasks.
 
 ```markdown
@@ -8,8 +8,8 @@ to agent handoff tasks.
 title: Work Tracker
 updated: YYYY-MM-DD
 sources:
-  - wiki/agent/activity.md
-  - wiki/agent/handoff.md
+  - <wiki-root>/agent/activity.md
+  - <wiki-root>/agent/handoff.md
   - <source-files-or-plans>
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low

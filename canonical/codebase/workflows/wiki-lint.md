@@ -2,11 +2,15 @@
 
 Read-only health check for the repository-local wiki.
 
-Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
+Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
+
+## Step 0 - Resolve the wiki root
+
+{{include:partials/resolve-wiki-root.md}}
 
 ## Step 1 - Preconditions
 
-- If `wiki/` does not exist, tell the user to run `/wiki-init` first.
+- If Step 0 found no wiki, tell the user to run `/wiki-init` first.
 - Prefer git over mtimes when available.
 
 ## Step 2 - Gather facts
@@ -14,8 +18,8 @@ Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
 Read:
 
 1. every wiki page frontmatter;
-2. `wiki/SCHEMA.md`;
-3. `wiki/index.md`;
+2. `<wiki-root>/SCHEMA.md`;
+3. `<wiki-root>/index.md`;
 4. current in-scope source/config/project files;
 5. git status and recent commits;
 6. root-level legacy docs listed by the schema.
@@ -64,7 +68,7 @@ evidence.
 
 ### Portable overview
 
-Flag missing `wiki/overview-<project-slug>.md`.
+Flag missing `<wiki-root>/overview-<project-slug>.md`.
 
 Flag portable overview pages that:
 
@@ -79,10 +83,10 @@ Flag portable overview pages that:
 
 ### Agent continuity
 
-Flag missing `wiki/agent/context.md`, `wiki/agent/activity.md`, or
-`wiki/agent/handoff.md`.
+Flag missing `<wiki-root>/agent/context.md`, `<wiki-root>/agent/activity.md`, or
+`<wiki-root>/agent/handoff.md`.
 
-Flag `wiki/agent/context.md` when it is too generic or lacks:
+Flag `<wiki-root>/agent/context.md` when it is too generic or lacks:
 
 - project snapshot;
 - architecture or main areas;
@@ -92,7 +96,7 @@ Flag `wiki/agent/context.md` when it is too generic or lacks:
 - risks or invariants;
 - links to important wiki pages.
 
-Flag `wiki/agent/handoff.md` when it lacks:
+Flag `<wiki-root>/agent/handoff.md` when it lacks:
 
 - current work state;
 - last completed step;
@@ -111,7 +115,7 @@ Flag baton rows when any task lacks:
 - notes/blockers when the task is blocked or risky.
 
 Flag stale activity when source/config/project/wiki changes are visible but
-`wiki/agent/activity.md` has no recent entry describing agent, trigger, intent,
+`<wiki-root>/agent/activity.md` has no recent entry describing agent, trigger, intent,
 actions, changed files, validation, decisions, and follow-up.
 
 Flag claims about project state, git state, completed work, verification, or
@@ -120,10 +124,10 @@ or linked wiki pages.
 
 ### Work tracker
 
-Flag missing `wiki/project/work-tracker.md`.
+Flag missing `<wiki-root>/project/work-tracker.md`.
 
 Flag work tracker rows that have no status, evidence, next verification, or
-connection to `wiki/agent/handoff.md` for active coding work.
+connection to `<wiki-root>/agent/handoff.md` for active coding work.
 
 ### Contradictions
 
@@ -173,7 +177,7 @@ Produce a concise markdown report:
 ## Step 5 - Read-only by default
 
 Do not edit the wiki during lint. If the user explicitly asks to save the
-report, write it under `wiki/lint-reports/` and append to `wiki/log.md`.
+report, write it under `<wiki-root>/lint-reports/` and append to `<wiki-root>/log.md`.
 
 ## Guardrails
 

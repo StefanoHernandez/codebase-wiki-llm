@@ -8,11 +8,34 @@ description: Run a read-only health check for staleness, drift, gaps, and unsupp
 
 Read-only health check for the repository-local wiki.
 
-Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
+Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
+
+## Step 0 - Resolve the wiki root
+
+In these instructions, `<wiki-root>` is this repository's wiki directory,
+relative to the repository root (`wiki` by default). Resolve it once, before
+anything else, use the resolved value in every wiki path, and state it:
+`Wiki root: <value>/`.
+
+1. If your context contains a line `Codebase Wiki LLM: wiki_root: <value>`
+   (added when the session started) and you have not created or changed the
+   wiki root during this session, use `<value>`.
+2. Otherwise, if `.wikidir` exists at the repository root, read that file
+   directly: its first non-empty line is the folder name. Do not look for it
+   with a file search: searches skip hidden and gitignored files.
+3. Otherwise, if `wiki/SCHEMA.md` exists, `<wiki-root>` is `wiki`.
+4. Otherwise the repository has no wiki yet.
+
+The value must be a single directory name matching
+`^\.?[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$` (no trailing dot) and must
+not be one of `.git`, `.github`, `.claude`, `.codex`, `.agents`, `.agent`,
+`.gemini`, `.opencode`, `.obsidian`, `.vscode`, `node_modules`, `.wikidir`,
+compared case-insensitively. If it breaks these rules or names a directory
+that does not exist, stop and tell the user without guessing another location.
 
 ## Step 1 - Preconditions
 
-- If `wiki/` does not exist, tell the user to run `/wiki-init` first.
+- If Step 0 found no wiki, tell the user to run `/wiki-init` first.
 - Prefer git over mtimes when available.
 
 ## Step 2 - Gather facts
@@ -20,8 +43,8 @@ Requires the wiki maintainer skill. Respect `wiki/SCHEMA.md`.
 Read:
 
 1. every wiki page frontmatter;
-2. `wiki/SCHEMA.md`;
-3. `wiki/index.md`;
+2. `<wiki-root>/SCHEMA.md`;
+3. `<wiki-root>/index.md`;
 4. current in-scope source/config/project files;
 5. git status and recent commits;
 6. root-level legacy docs listed by the schema.
@@ -70,7 +93,7 @@ evidence.
 
 ### Portable overview
 
-Flag missing `wiki/overview-<project-slug>.md`.
+Flag missing `<wiki-root>/overview-<project-slug>.md`.
 
 Flag portable overview pages that:
 
@@ -85,10 +108,10 @@ Flag portable overview pages that:
 
 ### Agent continuity
 
-Flag missing `wiki/agent/context.md`, `wiki/agent/activity.md`, or
-`wiki/agent/handoff.md`.
+Flag missing `<wiki-root>/agent/context.md`, `<wiki-root>/agent/activity.md`, or
+`<wiki-root>/agent/handoff.md`.
 
-Flag `wiki/agent/context.md` when it is too generic or lacks:
+Flag `<wiki-root>/agent/context.md` when it is too generic or lacks:
 
 - project snapshot;
 - architecture or main areas;
@@ -98,7 +121,7 @@ Flag `wiki/agent/context.md` when it is too generic or lacks:
 - risks or invariants;
 - links to important wiki pages.
 
-Flag `wiki/agent/handoff.md` when it lacks:
+Flag `<wiki-root>/agent/handoff.md` when it lacks:
 
 - current work state;
 - last completed step;
@@ -117,7 +140,7 @@ Flag baton rows when any task lacks:
 - notes/blockers when the task is blocked or risky.
 
 Flag stale activity when source/config/project/wiki changes are visible but
-`wiki/agent/activity.md` has no recent entry describing agent, trigger, intent,
+`<wiki-root>/agent/activity.md` has no recent entry describing agent, trigger, intent,
 actions, changed files, validation, decisions, and follow-up.
 
 Flag claims about project state, git state, completed work, verification, or
@@ -126,10 +149,10 @@ or linked wiki pages.
 
 ### Work tracker
 
-Flag missing `wiki/project/work-tracker.md`.
+Flag missing `<wiki-root>/project/work-tracker.md`.
 
 Flag work tracker rows that have no status, evidence, next verification, or
-connection to `wiki/agent/handoff.md` for active coding work.
+connection to `<wiki-root>/agent/handoff.md` for active coding work.
 
 ### Contradictions
 
@@ -179,7 +202,7 @@ Produce a concise markdown report:
 ## Step 5 - Read-only by default
 
 Do not edit the wiki during lint. If the user explicitly asks to save the
-report, write it under `wiki/lint-reports/` and append to `wiki/log.md`.
+report, write it under `<wiki-root>/lint-reports/` and append to `<wiki-root>/log.md`.
 
 ## Guardrails
 
