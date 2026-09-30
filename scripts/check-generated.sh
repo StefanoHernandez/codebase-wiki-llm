@@ -93,5 +93,9 @@ require "## Core map" canonical/codebase/workflows/wiki-init.md
 require "Core map" canonical/codebase/workflows/wiki-sync.md canonical/codebase/workflows/wiki-ingest.md
 require "log-archive" canonical/codebase/workflows/wiki-sync.md
 require "propose" canonical/codebase/workflows/wiki-sync.md
+require "check-private-terms.sh --all" canonical/codebase/workflows/wiki-lint.md
+require "### Budget" canonical/codebase/workflows/wiki-lint.md
+require "### Evidence" canonical/codebase/workflows/wiki-lint.md
+require "### Single status" canonical/codebase/workflows/wiki-lint.md
 
 echo "generated files are up to date"
