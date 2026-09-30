@@ -65,6 +65,11 @@ Apply minimum edits:
 - lower confidence when evidence is incomplete;
 - update `context` when project onboarding facts, commands, risks,
   invariants, or high-value links changed;
+- `context` Verified Facts: when this change brings new evidence for a fact,
+  update its value, evidence, date and code state directly. When a fact's
+  evidence source changed and the fact cannot be re-proved now, replace its
+  Verified date with `⚠️ TO RE-VERIFY (<what changed>)`; never keep the old
+  date and never delete the row silently;
 - `tracker` and `handoff` are updated in Step 6.
 
 Do not create new pages during sync, except files the user confirmed in
@@ -88,14 +93,12 @@ Touch `index` only when summaries, titles, or page availability changed.
 - **Decision**: the change adds a dependency, changes architecture, or rejects
   an alternative -> propose `NNNN-<slug>.md` under the `decisions` path (Core map)
   (`references/decision-template.md`).
-- **Troubleshooting**: the session solved a non-obvious problem -> propose an
+- **Troubleshooting**: the session solved a non-obvious or recurring problem -> propose an
   entry (`references/troubleshooting-template.md`).
 - **Log archive**: a phase of the project division closed, or `log` exceeds
   its budget -> propose moving entries up to that date to
   `<phase-or-period>.md` under the `log-archive` path (Core map), leaving one link line. Cut by date:
   phases overlap in time.
-- **Verified facts**: a fact in `context` changed -> propose the new value
-  with its evidence and date.
 
 ## Step 8 - Report briefly
 

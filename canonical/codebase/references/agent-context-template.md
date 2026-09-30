@@ -30,11 +30,12 @@ confidence: high | medium | low
 | Test | `<command>` | YYYY-MM-DD or `⚠️ NOT VERIFIED` |
 
 ## Verified Facts
-Do not re-derive these. Re-check a fact only when its evidence changed.
+Do not re-derive these. Re-check a fact only when its evidence changed or it is
+marked `⚠️ TO RE-VERIFY`.
 
 | Fact | Value | Evidence | Verified |
 | --- | --- | --- | --- |
-| <fact> | <value> | `<command>` or <document> | YYYY-MM-DD |
+| <fact> | <value> | `<command>` or <document> | YYYY-MM-DD @<short-sha> |
 
 **Errors already corrected, do not reintroduce:** <wrong belief> → <correct fact>.
 
@@ -48,3 +49,6 @@ Rules:
 - Mark unverified commands and facts `⚠️ NOT VERIFIED`.
 - Keep implementation detail out unless it helps a new coding agent decide
   where to start.
+- `/wiki-sync` updates a fact directly when new evidence proves it. When a
+  fact's evidence changed and it cannot be re-proved, its Verified cell becomes
+  `⚠️ TO RE-VERIFY (<what changed>)`; the row is never deleted silently.

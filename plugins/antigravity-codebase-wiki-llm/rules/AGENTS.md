@@ -71,8 +71,9 @@ If source/config/project files changed and `<wiki-root>/` exists:
    incomplete.
 3. Update `context` when architecture, commands, invariants, risks or read-first
    files changed.
-4. Every claim you write follows SCHEMA `## Evidence`: command, essential output,
-   date, or `> ⚠️ NOT VERIFIED`.
+4. Every claim you write follows SCHEMA `## Evidence`, in proportion to the
+   claim: a verification carries command, essential output, date and code state
+   (`@<short-sha>`); what you could not check is `> ⚠️ NOT VERIFIED - <reason>`.
 
 Do not run `/wiki-sync` when no source/config/project files changed, the task is
 still in progress across turns, or the user said not to update the wiki.

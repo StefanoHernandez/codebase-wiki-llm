@@ -102,15 +102,17 @@ tests". If no reliable verification exists, say that explicitly.
 
 ## Confidence and decay
 
-- **high**: written from current evidence and no commits touched the listed
-  sources since `source_commit`.
-- **medium**: one to four commits touched listed sources, or the page includes
-  limited interpretation beyond direct evidence.
-- **low**: five or more commits touched listed sources, listed sources are
-  missing, or key claims cannot be verified.
+- **high**: written from current evidence, and no change to the listed sources
+  since `source_commit` affects the page's claims.
+- **medium**: listed sources changed in ways not yet checked against the page,
+  or the page includes limited interpretation beyond direct evidence.
+- **low**: a source change affects key claims, listed sources are missing, or
+  key claims cannot be verified.
 
-Lower confidence during sync or lint when evidence ages. Never silently delete
-old claims; correct them with a supersession note when useful.
+Judge a source change by its impact, not by the commit count: one commit can
+invalidate a contract, twenty can be cosmetic. Lower confidence during sync or
+lint when evidence ages. Never silently delete old claims; correct them with a
+supersession note when useful.
 
 ## Operations
 
