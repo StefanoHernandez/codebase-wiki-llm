@@ -101,7 +101,7 @@ Off by default. When `Sensitive data` is `yes`:
 ```
 
 When a phase of the project division closes, or the log exceeds its budget,
-entries up to that date move to `log-archive/<phase-or-period>.md` and the
+entries up to that date move to `<phase-or-period>.md` under the `log-archive` path and the
 log keeps one link line per archive.
 
 ## Topics

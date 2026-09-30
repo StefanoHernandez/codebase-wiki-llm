@@ -74,10 +74,8 @@ Consider:
 
 - the `index`, `context`, `handoff`, `tracker`, `decisions`, `risks`,
   `troubleshooting` and `glossary` pages, and the `log`;
-- the topic pages listed in SCHEMA `## Topics` (architecture, data model,
-  development, testing, operations, change map, requirements, evidence);
-- `modules/<area>.md`;
-- other project-docs pages when reusable claims or proof points emerge.
+- the topic pages listed in SCHEMA `## Topics`;
+- `modules/<area>.md`.
 
 A new topic page must be listed in SCHEMA `## Topics`: add the row.
 
@@ -96,9 +94,6 @@ For each affected page:
 Every claim follows SCHEMA `## Evidence`.
 
 If creating a module page, use the module quality bar from the maintainer skill.
-
-If creating or updating project-docs claims, link each claim to engineering,
-project, or source evidence. Mark unsupported claims as gaps/hypotheses.
 
 If ingest changes project status, architecture decisions, active work, next
 tasks, blockers, or verification commands, update:
@@ -126,7 +121,7 @@ Tell the user:
 
 - what was ingested;
 - pages created and updated;
-- important engineering/project/project-docs findings;
+- important findings;
 - follow-up recommendations.
 
 ## Guardrails
