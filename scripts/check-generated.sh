@@ -97,5 +97,7 @@ require "check-private-terms.sh --all" canonical/codebase/workflows/wiki-lint.md
 require "### Budget" canonical/codebase/workflows/wiki-lint.md
 require "### Evidence" canonical/codebase/workflows/wiki-lint.md
 require "### Single status" canonical/codebase/workflows/wiki-lint.md
+require "Core map" canonical/codebase/rules/wiki-context.md
+require "⚠️ NOT VERIFIED" canonical/codebase/rules/wiki-context.md
 
 echo "generated files are up to date"
