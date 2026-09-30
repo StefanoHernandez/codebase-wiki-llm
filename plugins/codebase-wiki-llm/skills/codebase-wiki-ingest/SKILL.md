@@ -104,7 +104,7 @@ tasks, blockers, or verification commands, update:
 - `handoff` when the next coding task, plan, blocker, git state, or
   verification state changed.
 
-Keep `handoff` task-oriented. Its `Baton For Next Coding Agent` table
+Keep `handoff` task-oriented. Its baton table (marker `<!-- wiki:baton -->`)
 must keep start files, done criteria, and verification commands for each next
 task.
 

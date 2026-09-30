@@ -23,7 +23,7 @@ confidence: high | medium | low
 
 - Status: <not started | in progress | blocked | ready for review | done | unknown>
 - Goal: <current objective>
-- Last completed step: <evidence-backed step or Not verified.>
+- Last completed step: <evidence-backed step, or Not verified - <reason>>
 - Current branch: `<branch or unknown>`
 - Last commit: `<short-sha or unknown>`
 - Worktree: <clean | dirty | unknown>
@@ -54,7 +54,7 @@ confidence: high | medium | low
 
 | Command | Directory | Result | Evidence / notes |
 | --- | --- | --- | --- |
-| `<command>` | `<path>` | pass | <brief result> |
+| `<command>` | `<path>` | pass @<short-sha> | <brief result> |
 
 ## Do Not Redo
 <!-- wiki:do-not-redo -->

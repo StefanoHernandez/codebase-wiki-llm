@@ -47,12 +47,15 @@ Rules:
 
 - Add `Phase` (when the SCHEMA project division is not `none`), `Priority` or
   `Depends on` columns only when they help.
-- A person approves a proposal by moving it to Open with the next free ID.
-  Agents add proposals; they never move one to Open themselves.
+- A person opens a task by moving a proposal to Open or by asking for the
+  work in the conversation; the agent then writes the Open row with the next
+  free ID and who asked. Agents never open a task on their own.
 - A row moves to Done (🟢) only when every `Done when` criterion is met and
   proven with a check that fits the work: a test or command for code, a link
   or review for documents, a recorded outcome for management work. Limits stay
   explicit in `Criteria met`. A test that could not run is not a passed test.
+  A person may close a row whose criteria are not proven: `Criteria met` then
+  reads `closed by <person> YYYY-MM-DD; not proven: <what>`.
 - Agents update status and evidence of the rows they work on and mark a row 🔴
   with the reason when work stopped. Owners, deadlines, priorities and scope
   are human decisions.

@@ -67,6 +67,11 @@ Find checked sections by their `<!-- wiki:<id> -->` marker, or by the English
 template heading in pages without markers. Flag a `context`, `handoff` or
 `tracker` section found by neither, naming the marker to add.
 
+Rules added in 0.9.0 (code state on log entries, `## Approval` on decisions,
+`Done when` on tracker rows) apply to content written after the wiki adopted
+them. Report older content once, as counts (for example `12 log entries
+without code state`), not as findings.
+
 ### Core map
 
 Flag roles pointing to missing files and broken relative links. A SCHEMA
@@ -114,9 +119,9 @@ first, or links to important pages.
 
 Apply SCHEMA `## Evidence` by claim type. Flag verifications with no command,
 no date or no code state (`@<short-sha>`), command output with no command,
-descriptions with no precise source, decisions with no recorded approval,
-risks with no stated assumption, and example output placed next to real
-output. A `⚠️ NOT VERIFIED` without a reason is a finding too.
+descriptions with no precise source, `accepted` decisions with no recorded
+approval, risks with no stated assumption, and example output placed next to
+real output. A `⚠️ NOT VERIFIED` without a reason is a finding too.
 
 ### Verified facts
 
@@ -130,17 +135,19 @@ Flag status icons outside `tracker` (except pages that declare another
 meaning at the top), IDs cited but missing from `tracker`, duplicated IDs,
 and IDs reused for a different task.
 
-Flag `tracker` rows without status, evidence, or next verification.
+Flag Open rows without status, evidence, or next verification.
 
 Flag Open rows without `Done when`, Done rows without `Criteria met` or
-evidence, rows marked 🟢 whose criteria are not proven, Proposals with an ID or
-a status icon, and external issue or PR state copied as status.
+evidence, rows marked 🟢 whose criteria are neither proven nor recorded as
+`closed by <person>`, Proposals with an ID or a status icon, and external
+issue or PR state copied as status.
 
 ### Decisions
 
 Flag decision files whose `status` is not `proposed`, `accepted`, `rejected`
 or `superseded by NNNN`; `accepted` decisions without an `## Approval` naming
-who, where and when; and reasons stated with no source (they should read
+who, where and when (a decision accepted before this rule may read `Approval
+not recorded.`); and reasons stated with no source (they should read
 `Reasons not recorded.`).
 
 ### Handoff

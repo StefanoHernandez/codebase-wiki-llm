@@ -11,7 +11,11 @@ Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
 ## Step 1 - Fast preconditions
 
 - If Step 0 found no wiki, exit silently.
-- If no source/config/project files changed, report `wiki-sync: nothing to do.`
+- If no source/config/project files changed and the log-archive rule (SCHEMA
+  `## Log format`) does not apply, report `wiki-sync: nothing to do.`
+  Changed files include uncommitted ones, those committed since the code
+  state (`@<short-sha>`) of the latest `log` entry, and those named by a
+  `Codebase Wiki LLM (note, not a stop)` line in your context.
 
 ## Step 2 - Determine changes
 
@@ -19,7 +23,10 @@ Prefer git:
 
 1. `git status --porcelain` for uncommitted and untracked files.
 2. `git diff --name-only HEAD` for working-tree changes.
-3. For each wiki page source, `git log <source_commit>..HEAD -- <source>` for
+3. `git diff --name-only <sha>..HEAD`, where `<sha>` is the code state of the
+   latest `log` entry, for work committed since the last sync; add the files
+   named by a `Codebase Wiki LLM (note, not a stop)` line.
+4. For each wiki page source, `git log <source_commit>..HEAD -- <source>` for
    committed changes since the page was written.
 
 If git is unavailable, use mtimes.
@@ -89,13 +96,18 @@ Touch `index` only when summaries, titles, or page availability changed.
    missing. New work the change suggests goes to `## Proposals`.
 3. Rewrite `handoff`: last completed step, next tasks (baton table), what not
    to redo, commands already run.
-4. Archive the log without asking when the SCHEMA `## Log format` rule applies
-   (a phase of the project division closed, or `log` is over its budget): move
-   whole entries dated up to the cut, unchanged, to `<phase-or-period>.md`
-   under the `log-archive` path (Core map); keep dates, evidence and links,
-   rewriting relative links only so they still resolve from the archive; leave
-   one link line per archive in `log`. Cut by date: phases overlap. Make it one
-   self-contained edit, reversible with git.
+4. Archive the log without asking when the SCHEMA `## Log format` rule
+   applies. When a phase of the project division closed, move the entries
+   dated up to its closing date that are still in `log` to `<phase>.md`. When
+   `log` is over its budget, move whole calendar months, oldest first, to
+   `<YYYY-MM>.md` until it fits, always keeping at least the last 10 entries.
+   Both go under the `log-archive` path (Core map). Entries move unchanged
+   (dates, evidence and links kept; relative links rewritten only so they
+   still resolve); an existing archive file is appended to, never replaced;
+   `log` keeps one link line per archive. The fixed names and cuts make
+   archives written on parallel branches match. Make it one self-contained
+   edit; when git does not track the wiki, list the moved date range in the
+   report, since git cannot undo it.
 
 ## Step 7 - Proposals (ask, do not write)
 

@@ -108,11 +108,13 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
 - Never move, rename or delete files without confirmation.
 - Migration plan: once the Core map works in place, propose moving adopted
   files toward the default layout, as one numbered message: one line per move
-  (`<from> → <to>`, why) and the links each move rewrites. Splitting a v1
-  `project/decisions.md` into one file per decision is a move too. Reply `ok`
-  accepts all; `2: no` skips one. For each accepted move: `git mv` when git
-  tracks the file (plain move otherwise), rewrite relative links in every wiki
-  page, update the Core map row. Never move a file outside `<wiki-root>/`.
+  (`<from> → <to>`, why) and the links each move rewrites, plus the files
+  outside the wiki that reference `<from>` (`git grep -l`), which it does not
+  rewrite. Splitting a v1 `project/decisions.md` into one file per decision is
+  a move too. Reply `ok` accepts all; `2: no` skips one. For each accepted
+  move: `git mv` when git tracks the file (plain move otherwise), rewrite
+  relative links in every wiki page, update the Core map row. Never move a
+  file outside `<wiki-root>/`.
   Skipped moves stay mapped where they are; adoption is complete without any
   move.
 
