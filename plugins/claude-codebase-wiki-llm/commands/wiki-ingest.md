@@ -66,26 +66,19 @@ verification commands, and failure modes.
 
 ## Step 4 - Determine affected pages
 
+Locate core pages through SCHEMA `## Core map`; fall back to v1 paths
+(`engineering/`, `project/`, `agent/`) only when it is missing.
+
 Consider:
 
-- `overview.md`;
-- `engineering/architecture.md`;
-- `engineering/data-model.md`;
-- `engineering/development.md`;
-- `engineering/testing.md`;
-- `engineering/operations.md`;
-- `engineering/troubleshooting.md`;
-- `engineering/change-map.md`;
+- the `index`, `context`, `handoff`, `tracker`, `decisions`, `risks`,
+  `troubleshooting` and `glossary` pages, and the `log`;
+- the topic pages listed in SCHEMA `## Topics` (architecture, data model,
+  development, testing, operations, change map, requirements, evidence);
 - `modules/<area>.md`;
-- `project/status.md`, `project/roadmap.md`, `project/risks.md`,
-  `project/work-tracker.md`, `project/requirements.md`,
-  `project/decisions.md`;
-- `project-docs/evidence.md` and other project-docs pages when reusable claims
-  or proof points emerge;
-- `agent/context.md`, `agent/activity.md`, `agent/handoff.md`;
-- `glossary.md`;
-- `index.md`;
-- `log.md`.
+- other project-docs pages when reusable claims or proof points emerge.
+
+A new topic page must be listed in SCHEMA `## Topics`: add the row.
 
 List affected pages to yourself before editing.
 
@@ -99,6 +92,8 @@ For each affected page:
 4. Add supersession notes when correcting old claims.
 5. Preserve and add relative links where useful.
 
+Every claim follows SCHEMA `## Evidence`.
+
 If creating a module page, use the module quality bar from the maintainer skill.
 
 If creating or updating project-docs claims, link each claim to engineering,
@@ -107,33 +102,22 @@ project, or source evidence. Mark unsupported claims as gaps/hypotheses.
 If ingest changes project status, architecture decisions, active work, next
 tasks, blockers, or verification commands, update:
 
-- `project/work-tracker.md`;
-- `agent/context.md` when onboarding facts, commands, risks, invariants, or
+- `tracker`;
+- `context` when onboarding facts, commands, risks, invariants, or
   read-first files changed;
-- `agent/handoff.md` when the next coding task, plan, blocker, git state, or
+- `handoff` when the next coding task, plan, blocker, git state, or
   verification state changed.
 
-Keep `agent/handoff.md` task-oriented. Its `Baton For Next Coding Agent` table
+Keep `handoff` task-oriented. Its `Baton For Next Coding Agent` table
 must keep start files, done criteria, and verification commands for each next
 task.
 
 ## Step 6 - Update index and log
 
-Update `index.md` for any page added, removed, renamed, or materially retitled.
+Update `index` for any page added, removed, renamed, or materially retitled.
 
-Append to `log.md`:
-
-```markdown
-## [YYYY-MM-DD] ingest | <short description>
-- Target: <path or topic>
-- Pages touched: <count>
-- Pages created: <list>
-- Pages updated: <list>
-- Notable changes: <one or two bullets>
-- Follow-up: <anything needing attention or none>
-```
-
-Append to `agent/activity.md` for non-trivial ingests.
+Append one entry to `log` in SCHEMA `## Log format`, author `agent`, recording
+the target, pages created and updated, notable changes, and follow-up.
 
 ## Step 7 - Report
 

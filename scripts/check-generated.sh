@@ -90,5 +90,8 @@ require "--adopt" canonical/codebase/workflows/wiki-init.md
 require "Reply \`ok\`" canonical/codebase/workflows/wiki-init.md
 require "check-private-terms.sh" canonical/codebase/workflows/wiki-init.md
 require "## Core map" canonical/codebase/workflows/wiki-init.md
+require "Core map" canonical/codebase/workflows/wiki-sync.md canonical/codebase/workflows/wiki-ingest.md
+require "log-archive" canonical/codebase/workflows/wiki-sync.md
+require "propose" canonical/codebase/workflows/wiki-sync.md
 
 echo "generated files are up to date"
