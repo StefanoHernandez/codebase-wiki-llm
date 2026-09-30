@@ -19,7 +19,7 @@ Read:
 
 1. every wiki page frontmatter;
 2. `<wiki-root>/SCHEMA.md`;
-3. `<wiki-root>/index.md`;
+3. the `index` page;
 4. current in-scope source/config/project files;
 5. git status and recent commits;
 6. root-level legacy docs listed by the schema.
@@ -27,6 +27,16 @@ Read:
 Do targeted source reads only where needed to verify claims.
 
 ## Step 3 - Checks
+
+Find pages by Core map role (`index`, `log`, `log-archive`, `tracker`,
+`decisions`, `risks`, `context`, `handoff`, `troubleshooting`, `glossary`) or
+from the topic pages listed in SCHEMA `## Topics`.
+
+### Core map
+
+Flag roles pointing to missing files and broken relative links. A SCHEMA
+without `## Core map` is a v1 wiki (old `overview.md`, `agent/`, `project/`
+layout): suggest `/wiki-init --adopt <root>`.
 
 ### Staleness
 
@@ -43,96 +53,81 @@ Flag claims contradicted by code, tests, configs, CI, or current project docs.
 
 ### Orphans
 
-Flag pages not linked from `index.md` or another useful page. Ignore
-`index.md`, `SCHEMA.md`, and append-only logs.
+Flag pages not linked from `index` or another useful page. Ignore `index`,
+`SCHEMA.md`, `log`, and `log-archive`.
 
 ### Gaps
 
 Flag important source areas, public interfaces, tests, config, operations,
-project state, or agent handoff context that should be documented but is not.
+project state, or handoff context that should be documented but is not.
 
 ### Engineering quality
 
 Flag module pages missing important sections such as invariants, safe-change
 guidance, verification, related tests, or failure modes when evidence exists.
 
-### Project consistency
+Flag `context` when it lacks a project snapshot, main areas, non-negotiable
+rules, setup/test/lint/build commands when evidence exists, files to read
+first, or links to important pages.
 
-Flag roadmap/status/risk/requirement claims that are unsupported by project or
-engineering evidence.
+### Evidence
 
-### Project-docs support
+Flag technical claims and `Verified Facts` rows with no date or no command,
+and command output with no command. Flag example output placed next to real
+output.
 
-Flag communication claims that lack links to engineering, project, or source
-evidence.
+### Verified facts
 
-### Portable overview
+Flag facts whose evidence sources changed after the verification date
+(`git log --since=<date> -- <source>`).
 
-Flag missing `<wiki-root>/overview-<project-slug>.md`.
+### Single status
 
-Flag portable overview pages that:
+Flag status icons outside `tracker` (except pages that declare another
+meaning at the top), IDs cited but missing from `tracker`, duplicated IDs,
+and IDs reused for a different task.
 
-- do not use lowercase kebab-case in the filename;
-- lack `## Personal Wiki Export`;
-- lack current status, technical areas, next steps, important decisions, or
-  links to relevant technical wiki pages when evidence exists;
-- contain personal motivation, career meaning, subjective importance, or user
-  priorities that are not sourced or marked `Da confermare.`;
-- contradict `overview.md`, `project/status.md`, `project/decisions.md`,
-  engineering pages, or source evidence.
+Flag `tracker` rows without status, evidence, or next verification.
 
-### Agent continuity
+### Handoff
 
-Flag missing `<wiki-root>/agent/context.md`, `<wiki-root>/agent/activity.md`, or
-`<wiki-root>/agent/handoff.md`.
+Flag `handoff` when five or more commits happened since it last changed.
 
-Flag `<wiki-root>/agent/context.md` when it is too generic or lacks:
-
-- project snapshot;
-- architecture or main areas;
-- non-negotiable technical rules;
-- setup, test, lint, or build commands when evidence exists;
-- files to read first;
-- risks or invariants;
-- links to important wiki pages.
-
-Flag `<wiki-root>/agent/handoff.md` when it lacks:
-
-- current work state;
-- last completed step;
-- `## Baton For Next Coding Agent`;
-- prioritized next tasks;
-- blockers and risks;
-- commands already run and results;
-- work not to redo;
-- git branch, last commit, and worktree state when git is available.
-
-Flag baton rows when any task lacks:
-
-- start files;
-- done criteria;
-- verification command or `Not verified - <reason>`;
-- notes/blockers when the task is blocked or risky.
-
-Flag stale activity when source/config/project/wiki changes are visible but
-`<wiki-root>/agent/activity.md` has no recent entry describing agent, trigger, intent,
-actions, changed files, validation, decisions, and follow-up.
+Flag `handoff` when it lacks current work state, last completed step, a
+baton for the next agent, prioritized next tasks, blockers and risks,
+commands already run with results, work not to redo, or (when git is
+available) branch, last commit, and worktree state. Flag baton tasks lacking
+start files, done criteria, a verification command or
+`Not verified - <reason>`, or notes when blocked or risky.
 
 Flag claims about project state, git state, completed work, verification, or
-sources when they are not supported by source files, command results, git data,
-or linked wiki pages.
+sources that are not supported by source files, command results, git data, or
+linked pages.
 
-### Work tracker
+### Budget
 
-Flag missing `<wiki-root>/project/work-tracker.md`.
+Measure with `wc -c`. Flag any page over the single-page budget; the
+per-session read set over its budget (list each file's size); `log` over its
+budget or holding entries of a closed phase. Suggest the split or the archive
+cut.
 
-Flag work tracker rows that have no status, evidence, next verification, or
-connection to `<wiki-root>/agent/handoff.md` for active coding work.
+### Confidentiality
+
+Only when `Sensitive data` is `yes`:
+
+- run the maintainer skill's `scripts/check-private-terms.sh --all` and
+  report its `file:line` output (never print the terms);
+- flag a missing `.private-terms`;
+- flag local-only paths that `git check-ignore -q` does not ignore;
+- flag a missing pre-commit check: neither `.git/hooks/pre-commit` nor
+  `.git/hooks/check-private-terms.sh` called from an existing pre-commit hook
+  exists; suggest in the report that `/wiki-init` can install it (do not
+  install it).
 
 ### Contradictions
 
-Flag disagreements across overview, engineering, modules, project,
-project-docs, and source evidence.
+Flag disagreements across topic pages, `decisions`, `risks`, `context`,
+`tracker`, and source evidence.
 
 ### Legacy docs
 
@@ -153,19 +148,25 @@ Produce a concise markdown report:
 
 ## Summary
 <N> issues across <M> pages.
+- Core map: <n>
 - Stale: <n>
 - Drift: <n>
 - Orphans: <n>
 - Gaps: <n>
 - Engineering quality: <n>
-- Project consistency: <n>
-- Project-docs support: <n>
-- Portable overview: <n>
-- Agent continuity: <n>
-- Work tracker: <n>
+- Evidence: <n>
+- Verified facts: <n>
+- Single status: <n>
+- Handoff: <n>
+- Budget: <n>
+- Confidentiality: <n>
 - Contradictions: <n>
 - Legacy: <n>
 - Frontmatter: <n>
+
+| Budget | File | Size | Limit |
+| --- | --- | --- | --- |
+| ... | ... | ... | ... |
 
 ## Findings
 ...
@@ -177,7 +178,7 @@ Produce a concise markdown report:
 ## Step 5 - Read-only by default
 
 Do not edit the wiki during lint. If the user explicitly asks to save the
-report, write it under `<wiki-root>/lint-reports/` and append to `<wiki-root>/log.md`.
+report, write it under `<wiki-root>/lint-reports/` and append to the `log` page.
 
 ## Guardrails
 
