@@ -232,7 +232,7 @@ user explicitly asks to save a report.
 12. Never write a term from `.private-terms` into any file other than
     `.private-terms`.
 13. Files outside `<wiki-root>/` are changed only by `/wiki-init` steps the user
-    confirmed (`.wikidir`, `.gitignore`, `.git/info/exclude`, the agent entry
+    confirmed (`.wikidir`, `.gitignore`, `.git/info/exclude`, `.gitattributes`, the agent entry
     file, the pre-commit hook in `$(git rev-parse --git-path hooks)`).
 14. Agents write decisions as `proposed` and new work as tracker proposals;
     only a person accepts a decision or opens a task.
