@@ -60,9 +60,6 @@ def command_content(description: str, source_rel: str) -> str:
     return frontmatter([("description", description)]) + read(source_rel)
 
 
-def rule_content(title: str, source_rel: str) -> str:
-    return frontmatter([("title", title), ("activation", "always-on")]) + read(source_rel)
-
 
 WORKFLOWS = {
     "wiki-init": {
@@ -101,7 +98,7 @@ REFERENCES = (
 
 CODEBASE_CODEX_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
@@ -146,7 +143,7 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
 
 CODEBASE_CLAUDE_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",
@@ -182,7 +179,7 @@ CLAUDE_HOOKS_JSON = r"""{
 
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
 }
 """
@@ -288,9 +285,9 @@ def generate_antigravity() -> None:
         ANTIGRAVITY_PLUGIN_JSON, encoding="utf-8"
     )
     write(
-        "plugins/antigravity-codebase-wiki-llm/rules/wiki.md",
+        "plugins/antigravity-codebase-wiki-llm/rules/AGENTS.md",
         "rules/wiki-context.md",
-        rule_content("Wiki context + auto-sync", "rules/wiki-context.md"),
+        read("rules/wiki-context.md"),
     )
     write(
         "plugins/antigravity-codebase-wiki-llm/skills/wiki-maintainer/SKILL.md",

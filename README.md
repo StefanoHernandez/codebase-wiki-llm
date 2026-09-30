@@ -450,7 +450,7 @@ plugins/
 │       └── wiki-context/
 ├── antigravity-codebase-wiki-llm/          Antigravity Codebase variant
 │   ├── plugin.json
-│   ├── rules/wiki.md                       (always-on rule)
+│   ├── rules/AGENTS.md                     (always-on rule)
 │   └── skills/
 │       ├── wiki-maintainer/                 (knowledge + default schema)
 │       ├── wiki-init/
@@ -474,7 +474,7 @@ plugins/
 │       └── secondbrain-context/
 └── antigravity-secondbrain-wiki-llm/        Antigravity SecondBrain variant
     ├── plugin.json
-    ├── rules/secondbrain.md                (always-on rule)
+    ├── rules/AGENTS.md                     (always-on rule)
     └── skills/
         ├── secondbrain-maintainer/
         ├── secondbrain-init/

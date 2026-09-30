@@ -1,8 +1,3 @@
----
-title: Wiki context + auto-sync
-activation: always-on
----
-
 <!-- Generated from codebase/rules/wiki-context.md. Do not edit directly. -->
 
 # Wiki context + auto-sync

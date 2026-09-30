@@ -57,7 +57,7 @@ STEP0_FILES=(
   "plugins/codebase-wiki-llm/skills/codebase-wiki-context/SKILL.md"
   "plugins/claude-codebase-wiki-llm/commands/wiki-sync.md"
   "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/SKILL.md"
-  "plugins/antigravity-codebase-wiki-llm/rules/wiki.md"
+  "plugins/antigravity-codebase-wiki-llm/rules/AGENTS.md"
   "skills/codebase-wiki-lint/SKILL.md"
 )
 for file in "${STEP0_FILES[@]}"; do

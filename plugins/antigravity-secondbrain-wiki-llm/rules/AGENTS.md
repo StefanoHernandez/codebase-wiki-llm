@@ -1,8 +1,3 @@
----
-title: SecondBrain context
-activation: always-on
----
-
 <!-- Generated from secondbrain/rules/secondbrain-context.md. Do not edit directly. -->
 
 # SecondBrain context
