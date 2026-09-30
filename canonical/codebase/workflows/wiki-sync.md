@@ -28,8 +28,10 @@ Filter out paths excluded by `<wiki-root>/SCHEMA.md` and `<wiki-root>/` itself.
 
 ## Step 3 - Map changes to pages
 
-Locate core pages through SCHEMA `## Core map`; fall back to v1 paths
-(`engineering/`, `project/`, `agent/`) only when it is missing.
+Locate core pages through SCHEMA `## Core map`. When it is missing (v1 wiki),
+use the v1 paths in the maintainer skill and suggest `/wiki-init --adopt <root>`
+in the report. A Core map row `activity (v1)` is part of the `log` (not an
+orphan) until merged.
 
 For each changed file, find pages whose `sources:` include it or whose prose
 references the relevant module/area.

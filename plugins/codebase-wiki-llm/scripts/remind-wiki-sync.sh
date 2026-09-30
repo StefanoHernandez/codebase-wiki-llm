@@ -39,7 +39,7 @@ outside=$(printf '%s\n' "$paths" | grep -v -c -e "^$wiki_re/" -e '^\.wikidir$')
 marker="$(git -C "$root" rev-parse --absolute-git-dir)/codebase-wiki-sync-reminded"
 state=$(printf '%s\n' "$status" | cksum)
 [ -f "$marker" ] && [ "$(cat "$marker")" = "$state" ] && exit 0
-printf '%s\n' "$state" > "$marker" 2>/dev/null
+{ printf '%s\n' "$state" > "$marker"; } 2>/dev/null || exit 0
 
 reason='Code changed but the wiki did not. Run the wiki sync workflow (/wiki-sync): log entry, tracker, handoff. If the change needs no wiki update, say why in one line.'
 if [ "$host" = antigravity ]; then

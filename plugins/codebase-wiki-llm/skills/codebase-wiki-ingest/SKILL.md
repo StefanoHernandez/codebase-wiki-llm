@@ -67,8 +67,8 @@ verification commands, and failure modes.
 
 ## Step 4 - Determine affected pages
 
-Locate core pages through SCHEMA `## Core map`; fall back to v1 paths
-(`engineering/`, `project/`, `agent/`) only when it is missing.
+Locate core pages through SCHEMA `## Core map`; when it is missing (v1 wiki),
+use the v1 paths in the maintainer skill.
 
 Consider:
 

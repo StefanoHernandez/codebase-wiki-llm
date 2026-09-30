@@ -1,6 +1,6 @@
 ---
 name: codebase-wiki-context
-description: Use when a repository has a codebase wiki (wiki/, or the folder named in .wikidir) and coding work should use or update agent context, handoff, activity, and work tracking.
+description: Use when a repository has a codebase wiki (wiki/, or the folder named in .wikidir) and coding work should read it and keep the log, work tracker, and handoff current.
 ---
 
 <!-- Generated from codebase/rules/wiki-context.md. Do not edit directly. -->
@@ -36,7 +36,7 @@ that does not exist, stop and tell the user without guessing another location.
 ## At the start of work
 
 Read `<wiki-root>/SCHEMA.md` `## Core map` first and use it to find every page
-below by role. If SCHEMA has no `## Core map`, use the v1 default paths.
+below by role. If SCHEMA has no `## Core map`, use the maintainer skill's v1 paths.
 
 1. `index`: the catalog. Prefer wiki pages over re-reading source when they cover
    the topic; verify source when accuracy matters or confidence is low.

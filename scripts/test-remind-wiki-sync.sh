@@ -37,6 +37,11 @@ run "same state is reminded once" "" "$(claude "$r")" --host claude
 echo y > "$r/other.c"
 run "new state reminds again" "$BLOCK" "$(claude "$r")" --host claude
 
+r="$(new_repo readonly)"; echo x > "$r/main.c"; chmod a-w "$r/.git"
+run "unwritable marker is silent" "" "$(claude "$r")" --host claude
+run "unwritable marker stays silent" "" "$(claude "$r")" --host claude
+chmod u+w "$r/.git"
+
 r="$(new_repo both)"; echo x > "$r/main.c"; echo note >> "$r/wiki/SCHEMA.md"
 run "code and wiki changed is silent" "" "$(claude "$r")" --host claude
 

@@ -1,6 +1,6 @@
 ---
 name: codebase-wiki-llm
-description: Use when maintaining a repository-local engineering wiki, agent handoff, project status, or reusable project documentation.
+description: Use when maintaining a repository-local engineering wiki: its Core map pages, log, work tracker, decisions, and agent handoff.
 ---
 
 <!-- Generated from codebase/maintainer.md. Do not edit directly. -->
@@ -58,8 +58,15 @@ taken and why. Everything else is an optional topic.
 
 - `<wiki-root>/SCHEMA.md` holds the repo conventions; read it before any wiki
   operation. Its `## Core map` is the only way to locate core pages (index,
-  log, tracker, decisions, risks, context, handoff, troubleshooting,
-  glossary): never assume a path.
+  log, log-archive, tracker, decisions, risks, context, handoff,
+  troubleshooting, glossary): never assume a path.
+- v1 wiki (SCHEMA without `## Core map`): until `/wiki-init --adopt <root>`
+  runs, use these paths under `<wiki-root>/`: index → `index.md`; log →
+  `log.md` plus `agent/activity.md`; tracker → `project/work-tracker.md`;
+  decisions → `project/decisions.md`; risks → `project/risks.md`; context →
+  `agent/context.md`; handoff → `agent/handoff.md`; troubleshooting →
+  `engineering/troubleshooting.md`; glossary → `glossary.md`. After an adopt,
+  a Core map row `activity (v1)` is part of the log until it is merged.
 - Topics are listed in SCHEMA `## Topics`. The user can ask to add one at any
   time: create the page and add a row.
 - The single log replaces `agent/activity.md`. Entries follow SCHEMA
@@ -159,8 +166,8 @@ user explicitly asks to save a report.
 1. Do not invent. If you cannot verify a claim, omit it or mark it as a gap.
 2. Cite concrete evidence in `sources:`.
 3. Higher levels of the truth hierarchy outrank lower pages.
-4. Keep pages short enough to be useful. Split pages that grow past roughly 200
-   lines.
+4. Keep pages short enough to be useful. Split a page when it is over the
+   SCHEMA `## Budgets` single-page budget.
 5. Never modify source files during wiki operations.
 6. Propose deletion or retirement; do not silently delete pages or legacy docs.
 7. Update the `index` page whenever pages are added, renamed, or removed.
@@ -173,5 +180,5 @@ user explicitly asks to save a report.
 12. Never write a term from `.private-terms` into any file other than
     `.private-terms`.
 13. Files outside `<wiki-root>/` are changed only by `/wiki-init` steps the user
-    confirmed (`.wikidir`, `.gitignore`, the agent entry file,
-    `.git/hooks/pre-commit`).
+    confirmed (`.wikidir`, `.gitignore`, `.git/info/exclude`, the agent entry
+    file, the pre-commit hook in `$(git rev-parse --git-path hooks)`).
