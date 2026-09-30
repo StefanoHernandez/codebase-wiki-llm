@@ -216,7 +216,7 @@ SHARED_HOOKS_JSON = r"""{
         ]
       }
     ],
-    "Stop": [
+    "UserPromptSubmit": [
       {
         "hooks": [
           {
@@ -231,10 +231,11 @@ SHARED_HOOKS_JSON = r"""{
 }
 """
 
-# Antigravity: named hooks, flat Stop handlers, cwd = the plugin folder.
+# Antigravity: named hooks, flat handlers, cwd = the plugin folder. PreInvocation
+# injects the sync note; the script speaks only on the first model call of a turn.
 ANTIGRAVITY_HOOKS_JSON = """{
   "codebase-wiki-sync-reminder": {
-    "Stop": [
+    "PreInvocation": [
       {
         "type": "command",
         "command": "sh ./scripts/remind-wiki-sync.sh --host antigravity",
