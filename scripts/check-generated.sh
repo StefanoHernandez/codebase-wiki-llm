@@ -86,5 +86,9 @@ require "## Core map" canonical/codebase/default-schema.md
 require "⚠️ NOT VERIFIED" canonical/codebase/default-schema.md canonical/codebase/references/agent-context-template.md
 require ".private-terms" canonical/codebase/default-schema.md canonical/codebase/maintainer.md
 require "## Verified Facts" canonical/codebase/references/agent-context-template.md
+require "--adopt" canonical/codebase/workflows/wiki-init.md
+require "Reply \`ok\`" canonical/codebase/workflows/wiki-init.md
+require "check-private-terms.sh" canonical/codebase/workflows/wiki-init.md
+require "## Core map" canonical/codebase/workflows/wiki-init.md
 
 echo "generated files are up to date"

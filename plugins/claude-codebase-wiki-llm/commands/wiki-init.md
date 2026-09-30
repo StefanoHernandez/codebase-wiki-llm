@@ -4,14 +4,16 @@ description: Bootstrap an engineering-first software project wiki in wiki/, .wik
 
 <!-- Generated from codebase/workflows/wiki-init.md. Do not edit directly. -->
 
-# /wiki-init [wiki-root]
+# /wiki-init [wiki-root] [--adopt <folder>]
 
 Bootstrap the wiki for this repository. Run once per repo.
 
-Argument:
+Arguments:
 
 - `[wiki-root]` is the wiki folder name, for example `wiki`, `.wiki`, or `kb`.
   If omitted, init proposes one in Step 3.
+- `--adopt <folder>` adopts an existing documentation folder as the wiki
+  instead of creating a new one (Step 4).
 
 Requires the wiki maintainer skill. Follow `<wiki-root>/SCHEMA.md` if it
 exists; otherwise use the default schema.
@@ -44,227 +46,98 @@ exist is not an error: propose that name in Step 3.
 
 ## Step 1 - Check preconditions
 
-- If Step 0 resolved an existing wiki and `<wiki-root>/index.md` exists, stop
-  and ask whether to skip, re-init, or run `/wiki-ingest` instead. Re-init
-  requires explicit confirmation before deleting or replacing anything.
+- If Step 0 resolved a wiki whose `SCHEMA.md` has a `## Core map`, stop and ask
+  whether to skip, re-init, or run `/wiki-ingest`. Re-init requires explicit
+  confirmation before replacing anything.
+- If Step 0 resolved a wiki whose `SCHEMA.md` has no `## Core map`, it is a v1
+  wiki: continue in adopt mode on that folder (Step 4).
 - If the current directory does not look like a code repo or software project,
   ask for confirmation before proceeding.
 
-## Step 2 - Survey the repo
+## Step 2 - Survey (read-only)
 
-Do a read-only scan. Do not read every source file yet.
+Collect: top-level layout; existing documentation folders (`docs`, `wiki`,
+`documentation`) and their Markdown page count; `CLAUDE.md` / `AGENTS.md`;
+README language; manifests, tests, CI, build and deploy signals; `.gitignore`.
+Do not read every source file.
 
-Collect:
+## Step 3 - One message with numbered proposals
 
-1. top-level files and directories;
-2. README and architecture/project docs;
-3. package manifests and toolchain files;
-4. main source directories and entrypoints;
-5. tests, CI, build, lint, and deploy signals;
-6. config/env/migration/runtime signals;
-7. project docs, roadmap, status, proposal, or communication material;
-8. existing agent/context/changelog files that should be migrated into
-   `<wiki-root>/agent/` if in scope;
-9. the wiki root to propose: the `[wiki-root]` argument if given; otherwise
-   `.wiki` when `git check-ignore -q .wiki/` succeeds (the repository already
-   ignores that folder, as repositories that ignore every `.*` path do);
-   otherwise `wiki`.
+Send one message. Pre-fill every answer from the survey. Reply `ok` accepts
+all; `3: releases, 5: yes` overrides by number.
 
-## Step 3 - Propose the plan
+1. **Folder** - adopt `<folder>` (N pages found) · new `wiki` · new `.wiki`
+   (propose `.wiki` when `git check-ignore -q .wiki/` succeeds).
+2. **Language** - from the README.
+3. **Project division** - phases/WP · releases · sprints/milestones · none.
+4. **Topics** - pre-checked list from the survey; `architecture` checked for
+   any repo with more than one source directory.
+5. **Sensitive data** - no · yes (then ask for forbidden terms and local-only
+   paths in the same reply).
+6. **Agent entry file** - create a thin `CLAUDE.md`/`AGENTS.md` pointing to
+   the context page · none. An existing file is never overwritten: propose
+   only removing status it duplicates.
 
-Tell the user:
+Show conventions and budgets as defaults from SCHEMA; do not ask about them.
+Also state whether git will track the folder: run `git check-ignore -q
+<name>/` (keep the trailing slash); success means it stays local. If the user
+wants a local-only wiki that git would track, suggest adding `<name>/` to
+`.git/info/exclude`; do not edit git files yourself. When `<name>` is not
+`wiki`, also run `git check-ignore -q .wikidir`: for a local-only wiki suggest
+excluding both; for a tracked wiki whose `.wikidir` git would ignore, warn that
+teammates will get the wiki but not the pointer, and suggest `wiki` or
+`git add -f .wikidir`.
 
-- the wiki root, `<name>/`, and whether git will track it. Run
-  `git check-ignore -q <name>/` (keep the trailing slash so folder-only
-  patterns match): success means the wiki stays local and out of shared git
-  history; failure means it shows up in `git status` and is committed like
-  other project files. If the user wants a local-only wiki that git would
-  track, suggest adding `<name>/` to `.git/info/exclude`; do not edit git files
-  yourself. When `<name>` is not `wiki`, also run `git check-ignore -q
-  .wikidir`, because the pointer must travel with the wiki: for a local-only
-  wiki, suggest excluding both `<name>/` and `.wikidir`; for a tracked wiki
-  whose `.wikidir` git would ignore, warn that teammates will get the wiki but
-  not the pointer, and suggest `wiki` (which needs no pointer) or committing
-  the pointer with `git add -f .wikidir`.
-- one sentence describing the project;
-- which engineering pages will be populated;
-- which modules/areas will get module pages;
-- which project pages have enough evidence to populate;
-- which project-docs pages will be stubs versus evidence-backed pages;
-- any legacy docs proposed for later retirement;
-- the initial agent context/activity/handoff pages that will be created;
-- the initial work tracker page that will be created;
-- the portable project overview page name:
-  `<wiki-root>/overview-<project-slug>.md`.
+Wait for the reply before writing.
 
-Ask: `Proceed with this plan? Adjust anything?`
+Before writing, validate the confirmed folder name. It must be a single
+directory name matching `^\.?[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$` (no
+trailing dot) and must not be one of `.git`, `.github`, `.claude`, `.codex`,
+`.agents`, `.agent`, `.gemini`, `.opencode`, `.obsidian`, `.vscode`,
+`node_modules`, `.wikidir`, compared case-insensitively. A new (non-adopted)
+folder that already exists with files is not allowed: propose adopt mode
+instead. If validation fails, explain why and ask for another name.
 
-Wait for confirmation before writing.
+## Step 4 - Adopt mode
 
-Before writing, validate the confirmed name. It must be a single directory
-name matching `^\.?[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$` (no trailing
-dot), and must not be one of `.git`, `.github`, `.claude`, `.codex`, `.agents`,
-`.agent`, `.gemini`, `.opencode`, `.obsidian`, `.vscode`, `node_modules`,
-`.wikidir`, compared case-insensitively, and must not be an existing directory
-that already contains files (unless the user confirmed a re-init of that wiki
-in Step 1). If it fails, explain why and ask for another name.
+Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
 
-## Step 4 - Create the scaffold
+- Write `.wikidir` with the folder name (skip when the folder is `wiki`).
+- Write `SCHEMA.md` from the default schema, replacing each `<wiki-root>`
+  placeholder with the folder name; fill `## Core map` with the
+  existing files that play each role (e.g. an existing project log → `log`,
+  an `adr/` folder → `decisions`). For a v1 wiki map `agent/activity.md`
+  under a row `activity (v1)` and propose merging it into the log.
+- List core roles with no existing file and propose creating only those.
+- Never move, rename or delete files without confirmation.
 
-After confirmation:
+## Step 5 - New wiki
 
-1. Create `<wiki-root>/` and the default directory tree.
-2. If `<wiki-root>` is not `wiki`, write `.wikidir` at the repository root
-   containing only the folder name and a newline, for example `.wiki`. This
-   is the only file init writes outside `<wiki-root>/`. When `<wiki-root>` is
-   `wiki`, do not create `.wikidir`.
-3. Copy or adapt the default schema to `<wiki-root>/SCHEMA.md`, replacing each
-   `<wiki-root>` placeholder in it with the chosen name.
-4. Create pages with frontmatter: `title`, `updated`, `sources`,
-   `source_commit` when git is available, and `confidence`.
-5. Populate only what is supported by evidence. Use explicit stubs for pages
-   that matter but have no verified content yet.
+Create the core pages at the default Core map paths and the confirmed topics.
+Populate only what the survey supports; everything else is an explicit stub.
+`context` follows `references/agent-context-template.md`; `handoff` follows
+`references/agent-handoff-template.md`; `tracker` follows
+`references/work-tracker-template.md`.
 
-Create at least:
+## Step 6 - Configuration outside the wiki (confirmed in Step 3 only)
 
-- `<wiki-root>/index.md`
-- `<wiki-root>/log.md`
-- `<wiki-root>/overview.md`
-- `<wiki-root>/overview-<project-slug>.md`
-- core `<wiki-root>/engineering/*` pages
-- relevant `<wiki-root>/modules/*` pages
-- `<wiki-root>/project/status.md` if any project-state evidence exists
-- `<wiki-root>/project/work-tracker.md`
-- `<wiki-root>/agent/context.md`, `<wiki-root>/agent/activity.md`, `<wiki-root>/agent/handoff.md`
-- `<wiki-root>/glossary.md`
+- `.wikidir` when the folder is not `wiki`.
+- Sensitive data `yes`: write `<wiki-root>/.private-terms` (one term per line),
+  add `<wiki-root>/.private-terms` and each local-only path to `.gitignore`,
+  verify with `git check-ignore -v`, and copy the maintainer skill's
+  `scripts/check-private-terms.sh` to `.git/hooks/pre-commit` (`chmod +x`).
+  If a pre-commit hook already exists, do not overwrite it: show the one line
+  to add instead.
+- Agent entry file: at most 15 lines - the non-negotiable rules that must be
+  seen before anything else, and a link to the context page.
 
-## Step 5 - Write engineering pages first
+## Step 7 - Log and report
 
-Engineering is authoritative. Populate:
-
-- architecture and data model from code/config/docs;
-- development/testing from package scripts, test files, CI, and README;
-- operations from deploy/runtime/config evidence;
-- troubleshooting only from observed or documented failure modes;
-- change-map with "if you need to change X, start here" guidance.
-
-## Step 6 - Write module pages
-
-For each selected module/area, write:
-
-- purpose;
-- key files;
-- public interface;
-- data/control flow;
-- invariants;
-- how to change this safely;
-- verification;
-- common failure modes;
-- dependencies;
-- related tests;
-- open risks.
-
-Omit unsupported sections rather than inventing.
-
-## Step 7 - Write project and project-docs pages
-
-Populate `project/` from evidence only. Link risks, requirements, milestones,
-and decisions back to engineering pages.
-
-Populate `project-docs/` as reusable communication material only when claims
-are supported. Put unsupported but useful future claims in `project-docs/evidence.md`
-as gaps or hypotheses.
-
-Also create `<wiki-root>/overview-<project-slug>.md` as the portable project card. The
-slug must be lowercase kebab-case. Include:
-
-- what the project is;
-- why it exists;
-- current status;
-- main stack or technical areas;
-- milestones or next steps;
-- important decisions to remember;
-- links to the most relevant wiki pages;
-- `## Personal Wiki Export`.
-
-In `## Personal Wiki Export`, write content suitable for import into a
-SecondBrain vault under `raw/projects/`. Include project name, short
-description, current status, role in the user's work/life, personal motivation
-if known, technologies or skills represented, important next steps, and
-long-term notes. Do not invent personal meaning; use `Da confermare.` for
-unknown personal context.
-
-## Step 8 - Write agent continuity pages
-
-Create `<wiki-root>/agent/context.md` as a fast onboarding page for coding agents. Use
-the structure from `references/agent-context-template.md` and include:
-
-- project snapshot;
-- architecture or main areas;
-- non-negotiable technical rules;
-- setup, test, lint, and build commands;
-- files to read first;
-- risks and invariants;
-- links to the most important wiki pages.
-
-Create `<wiki-root>/agent/handoff.md` as a pass-the-baton page. Use the structure from
-`references/agent-handoff-template.md` and include git state when available:
-branch, last commit, and clean/dirty worktree.
-
-`<wiki-root>/agent/handoff.md` must include:
-
-```markdown
-## Baton For Next Coding Agent
-
-| Order | Task | Start files | Done when | Verification command | Notes / blockers |
-| --- | --- | --- | --- | --- | --- |
-```
-
-Every task must have start files, done criteria, and a verification command. If
-no concrete task is known, write one row that says `No active coding task` and
-mark verification as `Not verified - no active task`.
-
-Create `<wiki-root>/project/work-tracker.md` using
-`references/work-tracker-template.md`. Keep it compact and link active work to
-`<wiki-root>/agent/handoff.md`.
-
-## Step 9 - Update index and log
-
-Make `index.md` a complete catalog grouped by Overview, Engineering, Modules,
-Project, Project Docs, Agent, and Reference.
-
-Append to `log.md`:
-
-```markdown
-## [YYYY-MM-DD] init | bootstrapped wiki
-- Scope: <one line>
-- Wiki root: <wiki-root>/
-- Pages created: <count>
-- Modules: <list>
-- Project/project-docs pages populated: <list or none>
-- Agent continuity: context, handoff, activity, work tracker
-- Portable overview: overview-<project-slug>.md
-- Proposed for retirement: <list or none>
-- Follow-up: run /wiki-lint to verify coverage
-```
-
-Append the initial entry to `<wiki-root>/agent/activity.md` with agent, trigger,
-intent, actions, changed wiki files, validation, decisions, and follow-up.
-
-## Step 10 - Report
-
-Report:
-
-- the wiki root and whether git tracks it;
-- what was created;
-- what was populated versus left as stubs;
-- proposed legacy retirement;
-- suggested next step: `/wiki-lint`.
+Append the first log entry (SCHEMA `## Log format`), then report: wiki root,
+adopted or created pages, stubs, files changed outside the wiki.
 
 ## Guardrails
 
 - Never modify source files during init.
-- Never write outside `<wiki-root>/` except `.wikidir`.
-- Never delete legacy docs during init.
+- Never delete or move existing docs without confirmation.
 - If the repo is huge, ask the user to narrow scope.
-- Prefer fewer accurate pages over many generic pages.
