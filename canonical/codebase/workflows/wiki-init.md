@@ -47,7 +47,7 @@ all; `3: releases, 5: yes` overrides by number.
 3. **Project division** - phases/WP · releases · sprints/milestones · none.
 4. **Topics** - pre-checked list from the survey; `architecture` checked for
    any repo with more than one source directory.
-5. **Sensitive data** - no · yes (then ask for forbidden terms and local-only
+5. **Sensitive data** - default `no` · yes (then ask for forbidden terms and local-only
    paths in the same reply).
 6. **Agent entry file** - create a thin `CLAUDE.md`/`AGENTS.md` pointing to
    the context page · none. An existing file is never overwritten: propose
@@ -57,7 +57,7 @@ Show conventions and budgets as defaults from SCHEMA; do not ask about them.
 Also state whether git will track the folder: run `git check-ignore -q
 <name>/` (keep the trailing slash); success means it stays local. If the user
 wants a local-only wiki that git would track, suggest adding `<name>/` to
-`.git/info/exclude`; do not edit git files yourself. When `<name>` is not
+`.git/info/exclude`; do not edit `.git/info/exclude` yourself. When `<name>` is not
 `wiki`, also run `git check-ignore -q .wikidir`: for a local-only wiki suggest
 excluding both; for a tracked wiki whose `.wikidir` git would ignore, warn that
 teammates will get the wiki but not the pointer, and suggest `wiki` or
@@ -77,18 +77,29 @@ instead. If validation fails, explain why and ask for another name.
 
 Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
 
-- Write `.wikidir` with the folder name (skip when the folder is `wiki`).
-- Write `SCHEMA.md` from the default schema, replacing each `<wiki-root>`
-  placeholder with the folder name; fill `## Core map` with the
-  existing files that play each role (e.g. an existing project log → `log`,
-  an `adr/` folder → `decisions`). For a v1 wiki map `agent/activity.md`
-  under a row `activity (v1)` and propose merging it into the log.
+- `.wikidir` is written in Step 6.
+- If the folder has no `SCHEMA.md`, write one from the default schema,
+  replacing each `<wiki-root>` placeholder with the folder name. If it already
+  has one (v1 wikis included), keep it: add the missing v2 sections (`## Project
+  profile`, `## Core map`, `## Conventions`, `## Budgets`, `## Topics`,
+  `## Evidence`, `## Confidentiality`, `## Log format`) and preserve existing
+  content. If an existing section conflicts with a v2 one, show both and ask.
+  Never replace an existing `SCHEMA.md` wholesale.
+- Fill `## Project profile` (language, project division, sensitive data, agent
+  entry file) and `## Topics` from the answers confirmed in Step 3.
+- Fill `## Core map` with the existing files that play each role (e.g. an
+  existing project log → `log`, an `adr/` folder → `decisions`). For a v1 wiki
+  map `agent/activity.md` under a row `activity (v1)` and propose merging it
+  into the log.
 - List core roles with no existing file and propose creating only those.
 - Never move, rename or delete files without confirmation.
 
 ## Step 5 - New wiki
 
-Create the core pages at the default Core map paths and the confirmed topics.
+Write `SCHEMA.md` from the default schema (replacing each `<wiki-root>`
+placeholder with the folder name) and fill `## Project profile` and
+`## Topics` from the answers confirmed in Step 3, as in Step 4. Create the
+core pages at the default Core map paths and the confirmed topics.
 Populate only what the survey supports; everything else is an explicit stub.
 `context` follows `references/agent-context-template.md`; `handoff` follows
 `references/agent-handoff-template.md`; `tracker` follows
@@ -99,16 +110,21 @@ Populate only what the survey supports; everything else is an explicit stub.
 - `.wikidir` when the folder is not `wiki`.
 - Sensitive data `yes`: write `<wiki-root>/.private-terms` (one term per line),
   add `<wiki-root>/.private-terms` and each local-only path to `.gitignore`,
-  verify with `git check-ignore -v`, and copy the maintainer skill's
+  and verify with `git check-ignore -v`. If it does not confirm that
+  `.private-terms` and each local-only path are ignored, stop, report, and do
+  not install the hook. Otherwise copy the maintainer skill's
   `scripts/check-private-terms.sh` to `.git/hooks/pre-commit` (`chmod +x`).
-  If a pre-commit hook already exists, do not overwrite it: show the one line
-  to add instead.
+  If a pre-commit hook already exists, do not overwrite it: copy the script to
+  `.git/hooks/check-private-terms.sh` (`chmod +x`) instead and show this line
+  to add to the existing hook:
+  `sh "$(git rev-parse --show-toplevel)/.git/hooks/check-private-terms.sh" || exit 1`
 - Agent entry file: at most 15 lines - the non-negotiable rules that must be
   seen before anything else, and a link to the context page.
 
 ## Step 7 - Log and report
 
-Append the first log entry (SCHEMA `## Log format`), then report: wiki root,
+Append the first log entry (SCHEMA `## Log format`) to the Core map `log`
+path (in adopt mode, created in Step 4 if that role was missing), then report: wiki root,
 adopted or created pages, stubs, files changed outside the wiki.
 
 ## Guardrails
