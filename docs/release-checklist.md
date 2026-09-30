@@ -17,7 +17,7 @@ Record host, host version, OS, date and commit for each run.
 | --- | --- | --- | --- |
 | Install from the branch; the four commands or skills appear | | | |
 | `/wiki-init` on a repo without docs: one-message survey (7 items, language asked), wiki written | | | |
-| `/wiki-init --adopt <folder>` on a repo with docs: pages mapped in place, markers added, migration plan asked move by move | | | |
+| `/wiki-init --adopt <folder>` on a repo with docs: pages mapped in place, markers added, migration plan proposed as one numbered list, each move accepted or skipped | | | |
 | New session: `wiki_root` and `new context` lines (Codex, Claude Code) or the rule (Antigravity); the agent reads the core once | | | |
 | Change code, send another message: the note appears once and does not block | | | |
 | `/wiki-sync`: log entry with `@<sha>`, tracker row, handoff; log archived when over budget | | | |
