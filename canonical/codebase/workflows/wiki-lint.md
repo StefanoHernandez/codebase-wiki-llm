@@ -22,7 +22,11 @@ Read:
 3. the `index` page;
 4. current in-scope source/config/project files;
 5. git status and recent commits;
-6. root-level legacy docs listed by the schema.
+6. root-level legacy docs listed by the schema;
+7. SCHEMA `## Project profile` and `## Budgets`;
+8. `.private-terms` (existence only, never its content), `.gitignore`, and
+   `.git/hooks/`;
+9. file sizes from `wc -c`.
 
 Do targeted source reads only where needed to verify claims.
 
@@ -72,13 +76,13 @@ first, or links to important pages.
 
 ### Evidence
 
-Flag technical claims and `Verified Facts` rows with no date or no command,
-and command output with no command. Flag example output placed next to real
+Apply SCHEMA `## Evidence`. Flag technical claims and `Verified Facts` rows
+with no date or no command, and command output with no command. Flag example output placed next to real
 output.
 
 ### Verified facts
 
-Flag facts whose evidence sources changed after the verification date
+Flag `Verified Facts` rows whose evidence sources changed after the verification date
 (`git log --since=<date> -- <source>`).
 
 ### Single status
@@ -106,23 +110,32 @@ linked pages.
 
 ### Budget
 
-Measure with `wc -c`. Flag any page over the single-page budget; the
+Measure with `wc -c`. Thresholds come from SCHEMA `## Budgets`; the
+per-session read set is the agent entry file (CLAUDE.md/AGENTS.md if present),
+`index`, `context`, `handoff`, `tracker`, and `log`; a closed phase is judged
+from the project division in SCHEMA `## Project profile`. Flag any page over the single-page budget; the
 per-session read set over its budget (list each file's size); `log` over its
 budget or holding entries of a closed phase. Suggest the split or the archive
 cut.
 
 ### Confidentiality
 
-Only when `Sensitive data` is `yes`:
+Read `Sensitive data` from SCHEMA `## Project profile`. When it is `no`, skip
+this section silently. When it is `yes`:
 
 - run the maintainer skill's `scripts/check-private-terms.sh --all` and
   report its `file:line` output (never print the terms);
 - flag a missing `.private-terms`;
 - flag local-only paths that `git check-ignore -q` does not ignore;
-- flag a missing pre-commit check: neither `.git/hooks/pre-commit` nor
-  `.git/hooks/check-private-terms.sh` called from an existing pre-commit hook
-  exists; suggest in the report that `/wiki-init` can install it (do not
-  install it).
+- flag a missing pre-commit check. It is installed only when EITHER
+  `.git/hooks/pre-commit` is the forbidden-terms script
+  (`grep -q "private-terms" .git/hooks/pre-commit` and it contains the usage
+  string `check-private-terms.sh [--staged|--all]`), OR
+  `.git/hooks/check-private-terms.sh` exists AND
+  `grep -q check-private-terms.sh .git/hooks/pre-commit` succeeds. Flag
+  everything else (no hook, an unrelated pre-commit without the call line, the
+  script present but never called) and suggest in the report that `/wiki-init`
+  can install it; do not install it.
 
 ### Contradictions
 
@@ -164,7 +177,7 @@ Produce a concise markdown report:
 - Legacy: <n>
 - Frontmatter: <n>
 
-| Budget | File | Size | Limit |
+| Scope | File | Size | Limit |
 | --- | --- | --- | --- |
 | ... | ... | ... | ... |
 
