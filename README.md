@@ -45,8 +45,9 @@ The Codebase Wiki workflow is shipped for three hosts:
   proven criteria. Decisions stay `proposed` until a person approves them.
 - Pages in the language you choose; stable `<!-- wiki:… -->` markers keep the
   checks working.
-- Adopt maps existing docs in place, then proposes a migration plan one move
-  at a time; `/wiki-sync` archives the log by rule.
+- Adopt maps existing docs in place, then proposes a migration plan as one
+  numbered list, each move accepted or skipped; `/wiki-sync` archives the log
+  by rule.
 - Release gate: [docs/release-checklist.md](docs/release-checklist.md).
 - v1 wikis keep working; run `/wiki-init --adopt <folder>` to move to v2.
 
