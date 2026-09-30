@@ -96,6 +96,53 @@ check "invalid value is not echoed into context" "$r" "$INVALID"
 nogit="$TMP_DIR/nogit"; mkdir -p "$nogit/wiki"; touch "$nogit/wiki/SCHEMA.md"
 check "outside git uses the current directory" "$nogit" "Codebase Wiki LLM: wiki_root: wiki"
 
+# check_args <case name> <dir> <expected stdout> <args...>
+check_args() {
+  local name="$1" dir="$2" expected="$3" actual
+  shift 3
+  actual="$(cd "$dir" && sh "$RESOLVER" "$@")" || { echo "FAIL $name: exit non-zero" >&2; failures=$((failures + 1)); return; }
+  [ "$actual" = "$expected" ] || { echo "FAIL $name: expected [$expected] got [$actual]" >&2; failures=$((failures + 1)); }
+}
+
+commit_all() {
+  git -C "$1" add -A
+  git -C "$1" -c user.email=t@example.com -c user.name=t commit -qm "$2"
+}
+
+r="$(new_repo print-root)"; mkdir -p "$r/.wiki"; printf '.wiki\n' > "$r/.wikidir"
+check_args "--print-root prints the bare value" "$r" ".wiki" --print-root
+
+r="$(new_repo print-root-invalid)"; printf '.git\n' > "$r/.wikidir"
+check_args "--print-root prints nothing for an invalid pointer" "$r" "" --print-root
+
+r="$(new_repo no-commits)"; mkdir -p "$r/wiki/agent"; touch "$r/wiki/SCHEMA.md" "$r/wiki/agent/handoff.md"
+check "repo without commits prints only the root" "$r" "Codebase Wiki LLM: wiki_root: wiki"
+
+r="$(new_repo fresh-handoff)"; mkdir -p "$r/wiki/agent"; touch "$r/wiki/SCHEMA.md"
+echo v1 > "$r/wiki/agent/handoff.md"; commit_all "$r" init
+for i in 1 2 3 4; do echo "$i" > "$r/code.txt"; commit_all "$r" "c$i"; done
+check "handoff 4 commits old is not stale" "$r" "Codebase Wiki LLM: wiki_root: wiki"
+echo 5 > "$r/code.txt"; commit_all "$r" c5
+check "handoff 5 commits old is stale" "$r" "$(printf '%s\n%s' \
+  'Codebase Wiki LLM: wiki_root: wiki' \
+  'Codebase Wiki LLM: handoff is 5 commits old (wiki/agent/handoff.md); read it and refresh it before relying on it.')"
+
+r="$(new_repo core-map)"; mkdir -p "$r/docs/00-project"; printf 'docs\n' > "$r/.wikidir"
+printf '## Core map\n\n| Role | Path |\n| --- | --- |\n| handoff | `00-project/handoff.md` |\n' > "$r/docs/SCHEMA.md"
+echo v1 > "$r/docs/00-project/handoff.md"; commit_all "$r" init
+for i in 1 2 3 4 5; do echo "$i" > "$r/code.txt"; commit_all "$r" "c$i"; done
+check "core map relocates the handoff" "$r" "$(printf '%s\n%s' \
+  'Codebase Wiki LLM: wiki_root: docs' \
+  'Codebase Wiki LLM: handoff is 5 commits old (docs/00-project/handoff.md); read it and refresh it before relying on it.')"
+
+r="$(new_repo core-map-traversal)"; mkdir -p "$r/wiki/agent"
+printf '| handoff | ../../etc/passwd |\n' > "$r/wiki/SCHEMA.md"
+echo v1 > "$r/wiki/agent/handoff.md"; commit_all "$r" init
+for i in 1 2 3 4 5; do echo "$i" > "$r/code.txt"; commit_all "$r" "c$i"; done
+check "core map traversal falls back to the default path" "$r" "$(printf '%s\n%s' \
+  'Codebase Wiki LLM: wiki_root: wiki' \
+  'Codebase Wiki LLM: handoff is 5 commits old (wiki/agent/handoff.md); read it and refresh it before relying on it.')"
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures resolve-wiki-root test(s) failed" >&2
   exit 1
