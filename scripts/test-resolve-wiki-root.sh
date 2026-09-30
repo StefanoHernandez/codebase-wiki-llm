@@ -143,6 +143,23 @@ check "core map traversal falls back to the default path" "$r" "$(printf '%s\n%s
   'Codebase Wiki LLM: wiki_root: wiki' \
   'Codebase Wiki LLM: handoff is 5 commits old (wiki/agent/handoff.md); read it and refresh it before relying on it.')"
 
+NEWCTX='the core pages by Core map role: index, context, handoff, tracker, the latest log entries, risks, troubleshooting, glossary and the decision titles. Skip pages this conversation already holds.'
+check_args "--session-start keeps the stale-handoff line last" "$r" "$(printf '%s\n%s\n%s' \
+  'Codebase Wiki LLM: wiki_root: wiki' \
+  "Codebase Wiki LLM: new context: before the first task, read wiki/SCHEMA.md, then $NEWCTX" \
+  'Codebase Wiki LLM: handoff is 5 commits old (wiki/agent/handoff.md); read it and refresh it before relying on it.')" --session-start
+
+r="$(new_repo session-start)"; mkdir -p "$r/.wiki"; printf '.wiki\n' > "$r/.wikidir"
+check_args "--session-start adds the core-read line" "$r" "$(printf '%s\n%s' \
+  'Codebase Wiki LLM: wiki_root: .wiki' \
+  "Codebase Wiki LLM: new context: before the first task, read .wiki/SCHEMA.md, then $NEWCTX")" --session-start
+
+r="$(new_repo session-start-nowiki)"
+check_args "--session-start prints nothing without a wiki" "$r" "" --session-start
+
+r="$(new_repo session-start-invalid)"; printf '.git\n' > "$r/.wikidir"
+check_args "--session-start keeps the invalid-pointer message only" "$r" "$INVALID" --session-start
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures resolve-wiki-root test(s) failed" >&2
   exit 1

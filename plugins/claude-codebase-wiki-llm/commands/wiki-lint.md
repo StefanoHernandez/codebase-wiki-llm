@@ -139,10 +139,10 @@ linked pages.
 ### Budget
 
 Measure with `wc -c`. Thresholds come from SCHEMA `## Budgets`; the
-per-session read set is the agent entry file (CLAUDE.md/AGENTS.md if present),
-`index`, `context`, `handoff`, `tracker`, and `log`; a closed phase is judged
+core read is the agent entry file (CLAUDE.md/AGENTS.md if present), `SCHEMA.md`, `index`, `context`, `handoff`, `tracker`, `risks`, `troubleshooting`, `glossary` and the last 10 `log` entries;
+a closed phase is judged
 from the project division in SCHEMA `## Project profile`. Flag any page over the single-page budget; the
-per-session read set over its budget (list each file's size); `log` over its
+core read over its budget (list each file's size); `log` over its
 budget or holding entries of a closed phase. Suggest the split or the archive
 cut.
 

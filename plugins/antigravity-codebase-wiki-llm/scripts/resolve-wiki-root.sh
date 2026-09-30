@@ -4,12 +4,16 @@
 # rule is canonical/codebase/partials/resolve-wiki-root.md.
 # Copied into the host packages by scripts/generate-codebase-packages.py.
 # --print-root: print only the bare root value (for other scripts), or nothing.
+# --session-start: also print the new-context line asking for one core read (SessionStart hook).
 # Always exits 0 and prints nothing when the repository has no wiki.
 # The pointer is repository content: an invalid value is never echoed.
 
 STALE_COMMITS=5
 mode=context
-[ "${1:-}" = "--print-root" ] && mode=print
+case "${1:-}" in
+  --print-root) mode=print ;;
+  --session-start) mode=session ;;
+esac
 
 root=$(git rev-parse --show-toplevel 2>/dev/null) || root=$(pwd)
 pointer="$root/.wikidir"
@@ -50,6 +54,10 @@ fi
 [ -n "$msg" ] && echo "$msg"
 [ -n "$wiki" ] || exit 0
 echo "Codebase Wiki LLM: wiki_root: $wiki"
+
+if [ "$mode" = session ]; then
+  echo "Codebase Wiki LLM: new context: before the first task, read $wiki/SCHEMA.md, then the core pages by Core map role: index, context, handoff, tracker, the latest log entries, risks, troubleshooting, glossary and the decision titles. Skip pages this conversation already holds."
+fi
 
 # Core map path for a role, relative to the wiki root; default when absent or unsafe.
 core_path() {

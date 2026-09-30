@@ -210,7 +210,7 @@ SHARED_HOOKS_JSON = r"""{
         "hooks": [
           {
             "type": "command",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-wiki-root.sh\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-wiki-root.sh\" --session-start",
             "timeout": 10
           }
         ]
