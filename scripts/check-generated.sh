@@ -11,6 +11,11 @@ cleanup() {
 trap cleanup EXIT
 
 GENERATED_PATHS=(
+  ".claude-plugin/marketplace.json"
+  "plugins/codebase-wiki-llm/hooks"
+  "plugins/codebase-wiki-llm/scripts"
+  "plugins/antigravity-codebase-wiki-llm/hooks.json"
+  "plugins/antigravity-codebase-wiki-llm/scripts"
   "plugins/codebase-wiki-llm/.codex-plugin/plugin.json"
   "plugins/codebase-wiki-llm/skills"
   "plugins/claude-codebase-wiki-llm/plugin.json"
@@ -41,9 +46,13 @@ if [ -n "$HARDCODED_WIKI" ]; then
   exit 1
 fi
 
-git diff -- "${GENERATED_PATHS[@]}" > "$BEFORE"
+snapshot() {
+  git status --porcelain --untracked-files=all -- "${GENERATED_PATHS[@]}"
+  git diff -- "${GENERATED_PATHS[@]}"
+}
+snapshot > "$BEFORE"
 python3 "$ROOT_DIR/scripts/generate-host-packages.py"
-git diff -- "${GENERATED_PATHS[@]}" > "$AFTER"
+snapshot > "$AFTER"
 
 if ! cmp -s "$BEFORE" "$AFTER"; then
   echo "generated files were out of date; regenerated output differs" >&2
