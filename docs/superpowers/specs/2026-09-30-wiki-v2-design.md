@@ -200,6 +200,30 @@ each host package by the generator (as the resolver is today).
   `.git/hooks` is not versioned, `/wiki-lint` offers to install it in a new
   clone.
 
+## Cross-host maintenance
+
+Primary constraint: one change must reach Claude Code, Codex and Antigravity
+without editing three places.
+
+- **One source.** All prompt content lives in `canonical/`; all scripts in
+  `canonical/codebase/scripts/`. Host packages under `plugins/` and `skills/`
+  are generated, committed, and never edited by hand.
+- **Host differences only in the generators**: file layout (commands vs
+  skills vs rules), manifest shape, hook wiring. No host-specific wording in
+  `canonical/`.
+- **One version per plugin.** A single `VERSION` constant per generator feeds
+  every manifest, including `.claude-plugin/marketplace.json`, which becomes
+  generated (today it is edited by hand and the version is written four times).
+- **One hooks file for Claude and Codex** (same format), wired from both
+  manifests; Antigravity gets its own generated `hooks.json` calling the same
+  scripts.
+- **Drift guard.** `scripts/check-generated.sh` also covers the marketplace
+  file and the hook files, and runs as a git `pre-commit` hook in this repo
+  (installed by a one-line `scripts/install-dev-hooks.sh`), so stale generated
+  files cannot be committed.
+- **Adding a host later** = one new `generate_<host>()` function; canonical
+  content is untouched.
+
 ## Testing
 
 - Extend `scripts/test-resolve-wiki-root.sh` for the stale-handoff line.
