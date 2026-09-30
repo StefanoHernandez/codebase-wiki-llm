@@ -75,6 +75,8 @@ Rules:
 - `source_commit:` is the current short git commit when git is available.
 - `confidence:` is `high`, `medium`, or `low`.
 - Use standard relative markdown links. Do not use `[[wikilink]]` syntax.
+- Write headings and prose in the SCHEMA `## Project profile` language; keep
+  section markers and fixed tokens (SCHEMA `## Conventions`).
 - Prefer tables for file maps, commands, config, APIs, risks, and requirements.
 - Prefer Mermaid for flows, module relationships, and state machines.
 - Every write follows SCHEMA `## Evidence`; log entries follow SCHEMA

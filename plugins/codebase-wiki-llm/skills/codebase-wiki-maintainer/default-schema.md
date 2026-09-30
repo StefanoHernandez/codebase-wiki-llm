@@ -32,7 +32,7 @@ Level 1 tells what the system does now, not what it should do: code can hold a b
 
 | Setting | Value |
 | --- | --- |
-| Language | English |
+| Language | English (headings and prose; fixed tokens in Conventions) |
 | Project division | none (phases/WP · releases · sprints/milestones · none) |
 | Sensitive data | no |
 | Agent entry file | none (CLAUDE.md · AGENTS.md · none) |
@@ -64,6 +64,13 @@ the wiki root. Change a path here to relocate a page.
   something else (e.g. risk severity) says so at the top.
 - Dates: `YYYY-MM-DD`.
 - The `tracker` is the only source of status; external tools are linked, never copied as status.
+- Language: headings and prose use the Project profile language. Fixed tokens
+  never change: section markers `<!-- wiki:<id> -->`, Core map role names,
+  frontmatter keys, `⚠️ NOT VERIFIED`, `⚠️ TO RE-VERIFY`,
+  `Not verified - <reason>`, `No open work.`, status icons, ID prefixes.
+- Section markers: sections that tools check carry their marker on the line
+  right under the heading (context, handoff and tracker templates). Translate
+  the heading, keep the marker.
 
 ## Evidence
 

@@ -71,7 +71,9 @@ all; `3: releases, 5: yes` overrides by number.
 
 1. **Folder** - adopt `<folder>` (N pages found) · new `wiki` · new `.wiki`
    (propose `.wiki` when `git check-ignore -q .wiki/` succeeds).
-2. **Language** - from the README.
+2. **Language** - for headings and prose; proposed from the README or, when
+   docs or a wiki already exist, from them. Asked in every init, adopt mode
+   included.
 3. **Project division** - phases/WP · releases · sprints/milestones · none.
 4. **Topics** - pre-checked list from the survey; `architecture` checked for
    any repo with more than one source directory.
@@ -121,6 +123,10 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   map `agent/activity.md` under a row `activity (v1)` and propose merging it
   into the log.
 - List core roles with no existing file and propose creating only those.
+- Insert the missing section markers (SCHEMA `## Conventions`) on the line
+  under the matching headings of the adopted `context`, `handoff` and
+  `tracker` pages; these one-line edits stay inside the wiki. List them in the
+  report.
 - Never move, rename or delete files without confirmation.
 
 ## Step 5 - New wiki

@@ -9,6 +9,7 @@ Without wiki_dir it validates the folder named in ./.wikidir, or ./wiki.
 The validator is intentionally small and dependency-free. It checks the minimum
 contract needed for a new coding agent to continue work from `agent/context.md`
 and `agent/handoff.md`.
+Sections are found by their <!-- wiki:<id> --> marker, or by the English template heading.
 """
 
 from __future__ import annotations
@@ -29,6 +30,16 @@ TABLE_COLUMNS = [
     "Verification command",
     "Notes / blockers",
 ]
+BATON_MARKER = "<!-- wiki:baton -->"
+NO_OPEN_WORK = "No open work."
+# Context sections: stable marker -> English template heading (fallback for pages without markers).
+CONTEXT_SECTIONS = {
+    "<!-- wiki:goals -->": "Goals And Non-Goals",
+    "<!-- wiki:rules -->": "Non-Negotiable Rules",
+    "<!-- wiki:commands -->": "Frequent Commands",
+    "<!-- wiki:verified-facts -->": "Verified Facts",
+    "<!-- wiki:read-first -->": "Read First",
+}
 PLACEHOLDER_VALUES = {"", "unknown", "pending", "todo", "tbd", "n/a", "na", "none"}
 POINTER_FILE = ".wikidir"
 CORE_MAP_ROW = re.compile(r"^\|\s*([a-z-]+)\s*\|\s*`?([^`|]+?)`?\s*\|", re.MULTILINE)
@@ -113,16 +124,26 @@ def validate_frontmatter(page: Page) -> list[str]:
     return errors
 
 
-def table_rows_after_baton(text: str) -> list[list[str]]:
-    idx = text.find(BATON_HEADING)
-    if idx == -1:
-        return []
+def baton_section(text: str) -> tuple[str | None, bool]:
+    """Return the baton section body and whether it was found by its marker."""
+    lines = text.splitlines()
+    start = by_marker = None
+    for i, line in enumerate(lines):
+        if line.strip() == BATON_MARKER:
+            start, by_marker = i + 1, True
+            break
+    if start is None:
+        for i, line in enumerate(lines):
+            if line.strip().startswith(BATON_HEADING):
+                start, by_marker = i + 1, False
+                break
+    if start is None:
+        return None, False
+    end = next((j for j in range(start, len(lines)) if lines[j].startswith("## ")), len(lines))
+    return "\n".join(lines[start:end]), bool(by_marker)
 
-    section = text[idx + len(BATON_HEADING) :]
-    next_heading = re.search(r"\n##\s+", section)
-    if next_heading:
-        section = section[: next_heading.start()]
 
+def table_rows(section: str) -> list[list[str]]:
     rows: list[list[str]] = []
     for line in section.splitlines():
         stripped = line.strip()
@@ -157,18 +178,27 @@ def has_verification(value: str) -> bool:
 
 
 def validate_handoff(page: Page) -> list[str]:
-    errors: list[str] = []
-    if BATON_HEADING not in page.text:
-        return [f"{page.path}: missing '{BATON_HEADING}' section"]
+    section, by_marker = baton_section(page.text)
+    if section is None:
+        return [f"{page.path}: missing '{BATON_HEADING}' section or '{BATON_MARKER}' marker"]
 
-    rows = table_rows_after_baton(page.text)
+    rows = table_rows(section)
     if not rows:
+        if NO_OPEN_WORK in section:
+            return []
         return [f"{page.path}: missing baton table"]
 
-    if not any(is_header(row) for row in rows):
-        errors.append(f"{page.path}: baton table header does not match required columns")
-
-    data_rows = [row for row in rows if not is_header(row)]
+    errors: list[str] = []
+    if by_marker:
+        header, data_rows = rows[0], rows[1:]
+        if len(header) != len(TABLE_COLUMNS):
+            errors.append(f"{page.path}: baton table header needs {len(TABLE_COLUMNS)} columns in the fixed order")
+    else:
+        if not any(is_header(row) for row in rows):
+            errors.append(f"{page.path}: baton table header does not match required columns")
+        data_rows = [row for row in rows if not is_header(row)]
+    if not data_rows and NO_OPEN_WORK in section:
+        return errors
     valid_task_rows = 0
     for row in data_rows:
         if len(row) != len(TABLE_COLUMNS):
@@ -198,18 +228,14 @@ def validate_handoff(page: Page) -> list[str]:
 
 
 def validate_context(page: Page) -> list[str]:
-    errors: list[str] = []
-    required_phrases = [
-        "Goals And Non-Goals",
-        "Non-Negotiable Rules",
-        "Frequent Commands",
-        "Verified Facts",
-        "Read First",
+    missing = [
+        heading
+        for marker, heading in CONTEXT_SECTIONS.items()
+        if marker not in page.text and heading not in page.text
     ]
-    missing = [phrase for phrase in required_phrases if phrase not in page.text]
     if missing:
-        errors.append(f"{page.path}: context looks too generic; missing: {', '.join(missing)}")
-    return errors
+        return [f"{page.path}: context looks too generic; missing: {', '.join(missing)}"]
+    return []
 
 
 def main(argv: list[str]) -> int:

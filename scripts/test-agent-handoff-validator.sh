@@ -113,4 +113,84 @@ if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/wiki" >"$FAIL_OUT" 2>
   exit 1
 fi
 
+# Pages in another language: sections found by stable markers.
+mkdir -p "$TMP_DIR/it/agent"
+cat > "$TMP_DIR/it/agent/context.md" <<'EOF'
+---
+title: Contesto agente
+updated: 2026-09-30
+sources:
+  - README.md
+confidence: high
+---
+
+# Contesto agente
+
+## Obiettivi e non-obiettivi
+<!-- wiki:goals -->
+- Obiettivo: servizio di esempio.
+
+## Regole non negoziabili
+<!-- wiki:rules -->
+- Non inventare.
+
+## Comandi frequenti
+<!-- wiki:commands -->
+- Test: `npm test`
+
+## Fatti verificati
+<!-- wiki:verified-facts -->
+| Fatto | Valore | Evidenza | Verificato |
+| --- | --- | --- | --- |
+| Node | 20 | `node --version` | 2026-09-30 @abc1234 |
+
+## Da leggere prima
+<!-- wiki:read-first -->
+- `README.md`
+EOF
+write_it_handoff() { # <body after the baton heading>
+  {
+    printf '%s\n' '---' 'title: Passaggio di consegne' 'updated: 2026-09-30' 'sources:' '  - README.md' \
+      'confidence: high' '---' '' '# Passaggio di consegne' '' '## Testimone per il prossimo agente'
+    printf '%s\n' "$1"
+  } > "$TMP_DIR/it/agent/handoff.md"
+}
+write_it_handoff '<!-- wiki:baton -->
+
+| Ordine | Attività | File iniziali | Fatto quando | Comando di verifica | Note / blocchi |
+| --- | --- | --- | --- | --- | --- |
+| 1 | T3 - validare il contratto | `README.md` | vedi T3 | `scripts/validate-agent-handoff.py wiki` | Nessuna |'
+"$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/it"
+
+write_it_handoff '<!-- wiki:baton -->
+
+No open work.'
+"$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/it"
+
+write_it_handoff '<!-- wiki:baton -->
+
+| Ordine | Attività | File iniziali | Fatto quando | Comando di verifica |
+| --- | --- | --- | --- | --- |
+| 1 | T3 | `README.md` | vedi T3 | `true` |'
+if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/it" >"$FAIL_OUT" 2>"$FAIL_ERR"; then
+  echo "expected validator failure for a five-column baton found by marker" >&2
+  exit 1
+fi
+
+write_it_handoff '
+No open work.'
+if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/it" >"$FAIL_OUT" 2>"$FAIL_ERR"; then
+  echo "expected validator failure for a translated baton heading without its marker" >&2
+  exit 1
+fi
+
+write_it_handoff '<!-- wiki:baton -->
+
+No open work.'
+sed -i '/<!-- wiki:read-first -->/d' "$TMP_DIR/it/agent/context.md"
+if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/it" >"$FAIL_OUT" 2>"$FAIL_ERR"; then
+  echo "expected validator failure for a translated context section without its marker" >&2
+  exit 1
+fi
+
 echo "agent handoff validator tests passed"
