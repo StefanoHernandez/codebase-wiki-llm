@@ -84,4 +84,9 @@ require "### Single status" canonical/codebase/workflows/wiki-lint.md
 require "Core map" canonical/codebase/rules/wiki-context.md
 require "⚠️ NOT VERIFIED" canonical/codebase/rules/wiki-context.md
 
+require "@<short-sha>" canonical/codebase/default-schema.md
+require "⚠️ TO RE-VERIFY" canonical/codebase/workflows/wiki-sync.md canonical/codebase/workflows/wiki-lint.md canonical/codebase/references/agent-context-template.md
+require "**Workaround:**" canonical/codebase/references/troubleshooting-template.md
+require "git diff <source_commit>..HEAD" canonical/codebase/workflows/wiki-lint.md
+
 echo "generated files are up to date"

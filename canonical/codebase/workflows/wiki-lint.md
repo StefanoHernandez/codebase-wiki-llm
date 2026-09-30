@@ -47,12 +47,15 @@ is part of the log until merged: suggest merging it.
 
 ### Staleness
 
-Flag pages when:
+For each page, read `git diff <source_commit>..HEAD -- <source>` for its listed
+sources and judge the impact: flag the page when a change can affect what it
+says (an interface, contract, command, config key or described behavior) and
+name the affected claims; ignore cosmetic changes. Also flag:
 
-- `updated` is older than schema policy and sources changed;
-- five or more commits touched listed sources since `source_commit`;
-- confidence is `low`;
-- listed sources are missing.
+- listed sources that are missing;
+- confidence `low`;
+- as signals to check, not verdicts: five or more commits touching listed
+  sources since `source_commit`, or `updated` older than schema policy.
 
 ### Drift
 
@@ -79,14 +82,17 @@ first, or links to important pages.
 
 ### Evidence
 
-Apply SCHEMA `## Evidence`. Flag technical claims and `Verified Facts` rows
-with no date or no command, and command output with no command. Flag example output placed next to real
-output.
+Apply SCHEMA `## Evidence` by claim type. Flag verifications with no command,
+no date or no code state (`@<short-sha>`), command output with no command,
+descriptions with no precise source, decisions with no recorded approval,
+risks with no stated assumption, and example output placed next to real
+output. A `⚠️ NOT VERIFIED` without a reason is a finding too.
 
 ### Verified facts
 
-Flag `Verified Facts` rows whose evidence sources changed after the verification date
-(`git log --since=<date> -- <source>`).
+Flag `Verified Facts` rows whose evidence sources changed after the
+verification date (`git log --since=<date> -- <source>`) and are not marked
+`⚠️ TO RE-VERIFY`; list the rows marked `⚠️ TO RE-VERIFY` as work to re-check.
 
 ### Single status
 

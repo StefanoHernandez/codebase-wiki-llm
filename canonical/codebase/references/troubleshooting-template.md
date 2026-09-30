@@ -1,12 +1,15 @@
 # Troubleshooting Template
 
 Entries in the `troubleshooting` role page (Core map). Newest first. Add an
-entry whenever a session solved a non-obvious problem.
+entry when a session solved a problem that is non-obvious or recurring; a
+routine fix stays in the log.
 
 ````markdown
 ## <symptom as the user sees it>
-- **Cause:** <root cause>
-- **Fix:** <what solved it; command or file change>
-- **Evidence:** `<command>` → <essential output>, YYYY-MM-DD
+- **Cause:** <root cause, or `unknown`>
+- **Fix:** <what removes the cause; command or file change, or `none yet`>
+- **Workaround:** <what avoids the symptom without removing the cause, or `none`>
+- **Verification:** `<command>` → <essential output>, YYYY-MM-DD @<short-sha>
+- **Limits:** <where the fix or workaround does not apply, or `none known`>
 - **Related:** <IDs, decisions, pages>
 ````

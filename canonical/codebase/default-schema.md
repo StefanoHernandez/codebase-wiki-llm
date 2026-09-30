@@ -63,10 +63,23 @@ the wiki root. Change a path here to relocate a page.
 
 ## Evidence
 
-A technical claim carries the command that supports it, its essential output,
-and the date. What is expected but not verified is marked
-`> ⚠️ NOT VERIFIED`. Never write invented output "by way of example" next to
-real output.
+Evidence is proportional to the claim:
+
+| Claim | Evidence |
+| --- | --- |
+| Verification (test, build, command result) | command, essential output, date, code state |
+| Description (files, structure, relations, behavior read from code) | the precise source: a file in `sources:` or inline, with symbol or line when useful |
+| Decision | who approved it, where (message, PR, meeting note) and when; reasons nobody recorded are written as unknown |
+| Risk | the stated assumption and what would trigger it |
+
+Code state is `@<short-sha>`, plus `+local` when uncommitted changes to the
+relevant files were part of the result; add branch or environment when they
+affect the result; without git write `code state unknown`.
+
+What cannot be checked (missing tests, unreachable service, access denied, no
+git) is marked `> ⚠️ NOT VERIFIED - <reason>` on that conclusion only; the
+rest of the work goes on. A check that could not run is neither a pass nor a
+failure. Never write invented output "by way of example" next to real output.
 
 ## Confidentiality
 
@@ -102,7 +115,7 @@ Off by default. When `Sensitive data` is `yes`:
 ```markdown
 ## YYYY-MM-DD · <title> · human | agent
 - What: <what was done>
-- Evidence: `<command>` → <essential output>   (or `> ⚠️ NOT VERIFIED`)
+- Evidence: `<command>` → <essential output> @<short-sha>[+local]   (or `> ⚠️ NOT VERIFIED - <reason>`)
 - IDs: T12, T13
 ```
 
@@ -146,9 +159,11 @@ Use these sections when evidence exists:
 - Medium decay: `tracker`, `risks`, `handoff`, `log`.
 - Slow decay: `decisions`, `glossary`, `context`.
 
-Lint should flag pages as low confidence when five or more commits touched their
-listed sources since `source_commit`, when sources are missing, or when claims
-are unsupported.
+Lint judges staleness by impact: a change to a listed source makes a page
+stale when it can affect what the page says (an interface, contract, command,
+config key or described behavior), not when it is cosmetic. Five or more
+commits touching listed sources since `source_commit`, missing sources and
+unsupported claims are signals to check.
 
 ## Legacy docs
 
