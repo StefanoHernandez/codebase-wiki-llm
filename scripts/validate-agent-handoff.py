@@ -31,6 +31,7 @@ TABLE_COLUMNS = [
 ]
 PLACEHOLDER_VALUES = {"", "unknown", "pending", "todo", "tbd", "n/a", "na", "none"}
 POINTER_FILE = ".wikidir"
+CORE_MAP_ROW = re.compile(r"^\|\s*([a-z-]+)\s*\|\s*`?([^`|]+?)`?\s*\|", re.MULTILINE)
 WIKI_ROOT_NAME = re.compile(r"^\.?[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$")
 
 
@@ -45,6 +46,16 @@ def default_wiki_dir(cwd: Path) -> Path:
         if WIKI_ROOT_NAME.fullmatch(value):
             return cwd / value
     return cwd / "wiki"
+
+
+def core_path(wiki_dir: Path, role: str, default: str) -> Path:
+    schema = wiki_dir / "SCHEMA.md"
+    if schema.is_file():
+        for name, value in CORE_MAP_ROW.findall(schema.read_text(encoding="utf-8")):
+            value = value.strip()
+            if name == role and value and not value.startswith("/") and ".." not in value:
+                return wiki_dir / value
+    return wiki_dir / default
 
 
 @dataclass
@@ -189,11 +200,11 @@ def validate_handoff(page: Page) -> list[str]:
 def validate_context(page: Page) -> list[str]:
     errors: list[str] = []
     required_phrases = [
-        "Project Snapshot",
-        "Architecture",
-        "Core Commands",
+        "Goals And Non-Goals",
+        "Non-Negotiable Rules",
+        "Frequent Commands",
+        "Verified Facts",
         "Read First",
-        "Risks",
     ]
     missing = [phrase for phrase in required_phrases if phrase not in page.text]
     if missing:
@@ -203,8 +214,8 @@ def validate_context(page: Page) -> list[str]:
 
 def main(argv: list[str]) -> int:
     wiki_dir = Path(argv[1]) if len(argv) > 1 else default_wiki_dir(Path.cwd())
-    context_path = wiki_dir / "agent" / "context.md"
-    handoff_path = wiki_dir / "agent" / "handoff.md"
+    context_path = core_path(wiki_dir, "context", "agent/context.md")
+    handoff_path = core_path(wiki_dir, "handoff", "agent/handoff.md")
 
     errors: list[str] = []
     for path in (context_path, handoff_path):

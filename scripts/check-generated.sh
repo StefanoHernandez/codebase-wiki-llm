@@ -76,4 +76,15 @@ for file in "${STEP0_FILES[@]}"; do
   fi
 done
 
+require() { # <marker> <file>...
+  local marker="$1"; shift
+  for file in "$@"; do
+    grep -qF -- "$marker" "$file" || { echo "missing '$marker' in $file" >&2; exit 1; }
+  done
+}
+require "## Core map" canonical/codebase/default-schema.md
+require "⚠️ NOT VERIFIED" canonical/codebase/default-schema.md canonical/codebase/references/agent-context-template.md
+require ".private-terms" canonical/codebase/default-schema.md canonical/codebase/maintainer.md
+require "## Verified Facts" canonical/codebase/references/agent-context-template.md
+
 echo "generated files are up to date"

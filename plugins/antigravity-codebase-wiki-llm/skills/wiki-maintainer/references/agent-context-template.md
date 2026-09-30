@@ -2,8 +2,8 @@
 
 # Agent Context Template
 
-Use this template for `<wiki-root>/agent/context.md`. Keep it concise enough that a new
-coding agent can read it before searching the codebase.
+Use this template for the `context` page (Core map). Keep it concise enough
+that a new coding agent can read it before searching the codebase.
 
 ```markdown
 ---
@@ -12,69 +12,41 @@ updated: YYYY-MM-DD
 sources:
   - README.md
   - <wiki-root>/index.md
-  - <wiki-root>/engineering/architecture.md
-  - <wiki-root>/engineering/development.md
-  - <wiki-root>/engineering/testing.md
+  - <wiki-root>/SCHEMA.md
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low
 ---
 
 # Agent Context
 
-## Project Snapshot
+## Goals And Non-Goals
+- Goal: <one line per outcome the project must deliver>
+- Non-goal: <what we are explicitly NOT doing; this stops agents over-building>
 
-- Project: <name>
-- Purpose: <one or two evidence-backed sentences>
-- Current status: <active | maintenance | paused | unknown>
-- Primary languages/frameworks: <list or unknown>
-- Main runtime/deploy target: <value or unknown>
+## Non-Negotiable Rules
+1. <rule that must never be broken, with the reason in a few words>
 
-## Architecture At A Glance
-
-| Area | Purpose | Start here |
+## Frequent Commands
+| Purpose | Command | Verified |
 | --- | --- | --- |
-| <area> | <what it owns> | [page](../engineering/architecture.md) |
+| Test | `<command>` | YYYY-MM-DD or `⚠️ NOT VERIFIED` |
 
-## Non-Negotiable Technical Rules
+## Verified Facts
+Do not re-derive these. Re-check a fact only when its evidence changed.
 
-- <invariant/rule> - Source: <file/page>
-- Unknown rules: Not verified.
-
-## Core Commands
-
-| Task | Command | Working directory | Evidence |
+| Fact | Value | Evidence | Verified |
 | --- | --- | --- | --- |
-| Setup | `<command or unknown>` | `<path>` | `<source>` |
-| Test | `<command or unknown>` | `<path>` | `<source>` |
-| Lint | `<command or unknown>` | `<path>` | `<source>` |
-| Build | `<command or unknown>` | `<path>` | `<source>` |
+| <fact> | <value> | `<command>` or <document> | YYYY-MM-DD |
+
+**Errors already corrected, do not reintroduce:** <wrong belief> → <correct fact>.
 
 ## Read First
-
-1. [Master index](../index.md)
-2. [Architecture](../engineering/architecture.md)
-3. [Development](../engineering/development.md)
-4. [Testing](../engineering/testing.md)
-5. [Current handoff](handoff.md)
-
-## Risks And Invariants
-
-| Risk / invariant | Why it matters | Evidence |
-| --- | --- | --- |
-| <risk> | <impact> | <source/page> |
-
-## High-Value Links
-
-- [Project status](../project/status.md)
-- [Work tracker](../project/work-tracker.md)
-- [Decisions](../project/decisions.md)
-- [Change map](../engineering/change-map.md)
+1. <at most five links: index, tracker, handoff, the page for the current work>
 ```
 
 Rules:
 
-- Do not write a generic project summary. Every important claim needs a source.
-- Use `unknown`, `pending`, or `Not verified.` when commands, status, or risks
-  are not evidenced.
+- Do not write a generic project summary. Every fact needs evidence.
+- Mark unverified commands and facts `⚠️ NOT VERIFIED`.
 - Keep implementation detail out unless it helps a new coding agent decide
   where to start.
