@@ -164,14 +164,19 @@ Notes:
 
 | Hook | Claude Code | Codex | Antigravity | What it does |
 | ---- | :---------: | :---: | :---------: | ------------ |
-| SessionStart | yes | yes | no | Resolves the wiki folder, prints a `wiki_root` line, and notes a stale handoff (5 or more commits since it was updated). |
-| Stop | yes | yes | yes | If source files changed and the wiki did not, asks the agent once to run `/wiki-sync`. |
-| git pre-commit | optional | optional | optional | Installed by `/wiki-init` when sensitive data is on; blocks commits containing a term from `<wiki-root>/.private-terms` (reports `file:line`, never the term). |
+| SessionStart | yes | yes (not yet verified on Codex) | no | Resolves the wiki folder, prints a `wiki_root` line, and notes a stale handoff (5 or more commits since it was updated). |
+| Stop | yes | yes (not yet verified on Codex) | yes | If source files changed and the wiki did not, asks the agent once to run `/wiki-sync`. |
+| git pre-commit | optional | optional | optional | Blocks commits containing a term from `<wiki-root>/.private-terms` (reports `file:line`, never the term). |
 
 Claude Code and Codex share one `hooks/hooks.json`. Antigravity has a
 `hooks.json` with the Stop reminder only; its always-on rule resolves the wiki
 root instead of a SessionStart hook. The Stop reminder sees uncommitted
 changes only.
+
+The forbidden-terms pre-commit check is not a plugin hook: `/wiki-init`
+installs it in the repo's `.git/hooks/` when sensitive data is on. Codex runs
+the reminder with `--host claude` because it receives the same payload shape.
+Codex hook support is pending verification in a real Codex session.
 
 ## Install
 
@@ -537,7 +542,11 @@ Restart or refresh Codex plugin discovery after changing marketplaces.
 
 ## Guardrail
 
-Wiki operations may read source files but must not modify source files. They write only under the wiki folder (plus `.wikidir` when `/wiki-init` picks a folder other than `wiki/`, and an optional git pre-commit hook and thin agent entry file that init installs after you confirm), except when the user explicitly asks for another project change outside the wiki workflow.
+Wiki operations may read source files but must not modify source files. They
+write only under the wiki folder (plus `.wikidir` when `/wiki-init` picks a
+folder other than `wiki/`, and an optional git pre-commit hook and thin agent
+entry file that init installs after you confirm), except when the user
+explicitly asks for another project change outside the wiki workflow.
 
 ## License
 
