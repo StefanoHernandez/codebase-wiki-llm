@@ -1,8 +1,9 @@
 # Wiki Maintainer
 
-This skill maintains an engineering-first software project wiki under
-`<wiki-root>/`. The wiki is durable project knowledge for software engineers,
-project leads, future agents, and reusable project documentation.
+This skill maintains the wiki under `<wiki-root>/`. It keeps shared context
+between the people and the agents working on this repository, a log of what
+was done with its evidence, and the decisions taken and why. Everything else is
+an optional topic.
 
 Everything is written for fast, source-grounded answers to: where do I change
 this, what must not break, how do I verify it, why is it shaped this way, and
