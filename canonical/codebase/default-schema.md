@@ -94,7 +94,7 @@ Off by default. When `Sensitive data` is `yes`:
 | Budget | Default |
 | --- | --- |
 | Single page | 20 KB |
-| Per-session read set (agent entry file, index, context, handoff, tracker, log) | 40 KB |
+| Core read at a new context (agent entry file, SCHEMA, index, context, handoff, tracker, risks, troubleshooting, glossary, last 10 log entries) | 60 KB |
 | log | 30 KB |
 
 ## Log format

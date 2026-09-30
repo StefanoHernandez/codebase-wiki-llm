@@ -16,7 +16,7 @@ codex = load("plugins/codebase-wiki-llm/hooks/hooks.json")
 if claude != codex:
     errors.append("Claude and Codex hook files differ")
 cmds = [h["command"] for ev in claude.get("hooks", {}).values() for g in ev for h in g["hooks"]]
-for want in ("resolve-wiki-root.sh", "remind-wiki-sync.sh\" --host claude"):
+for want in ("resolve-wiki-root.sh\" --session-start", "remind-wiki-sync.sh\" --host claude"):
     if not any(want in c for c in cmds):
         errors.append(f"shared hooks missing {want}")
 for ev in ("SessionStart", "UserPromptSubmit"):

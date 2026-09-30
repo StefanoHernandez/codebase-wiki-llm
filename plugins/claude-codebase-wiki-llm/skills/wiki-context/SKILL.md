@@ -35,18 +35,26 @@ that does not exist, stop and tell the user without guessing another location.
 
 ## At the start of work
 
-Read `<wiki-root>/SCHEMA.md` `## Core map` first and use it to find every page
-below by role. If SCHEMA has no `## Core map`, use the maintainer skill's v1 paths.
+Read `<wiki-root>/SCHEMA.md` first and find every page below through its
+`## Core map`. If SCHEMA has no `## Core map`, use the maintainer skill's v1 paths.
 
-1. `index`: the catalog. Prefer wiki pages over re-reading source when they cover
-   the topic; verify source when accuracy matters or confidence is low.
-2. `context`: read when entering a repo or when the task depends on architecture,
-   commands, invariants or risks. Its `Verified Facts` are not re-derived.
-3. `handoff`: read before continuing unfinished work. If the session context says
-   the handoff is N commits old, read it and say which handoff items no longer match the repo, and refresh it,
-   before continuing.
-4. `tracker`: read when the task depends on status, active or planned work,
-   blockers or follow-up order.
+When the conversation has no wiki context yet (a new chat, a cleared or
+compacted context, or a session line `Codebase Wiki LLM: new context`), read
+the core once, before the first task, skipping pages the conversation already
+holds:
+
+1. `index`: the catalog.
+2. `context`: its `Verified Facts` are not re-derived.
+3. `handoff`: if the session context says the handoff is N commits old, say
+   which handoff items no longer match the repo and refresh it before continuing.
+4. `tracker`; the latest `log` entries (since the handoff's `updated` date, at
+   most the last 10); `risks`; `troubleshooting`; `glossary`; the titles of the
+   `decisions` files.
+
+Later turns of the same conversation read only the pages the task needs.
+Prefer wiki pages over re-reading source when they cover the topic; verify the
+source when accuracy matters, confidence is low, or a fact is marked
+`⚠️ TO RE-VERIFY`.
 
 If the wiki cannot answer, read source or project documents. If that reveals
 durable knowledge, mention the gap or run `/wiki-ingest` when asked.
