@@ -53,29 +53,29 @@ Filter out paths excluded by `<wiki-root>/SCHEMA.md` and `<wiki-root>/` itself.
 
 ## Step 3 - Map changes to pages
 
+Locate core pages through SCHEMA `## Core map`; fall back to v1 paths
+(`engineering/`, `project/`, `agent/`) only when it is missing.
+
 For each changed file, find pages whose `sources:` include it or whose prose
 references the relevant module/area.
 
 Also map common change types:
 
-- source/API changes -> `modules/*`, `engineering/architecture.md`,
-  `engineering/data-model.md`, `engineering/change-map.md`;
-- tests/CI changes -> `engineering/testing.md`;
-- setup/tooling changes -> `engineering/development.md`;
-- deploy/config/env changes -> `engineering/operations.md`;
-- bugfix/failure-mode changes -> `engineering/troubleshooting.md`;
-- roadmap/status/risk docs -> `project/*`;
+- source/API changes -> `modules/*` and the architecture, data-model and
+  change-map topic pages listed in SCHEMA `## Topics`;
+- tests/CI, setup/tooling, deploy/config/env changes -> the matching topic
+  page listed in SCHEMA `## Topics`;
+- bugfix/failure-mode changes -> `troubleshooting`;
+- roadmap/status/risk docs -> `tracker`, `risks`;
 - plan, active work, next task, done criteria, verification state, or blockers
-  -> `project/work-tracker.md`, `agent/handoff.md`;
+  -> `tracker`, `handoff`;
 - architecture decisions, technical commands, risk/invariant changes, or
-  read-first file changes -> `agent/context.md`;
-- reusable evidence or demos -> `project-docs/evidence.md`,
-  `project-docs/demo-materials.md`;
+  read-first file changes -> `context`, `decisions`;
+- reusable evidence or demos -> the topic page listed in SCHEMA `## Topics`;
 - project status, scope, milestones, important decisions, portfolio relevance,
   work relevance, research relevance, demos, publications, or reusable project
   material -> `overview-<project-slug>.md`;
-- non-trivial agent work -> `agent/activity.md`, `agent/handoff.md`,
-  `project/work-tracker.md`.
+- non-trivial agent work -> `log`, `handoff`, `tracker`.
 
 If more than roughly 10 pages are affected, stop and recommend `/wiki-ingest`
 or `/wiki-lint`.
@@ -92,12 +92,12 @@ Apply minimum edits:
 - update `overview-<project-slug>.md` when the project card or
   `Personal Wiki Export` changed, while preserving `Da confermare.` for
   unknown personal context.
-- update `agent/handoff.md` when the plan, next task, blocker, verification
+- update `handoff` when the plan, next task, blocker, verification
   result, or git state changed. Preserve the `Baton For Next Coding Agent`
   table with start files, done criteria, and verification commands.
-- update `agent/context.md` when project onboarding facts, commands, risks,
+- update `context` when project onboarding facts, commands, risks,
   invariants, or high-value links changed.
-- update `project/work-tracker.md` when active, planned, completed, or blocked
+- update `tracker` when active, planned, completed, or blocked
   work changed.
 
 Do not create new pages during sync. If a new page is needed, report the gap and
@@ -105,29 +105,38 @@ recommend `/wiki-ingest`.
 
 ## Step 5 - Update index only if necessary
 
-Touch `index.md` only when summaries, titles, or page availability changed.
+Touch `index` only when summaries, titles, or page availability changed.
 
-## Step 6 - Append log/activity
+## Step 6 - Log, tracker, handoff
 
-Append to `log.md`:
+1. Append one entry to `log` in SCHEMA `## Log format`, author `agent`.
+2. Update the status of every touched ID in `tracker`; never write status
+   anywhere else.
+3. Rewrite `handoff`: last completed step, next tasks (baton table), what not
+   to redo, commands already run.
 
-```markdown
-## [YYYY-MM-DD] sync | <N> pages updated
-- Changed files: <short list or count>
-- Pages updated: <list>
-- Follow-ups: <none or recommended ingest/lint>
-```
+## Step 7 - Proposals (ask, do not write)
 
-Append to `agent/activity.md` if the sync closes a non-trivial task or records a
-decision useful to future agents. The activity entry should include agent,
-trigger, intent, actions, files changed, validation, decisions, and follow-up.
+- **Decision**: the change adds a dependency, changes architecture, or rejects
+  an alternative -> propose `decisions/NNNN-<slug>.md`
+  (`references/decision-template.md`).
+- **Troubleshooting**: the session solved a non-obvious problem -> propose an
+  entry (`references/troubleshooting-template.md`).
+- **Log archive**: a phase of the project division closed, or `log` exceeds
+  its budget -> propose moving entries up to that date to
+  `log-archive/<phase-or-period>.md`, leaving one link line. Cut by date:
+  phases overlap in time.
+- **Verified facts**: a fact in `context` changed -> propose the new value
+  with its evidence and date.
 
-## Step 7 - Report briefly
+## Step 8 - Report briefly
 
 Keep output short:
 
 - `wiki-sync: nothing to do.`
 - or `wiki-sync: updated <pages> based on <files>. <follow-up>`
+
+List the proposals made.
 
 ## Guardrails
 
