@@ -3,11 +3,39 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CANONICAL = ROOT / "canonical" / "secondbrain"
+
+VERSION = (CANONICAL / "VERSION").read_text(encoding="utf-8").strip()
+
+# Everything this generator owns. reset() deletes these before writing so
+# files removed from canonical/ also disappear from the host packages.
+GENERATED = (
+    "plugins/secondbrain-wiki-llm/.codex-plugin/plugin.json",
+    "plugins/secondbrain-wiki-llm/skills",
+    "plugins/claude-secondbrain-wiki-llm/plugin.json",
+    "plugins/claude-secondbrain-wiki-llm/commands",
+    "plugins/claude-secondbrain-wiki-llm/skills",
+    "plugins/antigravity-secondbrain-wiki-llm/plugin.json",
+    "plugins/antigravity-secondbrain-wiki-llm/rules",
+    "plugins/antigravity-secondbrain-wiki-llm/skills",
+)
+
+
+def reset(paths: tuple[str, ...]) -> None:
+    for rel in paths:
+        path = ROOT / rel
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists():
+            path.unlink()
+    for stale in (ROOT / "skills").glob("secondbrain-*"):
+        if stale.is_dir():
+            shutil.rmtree(stale)
 MARKER_PREFIX = "<!-- Generated from "
 
 
@@ -81,7 +109,7 @@ WORKFLOWS = {
 
 CODEX_PLUGIN_JSON = """{
   "name": "secondbrain-wiki-llm",
-  "version": "0.2.1",
+  "version": "@VERSION@",
   "description": "Global Codex plugin for maintaining a personal and work knowledge vault.",
   "author": {
     "name": "Stefano"
@@ -127,7 +155,7 @@ CODEX_PLUGIN_JSON = """{
 
 CLAUDE_PLUGIN_JSON = """{
   "name": "secondbrain-wiki-llm",
-  "version": "0.2.1",
+  "version": "@VERSION@",
   "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint.",
   "author": {
     "name": "Stefano Paradisi",
@@ -143,7 +171,7 @@ CLAUDE_PLUGIN_JSON = """{
 
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "secondbrain-wiki-llm",
-  "version": "0.2.1",
+  "version": "@VERSION@",
   "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint."
 }
 """
@@ -162,7 +190,7 @@ def generate_codex() -> None:
         parents=True, exist_ok=True
     )
     (ROOT / "plugins/secondbrain-wiki-llm/.codex-plugin/plugin.json").write_text(
-        CODEX_PLUGIN_JSON, encoding="utf-8"
+        CODEX_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
     write(
         "plugins/secondbrain-wiki-llm/skills/secondbrain-maintainer/SKILL.md",
@@ -198,7 +226,7 @@ def generate_codex() -> None:
 def generate_claude() -> None:
     (ROOT / "plugins/claude-secondbrain-wiki-llm").mkdir(parents=True, exist_ok=True)
     (ROOT / "plugins/claude-secondbrain-wiki-llm/plugin.json").write_text(
-        CLAUDE_PLUGIN_JSON, encoding="utf-8"
+        CLAUDE_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
     write(
         "plugins/claude-secondbrain-wiki-llm/skills/secondbrain-maintainer/SKILL.md",
@@ -236,7 +264,7 @@ def generate_antigravity() -> None:
         parents=True, exist_ok=True
     )
     (ROOT / "plugins/antigravity-secondbrain-wiki-llm/plugin.json").write_text(
-        ANTIGRAVITY_PLUGIN_JSON, encoding="utf-8"
+        ANTIGRAVITY_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
     write(
         "plugins/antigravity-secondbrain-wiki-llm/rules/AGENTS.md",
@@ -299,6 +327,7 @@ def generate_agent_skills() -> None:
 
 
 def main() -> None:
+    reset(GENERATED)
     generate_codex()
     generate_claude()
     generate_antigravity()

@@ -13,6 +13,45 @@ CANONICAL = ROOT / "canonical" / "codebase"
 MARKER_PREFIX = "<!-- Generated from "
 INCLUDE_RE = re.compile(r"^\{\{include:([^}]+)\}\}$", re.MULTILINE)
 
+VERSION = (CANONICAL / "VERSION").read_text(encoding="utf-8").strip()
+
+# Everything this generator owns. reset() deletes these before writing so
+# files removed from canonical/ also disappear from the host packages.
+GENERATED = (
+    "plugins/codebase-wiki-llm/.codex-plugin/plugin.json",
+    "plugins/codebase-wiki-llm/skills",
+    "plugins/codebase-wiki-llm/hooks",
+    "plugins/codebase-wiki-llm/scripts",
+    "plugins/claude-codebase-wiki-llm/plugin.json",
+    "plugins/claude-codebase-wiki-llm/commands",
+    "plugins/claude-codebase-wiki-llm/skills",
+    "plugins/claude-codebase-wiki-llm/hooks",
+    "plugins/claude-codebase-wiki-llm/scripts",
+    "plugins/antigravity-codebase-wiki-llm/plugin.json",
+    "plugins/antigravity-codebase-wiki-llm/hooks.json",
+    "plugins/antigravity-codebase-wiki-llm/rules",
+    "plugins/antigravity-codebase-wiki-llm/skills",
+    "plugins/antigravity-codebase-wiki-llm/scripts",
+    "skills/codebase-wiki-llm",
+    "skills/codebase-wiki-context",
+    "skills/codebase-wiki-init",
+    "skills/codebase-wiki-ingest",
+    "skills/codebase-wiki-sync",
+    "skills/codebase-wiki-lint",
+)
+
+
+def reset(paths: tuple[str, ...]) -> None:
+    for rel in paths:
+        path = ROOT / rel
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists():
+            path.unlink()
+    for stale in (ROOT / "skills").glob("codebase-*"):
+        if stale.is_dir():
+            shutil.rmtree(stale)
+
 
 def read(rel: str) -> str:
     text = (CANONICAL / rel).read_text(encoding="utf-8")
@@ -98,7 +137,7 @@ REFERENCES = (
 
 CODEBASE_CODEX_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.1",
+  "version": "@VERSION@",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
@@ -143,7 +182,7 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
 
 CODEBASE_CLAUDE_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.1",
+  "version": "@VERSION@",
   "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",
@@ -179,7 +218,7 @@ CLAUDE_HOOKS_JSON = r"""{
 
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.1",
+  "version": "@VERSION@",
   "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
 }
 """
@@ -194,8 +233,9 @@ ANTIGRAVITY_WORKFLOW_TRIGGERS = {
 
 
 def generate_codex() -> None:
+    (ROOT / "plugins/codebase-wiki-llm/.codex-plugin").mkdir(parents=True, exist_ok=True)
     (ROOT / "plugins/codebase-wiki-llm/.codex-plugin/plugin.json").write_text(
-        CODEBASE_CODEX_PLUGIN_JSON, encoding="utf-8"
+        CODEBASE_CODEX_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
     write(
         "plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer/SKILL.md",
@@ -235,8 +275,9 @@ def generate_codex() -> None:
 
 
 def generate_claude() -> None:
+    (ROOT / "plugins/claude-codebase-wiki-llm").mkdir(parents=True, exist_ok=True)
     (ROOT / "plugins/claude-codebase-wiki-llm/plugin.json").write_text(
-        CODEBASE_CLAUDE_PLUGIN_JSON, encoding="utf-8"
+        CODEBASE_CLAUDE_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
     claude_root = ROOT / "plugins/claude-codebase-wiki-llm"
     (claude_root / "hooks").mkdir(parents=True, exist_ok=True)
@@ -281,8 +322,9 @@ def generate_claude() -> None:
 
 
 def generate_antigravity() -> None:
+    (ROOT / "plugins/antigravity-codebase-wiki-llm").mkdir(parents=True, exist_ok=True)
     (ROOT / "plugins/antigravity-codebase-wiki-llm/plugin.json").write_text(
-        ANTIGRAVITY_PLUGIN_JSON, encoding="utf-8"
+        ANTIGRAVITY_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
     write(
         "plugins/antigravity-codebase-wiki-llm/rules/AGENTS.md",
@@ -357,6 +399,7 @@ def generate_agent_skills() -> None:
 
 
 def main() -> None:
+    reset(GENERATED)
     generate_codex()
     generate_claude()
     generate_antigravity()
