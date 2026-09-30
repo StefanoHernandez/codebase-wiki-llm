@@ -10,7 +10,7 @@ TAIL="Handle the user's message first. When the task that changed the code is do
 
 # note <changed files> <wiki changed: yes|no> [pages not updated]  (mirrors the hook's wording)
 note() {
-  local m="Codebase Wiki LLM (note, not a stop): code changed in this session: $1."
+  local m="Codebase Wiki LLM (note, not a stop): code changed since this session started that the wiki does not cover yet: $1."
   [ "$2" = yes ] || m="$m The wiki did not change."
   [ -z "${3:-}" ] || m="$m Wiki pages whose sources list these files but were not updated: $3."
   printf '%s' "$m $TAIL"
@@ -48,7 +48,7 @@ r="$(new_repo dirty-start)"; echo x > "$r/main.c"
 run "changes from before the session are baseline" "" "$(claude "$r")" --host claude
 run "baseline state stays quiet" "" "$(claude "$r")" --host claude
 echo y > "$r/other.c"
-run "a new change names all changed files" "$(note 'main.c, other.c' no)" "$(claude "$r")" --host claude
+run "a new change names only the files changed in the session" "$(note other.c no)" "$(claude "$r")" --host claude
 
 r="$(new_repo code)"; run "baseline" "" "$(claude "$r")" --host claude
 echo x > "$r/main.c"
@@ -80,7 +80,34 @@ run "baseline" "" "$(claude "$r")" --host claude
 echo x > "$r/srcfoo.c"; echo entry > "$r/wiki/log.md"
 run "directory source needs a path boundary" "" "$(claude "$r")" --host claude
 mkdir -p "$r/src/deep"; echo x > "$r/src/deep/a.c"
-run "directory source covers files below it" "$(note 'src/deep/a.c, srcfoo.c' yes wiki/mod.md)" "$(claude "$r")" --host claude
+run "directory source covers files below it" "$(note src/deep/a.c no wiki/mod.md)" "$(claude "$r")" --host claude
+
+r="$(new_repo unlisted-next)"; page "$r" api.md src/api.c; commit "$r" pages
+run "baseline" "" "$(claude "$r")" --host claude
+echo x > "$r/main.c"; echo entry > "$r/wiki/log.md"
+run "covered by a wiki change" "" "$(claude "$r")" --host claude
+echo x > "$r/b.c"
+run "a change after the wiki covered the last one is noted" "$(note b.c no)" "$(claude "$r")" --host claude
+
+r="$TMP_DIR/ignored"; mkdir -p "$r/.wiki" "$r/src"; git -C "$r" init -q
+printf '.wiki/\n' > "$r/.gitignore"; printf '.wiki\n' > "$r/.wikidir"; touch "$r/.wiki/SCHEMA.md"
+{ echo '---'; echo 'title: T'; echo 'sources:'; echo '  - src/api.c'; echo '---'; echo body; } > "$r/.wiki/api.md"
+echo v1 > "$r/src/api.c"; commit "$r" init
+run "ignored wiki: baseline" "" "$(claude "$r")" --host claude
+echo v2 > "$r/src/api.c"
+run "ignored wiki: the page listing the file is named" "$(note src/api.c no .wiki/api.md)" "$(claude "$r")" --host claude
+echo more >> "$r/.wiki/api.md"
+run "ignored wiki: updating the page is seen" "" "$(claude "$r")" --host claude
+
+r="$(new_repo rename-src)"; mkdir -p "$r/src"; echo x > "$r/src/old.c"; page "$r" api.md src/old.c; commit "$r" pages
+run "baseline" "" "$(claude "$r")" --host claude
+git -C "$r" mv src/old.c src/new.c; echo entry > "$r/wiki/log.md"
+run "a renamed source keeps its old path" "$(note 'src/new.c, src/old.c' yes wiki/api.md)" "$(claude "$r")" --host claude
+
+r="$(new_repo src-suffix)"; page "$r" api.md './src/api.c:12' 'src/b.c#main'; commit "$r" pages
+run "baseline" "" "$(claude "$r")" --host claude
+mkdir -p "$r/src"; echo x > "$r/src/api.c"; echo x > "$r/src/b.c"; echo entry > "$r/wiki/log.md"
+run "sources with ./, :line and #symbol still match" "$(note 'src/api.c, src/b.c' yes wiki/api.md)" "$(claude "$r")" --host claude
 
 r="$(new_repo committed)"; run "baseline" "" "$(claude "$r")" --host claude
 echo x > "$r/main.c"; commit "$r" code
@@ -108,7 +135,7 @@ run "repo without wiki stays quiet" "" "$(claude "$nowiki")" --host claude
 nocommit="$TMP_DIR/nocommit"; mkdir -p "$nocommit/wiki"; touch "$nocommit/wiki/SCHEMA.md"; git -C "$nocommit" init -q; echo x > "$nocommit/main.c"
 run "repo without commits: baseline" "" "$(claude "$nocommit")" --host claude
 echo y > "$nocommit/b.c"
-run "repo without commits: untracked wiki counts as wiki" "" "$(claude "$nocommit")" --host claude
+run "repo without commits: new code after the baseline is noted" "$(note b.c no)" "$(claude "$nocommit")" --host claude
 
 r="$(new_repo readonly)"; chmod a-w "$r/.git"
 echo x > "$r/main.c"

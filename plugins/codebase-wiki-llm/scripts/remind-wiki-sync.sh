@@ -4,11 +4,15 @@
 #   remind-wiki-sync.sh --host antigravity   Antigravity (PreInvocation; injectSteps JSON;
 #                                            cwd is the plugin folder)
 # Reads the hook payload on stdin. The first call of a session records the
-# base (HEAD and the changed paths) and stays quiet. Later calls look at
-# everything changed since the base, committed or not, and speak when code
-# changed and either the wiki did not, or a wiki page listing a changed file
-# in `sources:` was not updated; once per changed set of paths. Antigravity
-# speaks only on the first model call of a turn (initialNumSteps changes).
+# base (HEAD at that call) and the files already dirty then, which are left
+# out, and stays quiet. Later calls look at code changed since the base,
+# committed or not, and at wiki files edited since the base or the last
+# covered state (by modification time, so a wiki git ignores works too). They
+# speak when code changed and either no wiki file changed, or a wiki page
+# listing a changed file in `sources:` was not updated; once per changed set
+# of paths. Once the wiki covers a change, its paths are not noted again.
+# Antigravity speaks only on the first model call of a turn (initialNumSteps
+# changes).
 
 host=claude
 [ "${1:-}" = "--host" ] && host=${2:-claude}
@@ -66,16 +70,22 @@ git -C "$root" cat-file -e "$base" 2>/dev/null || base=HEAD
 
 # Committed since the base plus uncommitted and untracked; -z avoids git's path quoting.
 paths=$({
-  git -C "$root" diff --name-only -z "$base" -- 2>/dev/null
+  git -C "$root" diff --name-only --no-renames -z "$base" -- 2>/dev/null
   git -C "$root" ls-files -z --others --exclude-standard 2>/dev/null
 } | tr '\000' '\n' | sed '/^$/d' | sort -u)
 wiki_re=$(printf '%s' "$wiki" | sed 's/\./\\./g')
 code=$(printf '%s\n' "$paths" | grep -v -e "^$wiki_re/" -e '^\.wikidir$' -e '^$')
+# Paths dirty at the first call or already covered by a wiki change.
+covered="$state_dir/covered-$key"
+[ -f "$covered" ] && code=$(printf '%s\n' "$code" | grep -v -x -F -f "$covered")
+if [ "$first" = yes ]; then save "covered-$key" "$code"; quiet; fi
 [ -n "$code" ] || quiet
-wikichg=$(printf '%s\n' "$paths" | grep -e "^$wiki_re/")
+# Wiki files edited since the last covered state, or since the session start.
+since="$state_dir/stamp-$key"
+[ -f "$since" ] || since="$state_dir/base-$key"
+wikichg=$(cd "$root" && find "$wiki" -type f -newer "$since" ! -name .private-terms 2>/dev/null | sort)
 
 state=$(printf '%s\n%s\n' "$code" "$wikichg" | cksum)
-if [ "$first" = yes ]; then save "said-$key" "$state"; quiet; fi
 [ "$(cat "$state_dir/said-$key" 2>/dev/null)" = "$state" ] && quiet
 
 tmp=$(mktemp -d 2>/dev/null) || quiet
@@ -91,7 +101,7 @@ printf '%s\n' "$wikichg" > "$tmp/wiki"
   /^sources:[[:space:]]*$/ { src = 1; next }
   src && /^[[:space:]]+-[[:space:]]/ {
     s = $0; sub(/^[[:space:]]+-[[:space:]]+/, "", s); sub(/[[:space:]]+$/, "", s)
-    gsub(/^["\047`]+|["\047`]+$/, "", s)
+    gsub(/^["\047`]+|["\047`]+$/, "", s); sub(/^\.\//, "", s); sub(/[:#][^\/]*$/, "", s)
     print FILENAME "\t" s; next
   }
   { src = 0 }' {} +) > "$tmp/pairs" 2>/dev/null
@@ -104,7 +114,11 @@ stale=$(awk -F '\t' '
   { s = $2; sub(/\/+$/, "", s); if (s == "") next
     for (c in code) if (c == s || index(c, s "/") == 1) { seen[$1] = 1; print $1; break } }
 ' "$tmp/code" "$tmp/wiki" "$tmp/pairs" | sort)
-[ -z "$wikichg" ] || [ -n "$stale" ] || quiet
+if [ -n "$wikichg" ] && [ -z "$stale" ]; then
+  # ponytail: a covered path edited again later is not noted again; per-path mtimes if that matters.
+  { printf '%s\n' "$code" >> "$covered" && printf '' > "$state_dir/stamp-$key"; } 2>/dev/null
+  quiet
+fi
 save "said-$key" "$state"
 
 # list <lines>: the first five, comma separated, then "(+N more)".
@@ -113,7 +127,7 @@ list() {
   printf '%s\n' "$1" | head -n 5 | awk 'NR > 1 { printf ", " } { printf "%s", $0 }'
   [ "$n" -gt 5 ] && printf ' (+%s more)' "$((n - 5))"
 }
-msg="Codebase Wiki LLM (note, not a stop): code changed in this session: $(list "$code")."
+msg="Codebase Wiki LLM (note, not a stop): code changed since this session started that the wiki does not cover yet: $(list "$code")."
 [ -n "$wikichg" ] || msg="$msg The wiki did not change."
 [ -z "$stale" ] || msg="$msg Wiki pages whose sources list these files but were not updated: $(list "$stale")."
 msg="$msg Handle the user's message first. When the task that changed the code is done, run the wiki sync workflow (/wiki-sync: log entry, tracker, handoff), or say in one line why no wiki update is needed."
