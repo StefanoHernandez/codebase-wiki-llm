@@ -12,10 +12,11 @@ https://github.com/StefanoHernandez/codebase-wiki-llm.git
 Each project keeps its own wiki folder (`wiki/` by default, or the folder
 named in `.wikidir`); this plugin only provides the global Codex
 skills that operate on the current project. It also ships Codex hooks
-(`hooks/hooks.json`): a `SessionStart` hook that resolves the wiki folder and
-flags a stale handoff, and a `Stop` hook that reminds the agent to run the
-wiki sync after source changes. Codex hook support is pending verification
-in a real Codex session.
+(`hooks/hooks.json`): a `SessionStart` hook that resolves the wiki folder, asks
+for one core read at a new context and flags a stale handoff, and a
+`UserPromptSubmit` hook that adds a note at the next message (never a block)
+when changed code is not covered by the wiki. Codex hook support is pending
+verification in a real Codex session.
 
 The skill files in this package are generated from the repository-level
 `canonical/` sources. Edit those canonical files, then run

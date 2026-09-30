@@ -36,8 +36,18 @@ The Codebase Wiki workflow is shipped for three hosts:
 - One log: `agent/activity.md` is merged into `log.md`.
 - The project-docs, engineering and overview pages and the export are no longer
   built in; add them as topics when you need them.
-- Hooks: a SessionStart hook resolves the wiki root and flags a stale handoff;
-  a Stop hook reminds the agent to run `/wiki-sync`.
+- Hooks: SessionStart resolves the wiki root, asks for one full core read at a
+  new context and flags a stale handoff; a note at your next message (never a
+  block) says when changed code is not covered by the wiki.
+- Evidence proportional to the claim, with the code state (`@<sha>`,
+  `+local`); a fact that can no longer be proven is marked `⚠️ TO RE-VERIFY`.
+- Tracker with goal, done criteria and a separate Proposals list; 🟢 only with
+  proven criteria. Decisions stay `proposed` until a person approves them.
+- Pages in the language you choose; stable `<!-- wiki:… -->` markers keep the
+  checks working.
+- Adopt maps existing docs in place, then proposes a migration plan one move
+  at a time; `/wiki-sync` archives the log by rule.
+- Release gate: [docs/release-checklist.md](docs/release-checklist.md).
 - v1 wikis keep working; run `/wiki-init --adopt <folder>` to move to v2.
 
 ## SecondBrain Wiki LLM
@@ -102,16 +112,18 @@ In a target repository, `/wiki-init` creates a local wiki shaped like this
 `SCHEMA.md` holds the project profile, the **Core map** (role to path, so
 commands never hard-code paths), conventions (ID prefix `T`; 🟢 done and
 verified, 🟡 in progress, ⚪ to do, 🔴 blocked), size budgets (page 20 KB,
-per-session read set 40 KB, `log.md` 30 KB) and the topics table. Edit these
-files yourself or ask the agent; it records changes in `SCHEMA.md`.
+core read at a new context 60 KB, `log.md` 30 KB) and the topics table. Edit
+these files yourself or ask the agent; it records changes in `SCHEMA.md`.
 
-Every claim needs evidence: a command and its essential output, or an explicit
-`> ⚠️ NOT VERIFIED`. Each log entry names its author (`human` or `agent`).
+Evidence is proportional to the claim: a verification gives the command, its
+essential output and the code state; a description names the source file. What
+cannot be proven is marked `⚠️ NOT VERIFIED` (or `⚠️ TO RE-VERIFY` when it
+can no longer be proven). Each log entry names its author (`human` or `agent`).
 
 ### `/wiki-init`: survey, then one message
 
 Init first surveys the repo read-only (existing docs, `CLAUDE.md`/`AGENTS.md`,
-README language, project type, `.gitignore`). It then asks **six numbered
+README language, project type, `.gitignore`). It then asks **seven numbered
 questions in one message**, each pre-filled. Reply `ok`, or override by number
 (`3: releases, 5: yes`):
 
@@ -123,6 +135,8 @@ questions in one message**, each pre-filled. Reply `ok`, or override by number
    pre-commit check).
 6. Agent entry file: a thin `CLAUDE.md`/`AGENTS.md` pointing to
    `agent/context.md`. An existing file is never overwritten.
+7. Parallel work: `merge=union` for the log in `.gitattributes`, so entries
+   written in parallel merge without conflicts.
 
 Nothing is written before you confirm.
 
@@ -131,10 +145,12 @@ Nothing is written before you confirm.
 If the survey finds an existing docs folder (or you run
 `/wiki-init --adopt <folder>`), init writes only `.wikidir` and `SCHEMA.md`.
 The Core map points at your existing files, only missing core roles are
-proposed, and nothing is moved or renamed without confirmation. A v1 wiki
-(has `SCHEMA.md`, no Core map) is handled the same way; until then sync and
-lint keep working on it with the v1 paths listed in the maintainer skill and
-suggest running adopt. After adopt, `agent/activity.md` stays mapped as
+proposed, and nothing is moved or renamed without confirmation. Once the map
+works in place, init proposes a migration plan toward the default layout, one
+line per move that you accept or skip; skipped moves stay mapped where they
+are. A v1 wiki (has `SCHEMA.md`, no Core map) is handled the same way; until
+then sync and lint keep working on it with the v1 paths listed in the
+maintainer skill and suggest running adopt. After adopt, `agent/activity.md` stays mapped as
 `activity (v1)` and counts as part of the log until you merge it.
 
 ## Choosing the wiki folder
@@ -177,21 +193,26 @@ Notes:
 
 | Hook | Claude Code | Codex | Antigravity | What it does |
 | ---- | :---------: | :---: | :---------: | ------------ |
-| SessionStart | yes | yes (not yet verified on Codex) | no | Resolves the wiki folder, prints a `wiki_root` line, and notes a stale handoff (5 or more commits since it was updated). |
-| Stop | yes | yes (not yet verified on Codex) | yes (checked against Antigravity docs, not yet in a live session) | If source files changed and the wiki did not, asks the agent once to run `/wiki-sync`. |
+| SessionStart | yes | yes (per Codex docs; not yet verified in a live session) | no (its always-on rule does the same) | Resolves the wiki folder, prints a `wiki_root` line and a `new context` line asking the agent to read the core once, and notes a stale handoff (5 or more commits since it was updated). |
+| UserPromptSubmit | yes | yes (per Codex docs; not yet verified in a live session) | — | At your next message, adds a note (never a block) when code changed in this session and the wiki does not cover it. |
+| PreInvocation | — | — | yes (checked against Antigravity docs, not yet in a live session) | The same note, on the first model call of each turn. |
 | git pre-commit | optional | optional | optional | Blocks commits whose contents or file names contain a term from `<wiki-root>/.private-terms` (reports `file:line` or the file name, never the term; binary files are skipped). |
 
-Claude Code and Codex share one `hooks/hooks.json`. Antigravity has a
-`hooks.json` with the Stop reminder only; its always-on rule resolves the wiki
-root instead of a SessionStart hook. The Stop reminder sees uncommitted
-changes only.
+Claude Code and Codex share one `hooks/hooks.json`. Antigravity's `hooks.json`
+has the PreInvocation note only; its always-on rule resolves the wiki root and
+asks for the core read instead of a SessionStart hook.
+
+The note compares everything changed since the session's first message
+(commits and uncommitted files) with the wiki pages whose `sources:` list those
+files. It speaks when the wiki did not change, or when a page listing a changed
+file was not updated, once per changed set of files. Its state lives in
+`.git/codebase-wiki/` and is pruned after 30 days.
 
 The forbidden-terms pre-commit check is not a plugin hook: `/wiki-init`
 installs it in the repo's hooks folder (`git rev-parse --git-path hooks`) when
 sensitive data is on, or shows the call line when `core.hooksPath` points to a
-hook manager. Codex runs
-the reminder with `--host claude` because it receives the same payload shape.
-Codex hook support is pending verification in a real Codex session.
+hook manager. Codex runs the note with `--host claude` because it receives the
+same payload shape.
 
 ## Install
 
@@ -477,21 +498,21 @@ plugins/
 ├── codebase-wiki-llm/                      Codex variant
 │   ├── .codex-plugin/plugin.json
 │   ├── skills/                              (6 split skills)
-│   ├── hooks/hooks.json                    (SessionStart resolver, Stop reminder)
+│   ├── hooks/hooks.json                    (SessionStart resolver, UserPromptSubmit note)
 │   ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
 │   ├── assets/icon.svg
 │   └── README.md
 ├── claude-codebase-wiki-llm/               Claude Code Codebase variant
 │   ├── plugin.json
 │   ├── commands/                           (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint)
-│   ├── hooks/hooks.json                    (SessionStart resolver, Stop reminder)
+│   ├── hooks/hooks.json                    (SessionStart resolver, UserPromptSubmit note)
 │   ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
 │   └── skills/
 │       ├── wiki-maintainer/
 │       └── wiki-context/
 ├── antigravity-codebase-wiki-llm/          Antigravity Codebase variant
 │   ├── plugin.json
-│   ├── hooks.json                          (Stop reminder)
+│   ├── hooks.json                          (PreInvocation note)
 │   ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
 │   ├── rules/AGENTS.md                     (always-on rule)
 │   └── skills/
