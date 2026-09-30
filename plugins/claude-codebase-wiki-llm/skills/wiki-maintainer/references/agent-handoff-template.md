@@ -2,7 +2,7 @@
 
 # Agent Handoff Template
 
-Use this template for `<wiki-root>/agent/handoff.md`. It is a pass-the-baton document,
+Use this template for the `handoff` page (Core map). It is a pass-the-baton document,
 not a narrative session summary.
 
 ```markdown
@@ -10,8 +10,9 @@ not a narrative session summary.
 title: Agent Handoff
 updated: YYYY-MM-DD
 sources:
-  - <wiki-root>/agent/activity.md
-  - <wiki-root>/project/work-tracker.md
+  - <wiki-root>/SCHEMA.md
+  - the `log` page (Core map)
+  - the `tracker` page (Core map)
   - <changed-source-or-config-file>
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low
@@ -58,10 +59,9 @@ confidence: high | medium | low
 
 ## Evidence Trail
 
-- [Activity log](activity.md)
-- [Work tracker](../project/work-tracker.md)
-- [Project status](../project/status.md)
-- [Decisions](../project/decisions.md)
+- `log` page: latest entries (SCHEMA `## Log format`, author human or agent)
+- `tracker` page: IDs of the open work
+- `decisions` folder: the decision files that apply
 ```
 
 Rules:
@@ -72,4 +72,4 @@ Rules:
 - Include git state when git is available. If unavailable, write `unknown`.
 - Keep it current when plans, next tasks, blockers, architecture decisions, or
   meaningful verification results change.
-- Do not repeat a long narrative; link to `activity.md` for chronology.
+- Do not repeat a long narrative; link to the `log` page for chronology.
