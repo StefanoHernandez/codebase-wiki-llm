@@ -22,12 +22,18 @@ case "$wiki" in ''|.|..|*/*) exit 0 ;; esac
 terms="$root/$wiki/.private-terms"
 [ -f "$terms" ] || exit 0
 patterns=$(mktemp) || exit 2
-trap 'rm -f "$patterns"' EXIT
-tr -d '\015' < "$terms" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v -e '^#' -e '^$' > "$patterns"
+tmp_hits=$(mktemp) || exit 2
+trap 'rm -f "$patterns" "$tmp_hits"' EXIT
+bom=$(printf '\357\273\277')
+tr -d '\015' < "$terms" | sed "1s/^$bom//" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v -e '^#' -e '^$' > "$patterns"
 [ -s "$patterns" ] || exit 0
 
 # shellcheck disable=SC2086 # $cached is empty or one flag
-hits=$(cd "$root" && git grep $cached -I -i -F -n -f "$patterns" -- . ":(exclude)$wiki/.private-terms" | cut -d: -f1-2)
+cd "$root" && git grep $cached -I -i -F -n -f "$patterns" -- . ":(exclude)$wiki/.private-terms" > "$tmp_hits" 2>/dev/null || {
+  gg_status=$?
+  [ "$gg_status" = 1 ] || { echo "Codebase Wiki LLM: private-terms check failed (git grep error)." >&2; exit 2; }
+}
+hits=$(cut -d: -f1-2 < "$tmp_hits")
 if [ -n "$hits" ]; then
   echo "Codebase Wiki LLM: private terms found (list in $wiki/.private-terms):" >&2
   printf '%s\n' "$hits" >&2

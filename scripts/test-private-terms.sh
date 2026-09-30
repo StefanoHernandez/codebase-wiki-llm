@@ -56,6 +56,14 @@ expect ".wikidir root is used" "$r" 1
 r="$(new_repo empty)"; : > "$r/wiki/.private-terms"; echo acme > "$r/a.txt"; git -C "$r" add a.txt
 expect "empty terms file passes" "$r" 0
 
+r="$(new_repo bom-term)"; printf '\357\273\277Acme\r\n' > "$r/wiki/.private-terms"
+echo acme > "$r/a.txt"; git -C "$r" add a.txt
+expect "BOM-prefixed term matches" "$r" 1
+
+r="$(new_repo bom-comment)"; printf '\357\273\277# names\nAcme\n' > "$r/wiki/.private-terms"
+echo "# names here" > "$r/a.txt"; git -C "$r" add a.txt
+expect "BOM-prefixed comment is not a term" "$r" 0
+
 r="$(new_repo usage)"
 expect "unknown argument" "$r" 2 --bogus
 
