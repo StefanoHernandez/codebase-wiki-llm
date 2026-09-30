@@ -98,8 +98,8 @@ Apply minimum edits:
   date and never delete the row silently;
 - `tracker` and `handoff` are updated in Step 6.
 
-Do not create new pages during sync, except files the user confirmed in
-Step 7 (decision, log archive), which the agent then writes. If a new page is needed, report the gap and
+Do not create new pages during sync, except log archives (Step 6) and the
+decision file the user confirmed in Step 7. If a new page is needed, report the gap and
 recommend `/wiki-ingest`.
 
 ## Step 5 - Update index only if necessary
@@ -115,6 +115,13 @@ Touch `index` only when summaries, titles, or page availability changed.
    missing. New work the change suggests goes to `## Proposals`.
 3. Rewrite `handoff`: last completed step, next tasks (baton table), what not
    to redo, commands already run.
+4. Archive the log without asking when the SCHEMA `## Log format` rule applies
+   (a phase of the project division closed, or `log` is over its budget): move
+   whole entries dated up to the cut, unchanged, to `<phase-or-period>.md`
+   under the `log-archive` path (Core map); keep dates, evidence and links,
+   rewriting relative links only so they still resolve from the archive; leave
+   one link line per archive in `log`. Cut by date: phases overlap. Make it one
+   self-contained edit, reversible with git.
 
 ## Step 7 - Proposals (ask, do not write)
 
@@ -125,10 +132,6 @@ Touch `index` only when summaries, titles, or page availability changed.
   under `## Approval`.
 - **Troubleshooting**: the session solved a non-obvious or recurring problem -> propose an
   entry (`references/troubleshooting-template.md`).
-- **Log archive**: a phase of the project division closed, or `log` exceeds
-  its budget -> propose moving entries up to that date to
-  `<phase-or-period>.md` under the `log-archive` path (Core map), leaving one link line. Cut by date:
-  phases overlap in time.
 
 ## Step 8 - Report briefly
 
@@ -137,12 +140,11 @@ Keep output short:
 - `wiki-sync: nothing to do.`
 - or `wiki-sync: updated <pages> based on <files>. <follow-up>`
 
-List the proposals made.
+List the proposals made and any log archive (file, entry count, date range).
 
 ## Guardrails
 
-- Never create new pages during sync, except files the user confirmed in
-  Step 7 (decision, log archive), which the agent then writes.
+- Never create new pages during sync, except log archives (Step 6) and the decision file the user confirmed in Step 7.
 - Never delete pages during sync.
 - Never touch source code.
 - If unsure whether the change is small, do not edit; recommend ingest or lint.

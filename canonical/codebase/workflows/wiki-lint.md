@@ -142,8 +142,7 @@ core read is the agent entry file (CLAUDE.md/AGENTS.md if present), `SCHEMA.md`,
 a closed phase is judged
 from the project division in SCHEMA `## Project profile`. Flag any page over the single-page budget; the
 core read over its budget (list each file's size); `log` over its
-budget or holding entries of a closed phase. Suggest the split or the archive
-cut.
+budget or holding entries of a closed phase. Suggest the page split; for the log, say that the next `/wiki-sync` archives it.
 
 ### Confidentiality
 

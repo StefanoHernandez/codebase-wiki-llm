@@ -102,4 +102,9 @@ require "No open work." canonical/codebase/references/agent-handoff-template.md
 require "<!-- wiki:verified-facts -->" canonical/codebase/references/agent-context-template.md
 require "wiki:<id>" canonical/codebase/default-schema.md
 
+require "merge=union" canonical/codebase/workflows/wiki-init.md
+require "Migration plan" canonical/codebase/workflows/wiki-init.md
+require "Archive the log" canonical/codebase/workflows/wiki-sync.md
+require ".gitattributes" canonical/codebase/maintainer.md
+
 echo "generated files are up to date"

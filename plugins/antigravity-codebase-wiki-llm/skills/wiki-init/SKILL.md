@@ -82,6 +82,10 @@ all; `3: releases, 5: yes` overrides by number.
 6. **Agent entry file** - create a thin `CLAUDE.md`/`AGENTS.md` pointing to
    the context page · none. An existing file is never overwritten: propose
    only removing status it duplicates.
+7. **Parallel work** - add `<wiki-root>/<log path> merge=union` to
+   `.gitattributes`, so log entries written in parallel merge without
+   conflicts · no. Default yes when git tracks the wiki, no for a local-only
+   wiki.
 
 Show conventions and budgets as defaults from SCHEMA; do not ask about them.
 Also state whether git will track the folder: run `git check-ignore -q
@@ -128,6 +132,15 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   `tracker` pages; these one-line edits stay inside the wiki. List them in the
   report.
 - Never move, rename or delete files without confirmation.
+- Migration plan: once the Core map works in place, propose moving adopted
+  files toward the default layout, as one numbered message: one line per move
+  (`<from> → <to>`, why) and the links each move rewrites. Splitting a v1
+  `project/decisions.md` into one file per decision is a move too. Reply `ok`
+  accepts all; `2: no` skips one. For each accepted move: `git mv` when git
+  tracks the file (plain move otherwise), rewrite relative links in every wiki
+  page, update the Core map row. Never move a file outside `<wiki-root>/`.
+  Skipped moves stay mapped where they are; adoption is complete without any
+  move.
 
 ## Step 5 - New wiki
 
@@ -162,12 +175,15 @@ Populate only what the survey supports; everything else is an explicit stub.
   `sh "$(git rev-parse --git-path hooks)/check-private-terms.sh" || exit 1`
 - Agent entry file: at most 15 lines - the non-negotiable rules that must be
   seen before anything else, and a link to the context page.
+- `.gitattributes` (item 7 confirmed): append the line
+  `<wiki-root>/<log path> merge=union` (Core map `log` path) unless it is
+  already there; create the file if missing.
 
 ## Step 7 - Log and report
 
 Append the first log entry (SCHEMA `## Log format`) to the Core map `log`
 path (in adopt mode, created in Step 4 if that role was missing), then report: wiki root,
-adopted or created pages, stubs, files changed outside the wiki.
+adopted or created pages, migration moves done and skipped, stubs, files changed outside the wiki.
 
 ## Guardrails
 

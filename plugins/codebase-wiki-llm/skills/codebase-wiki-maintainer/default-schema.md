@@ -131,8 +131,9 @@ Off by default. When `Sensitive data` is `yes`:
 ```
 
 When a phase of the project division closes, or the log exceeds its budget,
-entries up to that date move to `<phase-or-period>.md` under the `log-archive` path and the
-log keeps one link line per archive.
+`/wiki-sync` moves the entries up to that date to `<phase-or-period>.md` under
+the `log-archive` path without asking, keeps one link line per archive in the
+log, and reports the move.
 
 ## Topics
 
@@ -201,9 +202,11 @@ Never delete automatically.
 
 ## Question policy
 
-- `/wiki-init`: ask once to confirm scope before writing.
+- `/wiki-init`: ask once to confirm scope before writing; in adopt mode, also
+  ask once for the migration plan.
 - `/wiki-ingest` without a target: ask what to ingest.
-- `/wiki-sync`: do not ask, except Step 7 proposals; run only for small source changes.
+- `/wiki-sync`: do not ask, except Step 7 proposals; archive the log by the
+  `## Log format` rule without asking; run only for small source changes.
 - `/wiki-lint`: do not ask; produce a read-only report.
 
 ## What this repo is about
