@@ -11,16 +11,14 @@ ships two related plugins:
 
 ## Codebase Wiki LLM
 
-Codebase Wiki LLM is designed for real software work:
+Codebase Wiki LLM is designed for real software work. It keeps a small,
+evidence-backed wiki that a person or a coding agent can trust:
 
-- engineers get architecture, module maps, invariants, safe-change guidance,
-  verification commands, operations notes, and troubleshooting;
-- project leads get status, roadmap, risks, requirements, milestones, and
-  decisions;
-- project documentation gets reusable, evidence-backed material under
-  `project-docs/`;
-- future agents get durable context, activity history, and handoff notes under
-  `agent/`.
+- one work tracker as the only source of status, with stable IDs;
+- one log, decisions as one file each, risks, troubleshooting, glossary;
+- `agent/context.md` and `agent/handoff.md` so a new session starts fast and
+  does not redo work;
+- optional topics chosen at init (architecture, environment, operations, ...).
 
 > [!NOTE]
 > **Inspiration & Credits**: This project is directly inspired by Andrej Karpathy's philosophy on LLM-managed knowledge bases (often referred to as the **LLM Wiki** pattern). By using LLM agents to compile, maintain, and link structured Markdown files as a durable knowledge layer, this workspace establishes long-term memory and execution safety for both human developers and AI copilots.
@@ -69,58 +67,62 @@ The shared prompt content lives in [canonical](canonical). Host-specific plugin 
 
 ## What it creates
 
-In a target repository, `/wiki-init` creates a local wiki shaped like this:
+In a target repository, `/wiki-init` creates a local wiki shaped like this
+(every path is a default; the Core map in `SCHEMA.md` is the source of truth):
 
 ```text
-wiki/
-├── index.md
-├── SCHEMA.md
-├── log.md
-├── overview.md
-├── engineering/
-│   ├── architecture.md
-│   ├── data-model.md
-│   ├── development.md
-│   ├── testing.md
-│   ├── operations.md
-│   ├── troubleshooting.md
-│   └── change-map.md
-├── modules/
-│   └── <module-or-area>.md
+<wiki-root>/
+├── index.md             map + status table (cites IDs, never repeats status)
+├── SCHEMA.md            configuration for the agent
+├── log.md               recent log
+├── log/                 log archives, one per closed phase/release/sprint/quarter
 ├── project/
-│   ├── status.md
-│   ├── roadmap.md
-│   ├── milestones.md
-│   ├── risks.md
-│   ├── requirements.md
-│   ├── decisions.md
-│   └── work-tracker.md
-├── project-docs/
-│   ├── project-brief.md
-│   ├── value-proposition.md
-│   ├── use-cases.md
-│   ├── audience.md
-│   ├── impact.md
-│   ├── evidence.md
-│   ├── demo-materials.md
-│   └── faq.md
+│   ├── work-tracker.md  only source of status; stable IDs, never reused
+│   ├── decisions/       one decision per file: 0001-<slug>.md
+│   └── risks.md
 ├── agent/
-│   ├── context.md
-│   ├── activity.md
-│   └── handoff.md
-└── glossary.md
+│   ├── context.md       fast onboarding for a new agent or person
+│   └── handoff.md       baton: state, next steps, what not to redo
+├── troubleshooting.md   symptom, cause, fix, evidence
+├── glossary.md          terms, acronyms, internal names
+└── <topics>/            chosen at init, e.g. architecture/, environment/, operations/
 ```
 
-Engineering pages are the source of technical truth. `project/` summarizes delivery state and decisions. `project-docs/` reuses supported claims for README, presentations, client docs, bids, proposals, and public project material. `agent/` keeps continuity between agent sessions.
+`SCHEMA.md` holds the project profile, the **Core map** (role to path, so
+commands never hard-code paths), conventions (ID prefix `T`; 🟢 done and
+verified, 🟡 in progress, ⚪ to do, 🔴 blocked), size budgets (page 20 KB,
+per-session read set 40 KB, `log.md` 30 KB) and the topics table. Edit these
+files yourself or ask the agent; it records changes in `SCHEMA.md`.
 
-The agent continuity pages are intentionally short and operational:
+Every claim needs evidence: a command and its essential output, or an explicit
+`> ⚠️ NOT VERIFIED`. Each log entry names its author (`human` or `agent`).
 
-- `agent/context.md` is the fast onboarding page for a new coding agent: project snapshot, architecture, technical rules, setup/test/lint/build commands, read-first files, risks, invariants, and high-value links.
-- `agent/handoff.md` is the pass-the-baton page: current work state, last completed step, prioritized next tasks, blocker/risk state, commands already run, what not to redo, and git state when available.
-- `agent/activity.md` is append-only history for non-trivial agent work.
-- `project/work-tracker.md` keeps project work items evidence-backed and linked to source files, decisions, and verification.
+### `/wiki-init`: survey, then one message
 
-Every handoff includes a `Baton For Next Coding Agent` table. Each next task must have start files, done criteria, and a verification command; when verification is impossible, the handoff must say `Not verified - <reason>`.
+Init first surveys the repo read-only (existing docs, `CLAUDE.md`/`AGENTS.md`,
+README language, project type, `.gitignore`). It then asks **six numbered
+questions in one message**, each pre-filled. Reply `ok`, or override by number
+(`3: releases, 5: yes`):
+
+1. Folder: adopt existing docs, or a new `wiki` / `.wiki`.
+2. Wiki language.
+3. Project division: phases/WP, releases, sprints/milestones, or none.
+4. Topics (pre-checked from the survey).
+5. Sensitive data: no, or yes (forbidden terms, local-only paths, git
+   pre-commit check).
+6. Agent entry file: a thin `CLAUDE.md`/`AGENTS.md` pointing to
+   `agent/context.md`. An existing file is never overwritten.
+
+Nothing is written before you confirm.
+
+### Adopt mode
+
+If the survey finds an existing docs folder (or you run
+`/wiki-init --adopt <folder>`), init writes only `.wikidir` and `SCHEMA.md`.
+The Core map points at your existing files, only missing core roles are
+proposed, and nothing is moved or renamed without confirmation. A v1 wiki
+(has `SCHEMA.md`, no Core map) is handled the same way; sync and lint keep
+working on it with v1 default paths and suggest running adopt.
 
 ## Choosing the wiki folder
 
@@ -147,9 +149,8 @@ repository root so every later session finds it. Like `.nvmrc` or
 ```
 
 Every workflow resolves the folder the same way: `.wikidir` first, then
-an existing `wiki/SCHEMA.md`. Claude Code also resolves it at session start
-with a plugin `SessionStart` hook; Codex and Antigravity read the pointer in
-the first workflow step. Existing `wiki/` wikis keep working unchanged.
+an existing `wiki/SCHEMA.md`. Claude Code and Codex also resolve it at session start
+with a plugin `SessionStart` hook; Antigravity's always-on rule does the same. Existing `wiki/` wikis keep working unchanged.
 
 Notes:
 
@@ -158,6 +159,19 @@ Notes:
 - A gitignored wiki has no git history, and `git clean -xdf` deletes it.
 - To move an existing wiki: `mv wiki .wiki`, then `echo .wiki > .wikidir`
   (bash and PowerShell both work: UTF-8, UTF-8 with BOM, and UTF-16 are read).
+
+## Hooks
+
+| Hook | Claude Code | Codex | Antigravity | What it does |
+| ---- | :---------: | :---: | :---------: | ------------ |
+| SessionStart | yes | yes | no | Resolves the wiki folder, prints a `wiki_root` line, and notes a stale handoff (5 or more commits since it was updated). |
+| Stop | yes | yes | yes | If source files changed and the wiki did not, asks the agent once to run `/wiki-sync`. |
+| git pre-commit | optional | optional | optional | Installed by `/wiki-init` when sensitive data is on; blocks commits containing a term from `<wiki-root>/.private-terms` (reports `file:line`, never the term). |
+
+Claude Code and Codex share one `hooks/hooks.json`. Antigravity has a
+`hooks.json` with the Stop reminder only; its always-on rule resolves the wiki
+root instead of a SessionStart hook. The Stop reminder sees uncommitted
+changes only.
 
 ## Install
 
@@ -314,20 +328,21 @@ Edit shared behavior only in the relevant canonical domain:
 ```text
 canonical/
 ├── codebase/
+│   ├── VERSION                  (release version for the plugin)
 │   ├── maintainer.md
 │   ├── default-schema.md
 │   ├── partials/
-│   │   └── resolve-wiki-root.md
+│   ├── references/              (templates: context, handoff, decision, ...)
 │   ├── rules/
 │   │   └── wiki-context.md
-│   ├── scripts/
-│   │   └── resolve-wiki-root.sh
+│   ├── scripts/                 (resolve-wiki-root, remind-wiki-sync, check-private-terms)
 │   └── workflows/
 │       ├── wiki-init.md
 │       ├── wiki-ingest.md
 │       ├── wiki-sync.md
 │       └── wiki-lint.md
 └── secondbrain/
+    ├── VERSION
     ├── maintainer.md
     ├── default-schema.md
     ├── rules/
@@ -342,17 +357,15 @@ canonical/
 Then regenerate the host packages:
 
 ```bash
-scripts/generate-host-packages.py
-scripts/generate-codebase-packages.py
-scripts/generate-secondbrain-packages.py
+python3 scripts/generate-host-packages.py   # wraps the two generators below
 scripts/check-generated.sh
 ```
 
 The generator writes the host-specific files required by each environment:
 
-- Codex skills under `plugins/codebase-wiki-llm/skills/`
-- Claude Code commands and skills under `plugins/claude-codebase-wiki-llm/`
-- Antigravity plugin under `plugins/antigravity-codebase-wiki-llm/` (`plugin.json`, `rules/`, `skills/`)
+- Codex skills, hooks and scripts under `plugins/codebase-wiki-llm/`
+- Claude Code commands, hooks, scripts and skills under `plugins/claude-codebase-wiki-llm/`
+- Antigravity plugin under `plugins/antigravity-codebase-wiki-llm/` (`plugin.json`, `hooks.json`, `rules/`, `scripts/`, `skills/`)
 - Codex SecondBrain skills under `plugins/secondbrain-wiki-llm/skills/`
 - Claude Code SecondBrain commands and skills under `plugins/claude-secondbrain-wiki-llm/`
 - Antigravity SecondBrain plugin under `plugins/antigravity-secondbrain-wiki-llm/`
@@ -360,18 +373,22 @@ The generator writes the host-specific files required by each environment:
 
 Generated files include a `Generated from ...` marker and should not be edited directly. Commit both the canonical changes and the generated package updates before pushing.
 
-Recommended release workflow:
+## Maintaining this repo
+
+- `canonical/` is the only source. Never edit generated files under `plugins/`
+  or `skills/`.
+- To release, edit `canonical/<plugin>/VERSION`, then run
+  `python3 scripts/generate-host-packages.py`; it rewrites every manifest,
+  including `.claude-plugin/marketplace.json`.
+- Run `scripts/install-dev-hooks.sh` once per clone to install the pre-commit
+  drift guard (blocks commits when generated files are stale).
+- Run `bash scripts/run-tests.sh` for the full test suite.
 
 ```bash
-# edit canonical/codebase/* or canonical/secondbrain/*
-scripts/generate-host-packages.py
-scripts/check-generated.sh
-scripts/test-agent-handoff-validator.sh
-scripts/test-resolve-wiki-root.sh
-git diff
-git add .
-git commit -m "Update wiki workflow prompts"
-git push
+# edit canonical/...
+python3 scripts/generate-host-packages.py
+bash scripts/run-tests.sh
+git add . && git commit -m "Update wiki workflow prompts" && git push
 ```
 
 After push, Codex and Claude Code marketplaces consume the updated generated
@@ -414,7 +431,7 @@ verification command.
 - Generated package location: `plugins/`.
 - Wiki location: per repository, `<repo>/wiki/` by default, or the folder named in `<repo>/.wikidir`.
 - Schema location: per repository, `<wiki folder>/SCHEMA.md`.
-- History location: per repository, `<wiki folder>/log.md`, `<wiki folder>/agent/activity.md`, and git history when the wiki is tracked.
+- History location: per repository, `<wiki folder>/log.md` (plus `log/` archives) and git history when the wiki is tracked.
 
 The plugin does not create a shared global wiki. It provides reusable skills,
 commands, rules, and workflows that operate on the current repository's local
@@ -425,31 +442,37 @@ wiki folder.
 ```text
 .agents/plugins/marketplace.json            <- Codex
 .claude-plugin/marketplace.json             <- Claude Code
-canonical/                                  <- shared prompt sources by domain
+canonical/                                  <- shared prompt sources and VERSION files by domain
 scripts/generate-host-packages.py           <- wrapper: generates all host package files
 scripts/generate-codebase-packages.py       <- generates Codebase Wiki packages
 scripts/generate-secondbrain-packages.py    <- generates SecondBrain packages
 scripts/check-generated.sh                  <- verifies generated files are current
+scripts/run-tests.sh                        <- runs every test
+scripts/install-dev-hooks.sh                <- installs this repo's pre-commit drift guard
 scripts/validate-agent-handoff.py           <- validates agent context/handoff pages in a target wiki
 scripts/test-agent-handoff-validator.sh      <- tests the validator against valid and invalid fixtures
-scripts/test-resolve-wiki-root.sh            <- tests the wiki folder resolver
+scripts/test-*.sh                           <- tests: resolver, hooks, private terms, generators, validator
 skills/                                     <- generated generic Agent Skills distribution
 plugins/
 ├── codebase-wiki-llm/                      Codex variant
 │   ├── .codex-plugin/plugin.json
 │   ├── skills/                              (6 split skills)
+│   ├── hooks/hooks.json                    (SessionStart resolver, Stop reminder)
+│   ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
 │   ├── assets/icon.svg
 │   └── README.md
 ├── claude-codebase-wiki-llm/               Claude Code Codebase variant
 │   ├── plugin.json
 │   ├── commands/                           (/wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint)
-│   ├── hooks/hooks.json                    (SessionStart: resolves the wiki folder)
-│   ├── scripts/resolve-wiki-root.sh
+│   ├── hooks/hooks.json                    (SessionStart resolver, Stop reminder)
+│   ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
 │   └── skills/
 │       ├── wiki-maintainer/
 │       └── wiki-context/
 ├── antigravity-codebase-wiki-llm/          Antigravity Codebase variant
 │   ├── plugin.json
+│   ├── hooks.json                          (Stop reminder)
+│   ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
 │   ├── rules/AGENTS.md                     (always-on rule)
 │   └── skills/
 │       ├── wiki-maintainer/                 (knowledge + default schema)
@@ -514,7 +537,7 @@ Restart or refresh Codex plugin discovery after changing marketplaces.
 
 ## Guardrail
 
-Wiki operations may read source files but must not modify source files. They write only under the wiki folder (plus `.wikidir` when `/wiki-init` picks a folder other than `wiki/`), except when the user explicitly asks for another project change outside the wiki workflow.
+Wiki operations may read source files but must not modify source files. They write only under the wiki folder (plus `.wikidir` when `/wiki-init` picks a folder other than `wiki/`, and an optional git pre-commit hook and thin agent entry file that init installs after you confirm), except when the user explicitly asks for another project change outside the wiki workflow.
 
 ## License
 
