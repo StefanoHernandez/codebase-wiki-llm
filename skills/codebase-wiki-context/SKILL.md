@@ -35,49 +35,40 @@ that does not exist, stop and tell the user without guessing another location.
 
 ## At the start of work
 
-If `<wiki-root>/index.md` exists, read it early. It is the catalog of project
-knowledge. Prefer wiki pages over re-reading source code when the wiki already
-covers the topic, but verify source files when accuracy matters or the wiki is
-low confidence.
+Read `<wiki-root>/SCHEMA.md` `## Core map` first and use it to find every page
+below by role. If SCHEMA has no `## Core map`, use the v1 default paths.
 
-If `<wiki-root>/agent/context.md` exists, read it when entering an existing repo or
-when the task depends on architecture, setup, test commands, invariants, or
-project risks.
+1. `index`: the catalog. Prefer wiki pages over re-reading source when they cover
+   the topic; verify source when accuracy matters or confidence is low.
+2. `context`: read when entering a repo or when the task depends on architecture,
+   commands, invariants or risks. Its `Verified Facts` are not re-derived.
+3. `handoff`: read before continuing unfinished work. If the session context says
+   the handoff is N commits old, read it and say what is stale before continuing.
+4. `tracker`: read when the task depends on status, active or planned work,
+   blockers or follow-up order.
 
-If `<wiki-root>/agent/handoff.md` exists, read it before continuing unfinished work.
-The `Baton For Next Coding Agent` section is the prioritized continuation
-queue.
-
-If `<wiki-root>/project/work-tracker.md` exists, read it when the task depends on
-project status, active work, planned work, blockers, or follow-up order.
-
-## When the wiki cannot answer
-
-Read source code or project documents as needed. If the answer reveals durable
-knowledge that belongs in the wiki, mention the gap or run `/wiki-ingest` when
-the user asks you to update the wiki.
+If the wiki cannot answer, read source or project documents. If that reveals
+durable knowledge, mention the gap or run `/wiki-ingest` when asked.
 
 ## After completing a non-trivial task
 
 If source/config/project files changed and `<wiki-root>/` exists:
 
 1. Run `/wiki-sync` unless the user opted out.
-2. Update `<wiki-root>/agent/activity.md`, `<wiki-root>/agent/handoff.md`, and
-   `<wiki-root>/project/work-tracker.md` when the task changed project state, changed
-   the plan, made decisions, introduced blockers, ran significant verification,
-   or left incomplete work.
-3. Update `<wiki-root>/agent/context.md` when architecture, commands, invariants,
-   risks, or read-first files changed.
+2. Append a `log` entry in SCHEMA `## Log format`.
+3. Update `handoff` and `tracker` when the task changed project state, the plan,
+   decisions or blockers, ran significant verification, or left work incomplete.
+4. Update `context` when architecture, commands, invariants, risks or read-first
+   files changed.
+5. Every claim you write follows SCHEMA `## Evidence`: command, essential output,
+   date, or `> ⚠️ NOT VERIFIED`.
 
-Do not run `/wiki-sync` when:
-
-- no source/config/project files changed;
-- the user task is still in progress across turns;
-- the user explicitly said not to update the wiki.
+Do not run `/wiki-sync` when no source/config/project files changed, the task is
+still in progress across turns, or the user said not to update the wiki.
 
 ## Boundaries
 
-Wiki workflows may read source files as evidence, but they must not modify files
-outside `<wiki-root>/` unless the user explicitly asks for a non-wiki project change.
-Host-specific packaging files are source files for this plugin repository and
-are not part of a target project's wiki content.
+- Do not modify files outside `<wiki-root>/` unless the user explicitly asks for a
+  non-wiki project change; source files are read-only evidence.
+- Never write a term listed in `.private-terms` outside that file.
+- Host-specific packaging files are not part of a target project's wiki content.
