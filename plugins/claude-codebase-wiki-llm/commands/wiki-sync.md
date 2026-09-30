@@ -72,9 +72,6 @@ Also map common change types:
 - architecture decisions, technical commands, risk/invariant changes, or
   read-first file changes -> `context`, `decisions`;
 - reusable evidence or demos -> the topic page listed in SCHEMA `## Topics`;
-- project status, scope, milestones, important decisions, portfolio relevance,
-  work relevance, research relevance, demos, publications, or reusable project
-  material -> `overview-<project-slug>.md`;
 - non-trivial agent work -> `log`, `handoff`, `tracker`.
 
 If more than roughly 10 pages are affected, stop and recommend `/wiki-ingest`
@@ -88,19 +85,13 @@ Apply minimum edits:
 - update verification commands or failure modes;
 - update frontmatter;
 - add supersession notes for corrected claims;
-- lower confidence when evidence is incomplete.
-- update `overview-<project-slug>.md` when the project card or
-  `Personal Wiki Export` changed, while preserving `Da confermare.` for
-  unknown personal context.
-- update `handoff` when the plan, next task, blocker, verification
-  result, or git state changed. Preserve the `Baton For Next Coding Agent`
-  table with start files, done criteria, and verification commands.
+- lower confidence when evidence is incomplete;
 - update `context` when project onboarding facts, commands, risks,
-  invariants, or high-value links changed.
-- update `tracker` when active, planned, completed, or blocked
-  work changed.
+  invariants, or high-value links changed;
+- `tracker` and `handoff` are updated in Step 6.
 
-Do not create new pages during sync. If a new page is needed, report the gap and
+Do not create new pages during sync, except files the user confirmed in
+Step 7 (decision, log archive), which the agent then writes. If a new page is needed, report the gap and
 recommend `/wiki-ingest`.
 
 ## Step 5 - Update index only if necessary
@@ -118,13 +109,13 @@ Touch `index` only when summaries, titles, or page availability changed.
 ## Step 7 - Proposals (ask, do not write)
 
 - **Decision**: the change adds a dependency, changes architecture, or rejects
-  an alternative -> propose `decisions/NNNN-<slug>.md`
+  an alternative -> propose `NNNN-<slug>.md` under the `decisions` path (Core map)
   (`references/decision-template.md`).
 - **Troubleshooting**: the session solved a non-obvious problem -> propose an
   entry (`references/troubleshooting-template.md`).
 - **Log archive**: a phase of the project division closed, or `log` exceeds
   its budget -> propose moving entries up to that date to
-  `log-archive/<phase-or-period>.md`, leaving one link line. Cut by date:
+  `<phase-or-period>.md` under the `log-archive` path (Core map), leaving one link line. Cut by date:
   phases overlap in time.
 - **Verified facts**: a fact in `context` changed -> propose the new value
   with its evidence and date.
@@ -140,7 +131,8 @@ List the proposals made.
 
 ## Guardrails
 
-- Never create new pages during sync.
+- Never create new pages during sync, except files the user confirmed in
+  Step 7 (decision, log archive), which the agent then writes.
 - Never delete pages during sync.
 - Never touch source code.
 - If unsure whether the change is small, do not edit; recommend ingest or lint.
