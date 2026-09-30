@@ -50,8 +50,9 @@ Read:
 5. git status and recent commits;
 6. root-level legacy docs listed by the schema;
 7. SCHEMA `## Project profile` and `## Budgets`;
-8. `.private-terms` (existence only, never its content), `.gitignore`, and
-   `.git/hooks/`;
+8. `.private-terms` (existence only, never its content), `.gitignore`,
+   `git config core.hooksPath`, and the hooks folder
+   `$(git rev-parse --git-path hooks)`;
 9. file sizes from `wc -c`.
 
 Do targeted source reads only where needed to verify claims.
@@ -66,7 +67,9 @@ from the topic pages listed in SCHEMA `## Topics`.
 
 Flag roles pointing to missing files and broken relative links. A SCHEMA
 without `## Core map` is a v1 wiki (old `overview.md`, `agent/`, `project/`
-layout): suggest `/wiki-init --adopt <root>`.
+layout): check it against the v1 paths in the maintainer skill and suggest
+`/wiki-init --adopt <root>`. A Core map row `activity (v1)` left by a v1 adopt
+is part of the log until merged: suggest merging it.
 
 ### Staleness
 
@@ -84,7 +87,7 @@ Flag claims contradicted by code, tests, configs, CI, or current project docs.
 ### Orphans
 
 Flag pages not linked from `index` or another useful page. Ignore `index`,
-`SCHEMA.md`, `log`, and `log-archive`.
+`SCHEMA.md`, `log`, `log-archive`, and an `activity (v1)` row.
 
 ### Gaps
 
@@ -150,18 +153,27 @@ Read `Sensitive data` from SCHEMA `## Project profile`. When it is `no`, skip
 this section silently. When it is `yes`:
 
 - run the maintainer skill's `scripts/check-private-terms.sh --all` and
-  report its `file:line` output (never print the terms);
+  report its `file:line` and `file name:` output (never print the terms);
 - flag a missing `.private-terms`;
 - flag local-only paths that `git check-ignore -q` does not ignore;
-- flag a missing pre-commit check. It is installed only when EITHER
-  `.git/hooks/pre-commit` is the forbidden-terms script
-  (`grep -q "private-terms" .git/hooks/pre-commit` and it contains the usage
+- check the pre-commit hook. Let `H=$(git rev-parse --git-path hooks)`.
+  If `git config core.hooksPath` is set, report "hook manager in use: verify
+  the call line is configured" instead of installed or missing. Otherwise the
+  hook is installed only when EITHER `$H/pre-commit` is the forbidden-terms
+  script (`grep -q "private-terms" "$H/pre-commit"` and it contains the usage
   string `check-private-terms.sh [--staged|--all]`), OR
-  `.git/hooks/check-private-terms.sh` exists AND
-  `grep -q check-private-terms.sh .git/hooks/pre-commit` succeeds. Flag
-  everything else (no hook, an unrelated pre-commit without the call line, the
-  script present but never called) and suggest in the report that `/wiki-init`
-  can install it; do not install it.
+  `$H/check-private-terms.sh` exists AND
+  `grep -q check-private-terms.sh "$H/pre-commit"` succeeds. Flag everything
+  else (no hook, e.g. a fresh clone; an unrelated pre-commit without the call
+  line; the script present but never called). Do not install it: print the
+  exact commands in the report. With no pre-commit hook:
+  `cp <maintainer skill>/scripts/check-private-terms.sh "$(git rev-parse --git-path hooks)/pre-commit"`
+  and `chmod +x "$(git rev-parse --git-path hooks)/pre-commit"`. With an
+  existing one: copy the script to
+  `"$(git rev-parse --git-path hooks)/check-private-terms.sh"`, `chmod +x` it,
+  and add `sh "$(git rev-parse --git-path hooks)/check-private-terms.sh" || exit 1`
+  to the hook. `/wiki-init` offers the same as "install/repair the
+  forbidden-terms hook only".
 
 ### Contradictions
 

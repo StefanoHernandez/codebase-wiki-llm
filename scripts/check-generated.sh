@@ -10,32 +10,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-GENERATED_PATHS=(
-  ".claude-plugin/marketplace.json"
-  "plugins/codebase-wiki-llm/hooks"
-  "plugins/codebase-wiki-llm/scripts"
-  "plugins/antigravity-codebase-wiki-llm/hooks.json"
-  "plugins/antigravity-codebase-wiki-llm/scripts"
-  "plugins/codebase-wiki-llm/.codex-plugin/plugin.json"
-  "plugins/codebase-wiki-llm/skills"
-  "plugins/claude-codebase-wiki-llm/plugin.json"
-  "plugins/claude-codebase-wiki-llm/commands"
-  "plugins/claude-codebase-wiki-llm/skills"
-  "plugins/claude-codebase-wiki-llm/hooks"
-  "plugins/claude-codebase-wiki-llm/scripts"
-  "plugins/antigravity-codebase-wiki-llm/plugin.json"
-  "plugins/antigravity-codebase-wiki-llm/rules"
-  "plugins/antigravity-codebase-wiki-llm/skills"
-  "plugins/secondbrain-wiki-llm/.codex-plugin/plugin.json"
-  "plugins/secondbrain-wiki-llm/skills"
-  "plugins/claude-secondbrain-wiki-llm/plugin.json"
-  "plugins/claude-secondbrain-wiki-llm/commands"
-  "plugins/claude-secondbrain-wiki-llm/skills"
-  "plugins/antigravity-secondbrain-wiki-llm/plugin.json"
-  "plugins/antigravity-secondbrain-wiki-llm/rules"
-  "plugins/antigravity-secondbrain-wiki-llm/skills"
-  "skills"
-)
+# Whole roots, so the list cannot drift from the generators; hand-written files
+# under them are unaffected by the before/after comparison.
+GENERATED_PATHS=(plugins skills .claude-plugin)
 
 cd "$ROOT_DIR"
 
@@ -57,6 +34,13 @@ snapshot > "$AFTER"
 if ! cmp -s "$BEFORE" "$AFTER"; then
   echo "generated files were out of date; regenerated output differs" >&2
   diff -u "$BEFORE" "$AFTER" || true
+  exit 1
+fi
+
+# The commit is built from the index: regenerated files must be staged too.
+if ! git diff --quiet -- "${GENERATED_PATHS[@]}" || [ -n "$(git ls-files --others --exclude-standard -- "${GENERATED_PATHS[@]}")" ]; then
+  echo "generated files are not staged; run: git add ${GENERATED_PATHS[*]}" >&2
+  git status --short -- "${GENERATED_PATHS[@]}" >&2
   exit 1
 fi
 

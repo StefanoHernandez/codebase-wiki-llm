@@ -64,6 +64,14 @@ r="$(new_repo bom-comment)"; printf '\357\273\277# names\nAcme\n' > "$r/wiki/.pr
 echo "# names here" > "$r/a.txt"; git -C "$r" add a.txt
 expect "BOM-prefixed comment is not a term" "$r" 0
 
+r="$(new_repo path-hit)"; printf 'Acme\n' > "$r/wiki/.private-terms"
+mkdir -p "$r/docs"; echo clean > "$r/docs/acme-integration.md"; git -C "$r" add docs
+expect "term in a staged file name blocks" "$r" 1
+grep -q "docs/acme-integration.md" "$TMP_DIR/err" || { echo "FAIL path hit: path missing" >&2; failures=$((failures + 1)); }
+expect "term in a tracked file name fails --all" "$r" 1 --all
+git -C "$r" mv docs/acme-integration.md docs/integration.md
+expect "clean file names pass" "$r" 0
+
 r="$(new_repo usage)"
 expect "unknown argument" "$r" 2 --bogus
 

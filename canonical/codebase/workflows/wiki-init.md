@@ -22,8 +22,10 @@ exist is not an error: propose that name in Step 3.
 ## Step 1 - Check preconditions
 
 - If Step 0 resolved a wiki whose `SCHEMA.md` has a `## Core map`, stop and ask
-  whether to skip, re-init, or run `/wiki-ingest`. Re-init requires explicit
-  confirmation before replacing anything.
+  whether to skip, re-init, run `/wiki-ingest`, or install/repair the
+  forbidden-terms hook only (the hook part of Step 6, nothing else). Re-init
+  rebuilds the scaffold after explicit confirmation; existing pages are never
+  deleted, only proposed for replacement one by one.
 - If Step 0 resolved a wiki whose `SCHEMA.md` has no `## Core map`, it is a v1
   wiki: continue in adopt mode on that folder (Step 4).
 - If the current directory does not look like a code repo or software project,
@@ -57,7 +59,8 @@ Show conventions and budgets as defaults from SCHEMA; do not ask about them.
 Also state whether git will track the folder: run `git check-ignore -q
 <name>/` (keep the trailing slash); success means it stays local. If the user
 wants a local-only wiki that git would track, suggest adding `<name>/` to
-`.git/info/exclude`; do not edit `.git/info/exclude` yourself. When `<name>` is not
+`.git/info/exclude`; init itself writes `.git/info/exclude` only in Step 6,
+for local-only paths whose names contain a forbidden term. When `<name>` is not
 `wiki`, also run `git check-ignore -q .wikidir`: for a local-only wiki suggest
 excluding both; for a tracked wiki whose `.wikidir` git would ignore, warn that
 teammates will get the wiki but not the pointer, and suggest `wiki` or
@@ -105,19 +108,26 @@ Populate only what the survey supports; everything else is an explicit stub.
 `references/agent-handoff-template.md`; `tracker` follows
 `references/work-tracker-template.md`.
 
-## Step 6 - Configuration outside the wiki (confirmed in Step 3 only)
+## Step 6 - Configuration outside the wiki (confirmed in Step 3 or Step 1 only)
 
 - `.wikidir` when the folder is not `wiki`.
-- Sensitive data `yes`: write `<wiki-root>/.private-terms` (one term per line),
-  add `<wiki-root>/.private-terms` and each local-only path to `.gitignore`,
-  and verify with `git check-ignore -v`. If it does not confirm that
-  `.private-terms` and each local-only path are ignored, stop, report, and do
-  not install the hook. Otherwise copy the maintainer skill's
-  `scripts/check-private-terms.sh` to `.git/hooks/pre-commit` (`chmod +x`).
-  If a pre-commit hook already exists, do not overwrite it: copy the script to
-  `.git/hooks/check-private-terms.sh` (`chmod +x`) instead and show this line
-  to add to the existing hook:
-  `sh "$(git rev-parse --show-toplevel)/.git/hooks/check-private-terms.sh" || exit 1`
+- Sensitive data `yes`: write `<wiki-root>/.private-terms` (one term per line)
+  and add `<wiki-root>/.private-terms` and each local-only path to
+  `.gitignore`, except local-only paths whose names contain a forbidden term:
+  those go into `.git/info/exclude`, which is never committed. Verify with
+  `git check-ignore -v`. If it does not confirm that `.private-terms` and each
+  local-only path are ignored, stop, report, and do not install the hook.
+- Hook (Sensitive data `yes`, or the hook-only option of Step 1). The hooks
+  folder is `$(git rev-parse --git-path hooks)` (it honours linked worktrees).
+  If `git config core.hooksPath` is set, a hook manager is in use: install
+  nothing; show the call line below and tell the user to add it, with the
+  script, to their hook manager. Otherwise
+  copy the maintainer skill's `scripts/check-private-terms.sh` to
+  `$(git rev-parse --git-path hooks)/pre-commit` (`chmod +x`). If a
+  pre-commit hook already exists, do not overwrite it: copy the script to
+  `$(git rev-parse --git-path hooks)/check-private-terms.sh` (`chmod +x`)
+  instead and show this call line to add to the existing hook:
+  `sh "$(git rev-parse --git-path hooks)/check-private-terms.sh" || exit 1`
 - Agent entry file: at most 15 lines - the non-negotiable rules that must be
   seen before anything else, and a link to the context page.
 

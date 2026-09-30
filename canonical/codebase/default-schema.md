@@ -75,12 +75,18 @@ Off by default. When `Sensitive data` is `yes`:
 - forbidden terms are listed one per line in `<wiki-root>/.private-terms`,
   which is git-ignored and never committed; this page records only the
   generic wording to use instead (e.g. "the partner");
-- local-only paths are listed here and must be git-ignored
-  (`git check-ignore -v <path>`);
-- `.git/hooks/pre-commit` runs the maintainer skill's
-  `scripts/check-private-terms.sh`.
+- local-only paths must be git-ignored (`git check-ignore -v <path>`): in
+  `.gitignore`, or in `.git/info/exclude` (never committed) when the path's
+  name contains a forbidden term; the table below describes each with generic
+  wording, never the path itself when its name holds a term;
+- the pre-commit hook in `$(git rev-parse --git-path hooks)` runs the
+  maintainer skill's `scripts/check-private-terms.sh` (or calls it with
+  `sh "$(git rev-parse --git-path hooks)/check-private-terms.sh" || exit 1`);
+  with `core.hooksPath` set, the user's hook manager runs that call line;
+- the check covers file contents and tracked file names; binary files are
+  skipped (`git grep -I`).
 
-| Local-only path | Why |
+| Local-only path (generic wording) | Why |
 | --- | --- |
 
 ## Budgets
@@ -171,7 +177,7 @@ Never delete automatically.
 
 - `/wiki-init`: ask once to confirm scope before writing.
 - `/wiki-ingest` without a target: ask what to ingest.
-- `/wiki-sync`: do not ask; run only for small source changes.
+- `/wiki-sync`: do not ask, except Step 7 proposals; run only for small source changes.
 - `/wiki-lint`: do not ask; produce a read-only report.
 
 ## What this repo is about

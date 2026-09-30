@@ -10,8 +10,8 @@ to agent handoff tasks.
 title: Work Tracker
 updated: YYYY-MM-DD
 sources:
-  - <wiki-root>/log.md
-  - <wiki-root>/agent/handoff.md
+  - <wiki-root>/<Core map log path>
+  - <wiki-root>/<Core map handoff path>
   - <source-files-or-plans>
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low

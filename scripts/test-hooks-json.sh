@@ -19,6 +19,10 @@ cmds = [h["command"] for ev in claude.get("hooks", {}).values() for g in ev for 
 for want in ("resolve-wiki-root.sh", "remind-wiki-sync.sh\" --host claude"):
     if not any(want in c for c in cmds):
         errors.append(f"shared hooks missing {want}")
+for ev in ("SessionStart", "Stop"):
+    hs = [h for g in claude.get("hooks", {}).get(ev, []) for h in g["hooks"]]
+    if not hs or any(h.get("timeout") != 10 for h in hs):
+        errors.append(f"shared {ev} hook needs timeout 10")
 if load("plugins/codebase-wiki-llm/.codex-plugin/plugin.json").get("hooks") != "./hooks/hooks.json":
     errors.append("Codex manifest does not point at hooks/hooks.json")
 agy = load("plugins/antigravity-codebase-wiki-llm/hooks.json")

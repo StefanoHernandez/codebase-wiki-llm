@@ -29,6 +29,17 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.9.0
+
+- v2 core: a small fixed core (index, log, tracker, decisions, risks, context,
+  handoff, troubleshooting, glossary) located through the `SCHEMA.md` Core map.
+- One log: `agent/activity.md` is merged into `log.md`.
+- The project-docs, engineering and overview pages and the export are no longer
+  built in; add them as topics when you need them.
+- Hooks: a SessionStart hook resolves the wiki root and flags a stale handoff;
+  a Stop hook reminds the agent to run `/wiki-sync`.
+- v1 wikis keep working; run `/wiki-init --adopt <folder>` to move to v2.
+
 ## SecondBrain Wiki LLM
 
 SecondBrain Wiki LLM maintains a vault-local personal and work knowledge system.
@@ -121,8 +132,10 @@ If the survey finds an existing docs folder (or you run
 `/wiki-init --adopt <folder>`), init writes only `.wikidir` and `SCHEMA.md`.
 The Core map points at your existing files, only missing core roles are
 proposed, and nothing is moved or renamed without confirmation. A v1 wiki
-(has `SCHEMA.md`, no Core map) is handled the same way; sync and lint keep
-working on it with v1 default paths and suggest running adopt.
+(has `SCHEMA.md`, no Core map) is handled the same way; until then sync and
+lint keep working on it with the v1 paths listed in the maintainer skill and
+suggest running adopt. After adopt, `agent/activity.md` stays mapped as
+`activity (v1)` and counts as part of the log until you merge it.
 
 ## Choosing the wiki folder
 
@@ -165,8 +178,8 @@ Notes:
 | Hook | Claude Code | Codex | Antigravity | What it does |
 | ---- | :---------: | :---: | :---------: | ------------ |
 | SessionStart | yes | yes (not yet verified on Codex) | no | Resolves the wiki folder, prints a `wiki_root` line, and notes a stale handoff (5 or more commits since it was updated). |
-| Stop | yes | yes (not yet verified on Codex) | yes | If source files changed and the wiki did not, asks the agent once to run `/wiki-sync`. |
-| git pre-commit | optional | optional | optional | Blocks commits containing a term from `<wiki-root>/.private-terms` (reports `file:line`, never the term). |
+| Stop | yes | yes (not yet verified on Codex) | yes (checked against Antigravity docs, not yet in a live session) | If source files changed and the wiki did not, asks the agent once to run `/wiki-sync`. |
+| git pre-commit | optional | optional | optional | Blocks commits whose contents or file names contain a term from `<wiki-root>/.private-terms` (reports `file:line` or the file name, never the term; binary files are skipped). |
 
 Claude Code and Codex share one `hooks/hooks.json`. Antigravity has a
 `hooks.json` with the Stop reminder only; its always-on rule resolves the wiki
@@ -174,7 +187,9 @@ root instead of a SessionStart hook. The Stop reminder sees uncommitted
 changes only.
 
 The forbidden-terms pre-commit check is not a plugin hook: `/wiki-init`
-installs it in the repo's `.git/hooks/` when sensitive data is on. Codex runs
+installs it in the repo's hooks folder (`git rev-parse --git-path hooks`) when
+sensitive data is on, or shows the call line when `core.hooksPath` points to a
+hook manager. Codex runs
 the reminder with `--host claude` because it receives the same payload shape.
 Codex hook support is pending verification in a real Codex session.
 

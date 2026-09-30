@@ -210,7 +210,8 @@ SHARED_HOOKS_JSON = r"""{
         "hooks": [
           {
             "type": "command",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-wiki-root.sh\""
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-wiki-root.sh\"",
+            "timeout": 10
           }
         ]
       }
@@ -414,7 +415,7 @@ def generate_agent_skills() -> None:
         "maintainer.md",
         skill_content(
             "codebase-wiki-llm",
-            "Use when maintaining a repository-local engineering wiki, agent handoff, project status, or reusable project documentation.",
+            "Use when maintaining a repository-local engineering wiki: its Core map pages, log, work tracker, decisions, and agent handoff.",
             "maintainer.md",
         ),
     )
@@ -434,7 +435,7 @@ def generate_agent_skills() -> None:
         "rules/wiki-context.md",
         skill_content(
             "codebase-wiki-context",
-            "Use when a repository has a codebase wiki (wiki/, or the folder named in .wikidir) and coding work should use or update agent context, handoff, activity, and work tracking.",
+            "Use when a repository has a codebase wiki (wiki/, or the folder named in .wikidir) and coding work should read it and keep the log, work tracker, and handoff current.",
             "rules/wiki-context.md",
         ),
     )

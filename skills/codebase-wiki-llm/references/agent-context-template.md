@@ -11,7 +11,7 @@ title: Agent Context
 updated: YYYY-MM-DD
 sources:
   - README.md
-  - <wiki-root>/index.md
+  - <wiki-root>/<Core map index path>
   - <wiki-root>/SCHEMA.md
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low
