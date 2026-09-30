@@ -109,7 +109,9 @@ Touch `index` only when summaries, titles, or page availability changed.
 
 1. Append one entry to `log` in SCHEMA `## Log format`, author `agent`.
 2. Update the status of every touched ID in `tracker`; never write status
-   anywhere else.
+   anywhere else. Mark 🟢 only when the row's `Done when` criteria are proven
+   (evidence in `Criteria met`); otherwise keep it open and name what is
+   missing. New work the change suggests goes to `## Proposals`.
 3. Rewrite `handoff`: last completed step, next tasks (baton table), what not
    to redo, commands already run.
 
@@ -117,7 +119,9 @@ Touch `index` only when summaries, titles, or page availability changed.
 
 - **Decision**: the change adds a dependency, changes architecture, or rejects
   an alternative -> propose `NNNN-<slug>.md` under the `decisions` path (Core map)
-  (`references/decision-template.md`).
+  (`references/decision-template.md`) with status `proposed`; write `accepted`
+  only when the user explicitly approves the decision itself, and record that
+  under `## Approval`.
 - **Troubleshooting**: the session solved a non-obvious or recurring problem -> propose an
   entry (`references/troubleshooting-template.md`).
 - **Log archive**: a phase of the project division closed, or `log` exceeds

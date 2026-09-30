@@ -89,4 +89,12 @@ require "⚠️ TO RE-VERIFY" canonical/codebase/workflows/wiki-sync.md canonica
 require "**Workaround:**" canonical/codebase/references/troubleshooting-template.md
 require "git diff <source_commit>..HEAD" canonical/codebase/workflows/wiki-lint.md
 
+require "## Proposals" canonical/codebase/references/work-tracker-template.md
+require "| ID | Status | Goal | Done when | Owner | Next verification | Evidence |" canonical/codebase/references/work-tracker-template.md
+require "## Approval" canonical/codebase/references/decision-template.md
+require "## Agent autonomy" canonical/codebase/maintainer.md
+require "## Conflicts" canonical/codebase/maintainer.md
+require "## Parallel work" canonical/codebase/maintainer.md
+require "### Decisions" canonical/codebase/workflows/wiki-lint.md
+
 echo "generated files are up to date"

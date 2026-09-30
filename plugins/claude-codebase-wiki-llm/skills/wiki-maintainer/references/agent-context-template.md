@@ -29,7 +29,7 @@ confidence: high | medium | low
 ## Frequent Commands
 | Purpose | Command | Verified |
 | --- | --- | --- |
-| Test | `<command>` | YYYY-MM-DD or `⚠️ NOT VERIFIED` |
+| Test | `<command>` | YYYY-MM-DD @<short-sha> or `⚠️ NOT VERIFIED - <reason>` |
 
 ## Verified Facts
 Do not re-derive these. Re-check a fact only when its evidence changed or it is
@@ -42,13 +42,13 @@ marked `⚠️ TO RE-VERIFY`.
 **Errors already corrected, do not reintroduce:** <wrong belief> → <correct fact>.
 
 ## Read First
-1. <at most five links: index, tracker, handoff, the page for the current work>
+1. <at most five links: index, tracker, handoff (its baton row 1 is the first task to pick up), the page for the current work>
 ```
 
 Rules:
 
 - Do not write a generic project summary. Every fact needs evidence.
-- Mark unverified commands and facts `⚠️ NOT VERIFIED`.
+- Mark unverified commands and facts `⚠️ NOT VERIFIED - <reason>`.
 - Keep implementation detail out unless it helps a new coding agent decide
   where to start.
 - `/wiki-sync` updates a fact directly when new evidence proves it. When a

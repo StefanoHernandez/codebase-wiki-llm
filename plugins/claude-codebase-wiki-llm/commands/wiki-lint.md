@@ -127,6 +127,17 @@ and IDs reused for a different task.
 
 Flag `tracker` rows without status, evidence, or next verification.
 
+Flag Open rows without `Done when`, Done rows without `Criteria met` or
+evidence, rows marked 🟢 whose criteria are not proven, Proposals with an ID or
+a status icon, and external issue or PR state copied as status.
+
+### Decisions
+
+Flag decision files whose `status` is not `proposed`, `accepted`, `rejected`
+or `superseded by NNNN`; `accepted` decisions without an `## Approval` naming
+who, where and when; and reasons stated with no source (they should read
+`Reasons not recorded.`).
+
 ### Handoff
 
 Flag `handoff` when five or more commits happened since it last changed.
@@ -185,6 +196,9 @@ this section silently. When it is `yes`:
 Flag disagreements across topic pages, `decisions`, `risks`, `context`,
 `tracker`, and source evidence.
 
+Flag divergences between current behavior and a human requirement that
+`risks` does not record (maintainer skill `## Conflicts`).
+
 ### Legacy docs
 
 For root-level legacy docs, propose retirement only when content is absorbed.
@@ -213,6 +227,7 @@ Produce a concise markdown report:
 - Evidence: <n>
 - Verified facts: <n>
 - Single status: <n>
+- Decisions: <n>
 - Handoff: <n>
 - Budget: <n>
 - Confidentiality: <n>

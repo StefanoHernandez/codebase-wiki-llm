@@ -26,6 +26,7 @@ taken and why. Everything else is an optional topic listed in `## Topics`.
 4. `context`, `handoff`, `log`.
 
 A page must not contradict a higher level. When it does, fix the lower page.
+Level 1 tells what the system does now, not what it should do: code can hold a bug.
 
 ## Project profile
 
@@ -62,6 +63,7 @@ the wiki root. Change a path here to relocate a page.
   🔴 means "work stopped", not "serious". A page that uses the icons for
   something else (e.g. risk severity) says so at the top.
 - Dates: `YYYY-MM-DD`.
+- The `tracker` is the only source of status; external tools are linked, never copied as status.
 
 ## Evidence
 
