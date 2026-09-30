@@ -41,3 +41,5 @@ Rules:
   `Reasons not recorded.`, never inferred.
 - A rejected or superseded decision stays; its status says why it no longer
   applies.
+- A decision accepted before this template may say `Approval not recorded.`
+  under `## Approval`.

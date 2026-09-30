@@ -75,8 +75,9 @@ If source/config/project files changed and `<wiki-root>/` exists:
    claim: a verification carries command, essential output, date and code state
    (`@<short-sha>`); what you could not check is `> ⚠️ NOT VERIFIED - <reason>`.
 
-Do not run `/wiki-sync` when no source/config/project files changed, the task is
-still in progress across turns, or the user said not to update the wiki.
+Do not run `/wiki-sync` when no source/config/project files changed
+(committed during the task or not), the task is still in progress across
+turns, or the user said not to update the wiki.
 
 ## Boundaries
 

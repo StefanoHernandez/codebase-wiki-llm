@@ -130,10 +130,11 @@ Off by default. When `Sensitive data` is `yes`:
 - IDs: T12, T13
 ```
 
-When a phase of the project division closes, or the log exceeds its budget,
-`/wiki-sync` moves the entries up to that date to `<phase-or-period>.md` under
-the `log-archive` path without asking, keeps one link line per archive in the
-log, and reports the move.
+When a phase of the project division closes, `/wiki-sync` moves that phase's
+entries to `<phase>.md` under the `log-archive` path; when the log exceeds its
+budget, it moves whole months, oldest first, to `<YYYY-MM>.md`, always keeping
+the last 10 entries. It does this without asking, keeps one link line per
+archive in the log, and reports the move.
 
 ## Topics
 

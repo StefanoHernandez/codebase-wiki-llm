@@ -193,4 +193,22 @@ if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/it" >"$FAIL_OUT" 2>"$
   exit 1
 fi
 
+# English baton with no open work.
+cat > "$TMP_DIR/wiki/agent/handoff.md" <<'EOF'
+---
+title: Agent Handoff
+updated: 2026-07-01
+sources:
+  - README.md
+confidence: high
+---
+
+# Agent Handoff
+
+## Baton For Next Coding Agent
+
+No open work.
+EOF
+"$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/wiki"
+
 echo "agent handoff validator tests passed"
