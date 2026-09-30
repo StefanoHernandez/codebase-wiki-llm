@@ -63,6 +63,10 @@ Find pages by Core map role (`index`, `log`, `log-archive`, `tracker`,
 `decisions`, `risks`, `context`, `handoff`, `troubleshooting`, `glossary`) or
 from the topic pages listed in SCHEMA `## Topics`.
 
+Find checked sections by their `<!-- wiki:<id> -->` marker, or by the English
+template heading in pages without markers. Flag a `context`, `handoff` or
+`tracker` section found by neither, naming the marker to add.
+
 ### Core map
 
 Flag roles pointing to missing files and broken relative links. A SCHEMA
@@ -153,6 +157,9 @@ start files, done criteria, a verification command or
 Flag claims about project state, git state, completed work, verification, or
 sources that are not supported by source files, command results, git data, or
 linked pages.
+
+A baton holding `No open work.` with no task rows is valid; flag it only when
+the tracker has open rows.
 
 ### Budget
 

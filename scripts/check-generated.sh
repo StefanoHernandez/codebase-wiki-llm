@@ -97,4 +97,9 @@ require "## Conflicts" canonical/codebase/maintainer.md
 require "## Parallel work" canonical/codebase/maintainer.md
 require "### Decisions" canonical/codebase/workflows/wiki-lint.md
 
+require "<!-- wiki:baton -->" canonical/codebase/references/agent-handoff-template.md
+require "No open work." canonical/codebase/references/agent-handoff-template.md
+require "<!-- wiki:verified-facts -->" canonical/codebase/references/agent-context-template.md
+require "wiki:<id>" canonical/codebase/default-schema.md
+
 echo "generated files are up to date"
