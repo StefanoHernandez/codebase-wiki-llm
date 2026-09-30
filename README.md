@@ -144,7 +144,9 @@ Nothing is written before you confirm.
 ### Adopt mode
 
 If the survey finds an existing docs folder (or you run
-`/wiki-init --adopt <folder>`), init writes only `.wikidir` and `SCHEMA.md`.
+`/wiki-init --adopt <folder>`), init writes `.wikidir` and `SCHEMA.md`,
+inserts section markers in the adopted core pages, and moves files only for
+the migration moves you accept (plus `.gitattributes` if you chose item 7).
 The Core map points at your existing files, only missing core roles are
 proposed, and nothing is moved or renamed without confirmation. Once the map
 works in place, init proposes a migration plan toward the default layout, one
@@ -194,7 +196,7 @@ Notes:
 
 | Hook | Claude Code | Codex | Antigravity | What it does |
 | ---- | :---------: | :---: | :---------: | ------------ |
-| SessionStart | yes | yes (per Codex docs; not yet verified in a live session) | no (its always-on rule does the same) | Resolves the wiki folder, prints a `wiki_root` line and a `new context` line asking the agent to read the core once, and notes a stale handoff (5 or more commits since it was updated). |
+| SessionStart | yes | yes (per Codex docs; not yet verified in a live session) | no (its always-on rule resolves the root and asks for the core read; no stale-handoff note) | Resolves the wiki folder, prints a `wiki_root` line and a `new context` line asking the agent to read the core once, and notes a stale handoff (5 or more commits since it was updated). |
 | UserPromptSubmit | yes | yes (per Codex docs; not yet verified in a live session) | — | At your next message, adds a note (never a block) when code changed in this session and the wiki does not cover it. |
 | PreInvocation | — | — | yes (checked against Antigravity docs, not yet in a live session) | The same note, on the first model call of each turn. |
 | git pre-commit | optional | optional | optional | Blocks commits whose contents or file names contain a term from `<wiki-root>/.private-terms` (reports `file:line` or the file name, never the term; binary files are skipped). |
@@ -203,11 +205,14 @@ Claude Code and Codex share one `hooks/hooks.json`. Antigravity's `hooks.json`
 has the PreInvocation note only; its always-on rule resolves the wiki root and
 asks for the core read instead of a SessionStart hook.
 
-The note compares everything changed since the session's first message
-(commits and uncommitted files) with the wiki pages whose `sources:` list those
-files. It speaks when the wiki did not change, or when a page listing a changed
-file was not updated, once per changed set of files. Its state lives in
-`.git/codebase-wiki/` and is pruned after 30 days.
+The note looks at code changed since the session's first message (commits
+and uncommitted files; files already dirty then are left out) and at wiki
+files edited since (by modification time, so a wiki git ignores works too).
+It speaks when no wiki file changed, or when a page whose `sources:` list a
+changed file was not updated, once per changed set of files; once the wiki
+covers a change, only later changes count. Changes inside a submodule show as
+the submodule path. Its state lives in `.git/codebase-wiki/` and is pruned
+after 30 days.
 
 The forbidden-terms pre-commit check is not a plugin hook: `/wiki-init`
 installs it in the repo's hooks folder (`git rev-parse --git-path hooks`) when
