@@ -1,0 +1,11 @@
+{
+  "codebase-wiki-sync-reminder": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "sh ./scripts/remind-wiki-sync.sh --host antigravity",
+        "timeout": 10
+      }
+    ]
+  }
+}

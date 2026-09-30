@@ -151,6 +151,7 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
     "documentation"
   ],
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Codebase Wiki LLM",
     "shortDescription": "Maintain per-repo living wikis for codebases.",
@@ -196,10 +197,11 @@ CODEBASE_CLAUDE_PLUGIN_JSON = """{
 """
 
 
-RESOLVER_SCRIPT = "scripts/resolve-wiki-root.sh"
+HOOK_SCRIPTS = ("scripts/resolve-wiki-root.sh", "scripts/remind-wiki-sync.sh")
+PRIVATE_TERMS_SCRIPT = "scripts/check-private-terms.sh"
 
-
-CLAUDE_HOOKS_JSON = r"""{
+# Claude Code and Codex read the same hook format; one text, two copies.
+SHARED_HOOKS_JSON = r"""{
   "hooks": {
     "SessionStart": [
       {
@@ -210,10 +212,50 @@ CLAUDE_HOOKS_JSON = r"""{
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/remind-wiki-sync.sh\" --host claude",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
 """
+
+# Antigravity: named hooks, flat Stop handlers, cwd = the plugin folder.
+ANTIGRAVITY_HOOKS_JSON = """{
+  "codebase-wiki-sync-reminder": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "sh ./scripts/remind-wiki-sync.sh --host antigravity",
+        "timeout": 10
+      }
+    ]
+  }
+}
+"""
+
+
+def copy_script(rel: str, dest_dir: str) -> None:
+    dest = ROOT / dest_dir / Path(rel).name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(CANONICAL / rel, dest)
+    dest.chmod(0o755)
+
+
+def write_hooks(plugin_dir: str) -> None:
+    hooks = ROOT / plugin_dir / "hooks/hooks.json"
+    hooks.parent.mkdir(parents=True, exist_ok=True)
+    hooks.write_text(SHARED_HOOKS_JSON, encoding="utf-8")
+    for rel in HOOK_SCRIPTS:
+        copy_script(rel, f"{plugin_dir}/scripts")
 
 
 ANTIGRAVITY_PLUGIN_JSON = """{
@@ -237,6 +279,8 @@ def generate_codex() -> None:
     (ROOT / "plugins/codebase-wiki-llm/.codex-plugin/plugin.json").write_text(
         CODEBASE_CODEX_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
+    write_hooks("plugins/codebase-wiki-llm")
+    copy_script(PRIVATE_TERMS_SCRIPT, "plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer/scripts")
     write(
         "plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer/SKILL.md",
         "maintainer.md",
@@ -279,11 +323,8 @@ def generate_claude() -> None:
     (ROOT / "plugins/claude-codebase-wiki-llm/plugin.json").write_text(
         CODEBASE_CLAUDE_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
-    claude_root = ROOT / "plugins/claude-codebase-wiki-llm"
-    (claude_root / "hooks").mkdir(parents=True, exist_ok=True)
-    (claude_root / "hooks/hooks.json").write_text(CLAUDE_HOOKS_JSON, encoding="utf-8")
-    (claude_root / RESOLVER_SCRIPT).parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(CANONICAL / RESOLVER_SCRIPT, claude_root / RESOLVER_SCRIPT)
+    write_hooks("plugins/claude-codebase-wiki-llm")
+    copy_script(PRIVATE_TERMS_SCRIPT, "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/scripts")
     write(
         "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/SKILL.md",
         "maintainer.md",
@@ -326,6 +367,10 @@ def generate_antigravity() -> None:
     (ROOT / "plugins/antigravity-codebase-wiki-llm/plugin.json").write_text(
         ANTIGRAVITY_PLUGIN_JSON.replace("@VERSION@", VERSION), encoding="utf-8"
     )
+    (ROOT / "plugins/antigravity-codebase-wiki-llm/hooks.json").write_text(ANTIGRAVITY_HOOKS_JSON, encoding="utf-8")
+    for rel in HOOK_SCRIPTS:
+        copy_script(rel, "plugins/antigravity-codebase-wiki-llm/scripts")
+    copy_script(PRIVATE_TERMS_SCRIPT, "plugins/antigravity-codebase-wiki-llm/skills/wiki-maintainer/scripts")
     write(
         "plugins/antigravity-codebase-wiki-llm/rules/AGENTS.md",
         "rules/wiki-context.md",
@@ -361,6 +406,7 @@ def generate_antigravity() -> None:
 
 
 def generate_agent_skills() -> None:
+    copy_script(PRIVATE_TERMS_SCRIPT, "skills/codebase-wiki-llm/scripts")
     write(
         "skills/codebase-wiki-llm/SKILL.md",
         "maintainer.md",
