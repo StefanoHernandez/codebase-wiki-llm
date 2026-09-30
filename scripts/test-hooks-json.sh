@@ -19,16 +19,21 @@ cmds = [h["command"] for ev in claude.get("hooks", {}).values() for g in ev for 
 for want in ("resolve-wiki-root.sh", "remind-wiki-sync.sh\" --host claude"):
     if not any(want in c for c in cmds):
         errors.append(f"shared hooks missing {want}")
-for ev in ("SessionStart", "Stop"):
+for ev in ("SessionStart", "UserPromptSubmit"):
     hs = [h for g in claude.get("hooks", {}).get(ev, []) for h in g["hooks"]]
     if not hs or any(h.get("timeout") != 10 for h in hs):
         errors.append(f"shared {ev} hook needs timeout 10")
 if load("plugins/codebase-wiki-llm/.codex-plugin/plugin.json").get("hooks") != "./hooks/hooks.json":
     errors.append("Codex manifest does not point at hooks/hooks.json")
 agy = load("plugins/antigravity-codebase-wiki-llm/hooks.json")
-stop = agy.get("codebase-wiki-sync-reminder", {}).get("Stop", [])
-if not stop or "--host antigravity" not in stop[0].get("command", ""):
-    errors.append("Antigravity Stop hook missing")
+if "Stop" in claude.get("hooks", {}):
+    errors.append("shared hooks must not block at Stop")
+named = agy.get("codebase-wiki-sync-reminder", {})
+pre = named.get("PreInvocation", [])
+if not pre or "--host antigravity" not in pre[0].get("command", "") or pre[0].get("timeout") != 10:
+    errors.append("Antigravity PreInvocation hook missing")
+if "Stop" in named:
+    errors.append("Antigravity hook must not block at Stop")
 for p in [
     "plugins/claude-codebase-wiki-llm/scripts/remind-wiki-sync.sh",
     "plugins/codebase-wiki-llm/scripts/resolve-wiki-root.sh",

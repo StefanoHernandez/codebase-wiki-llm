@@ -27,6 +27,11 @@ durable knowledge, mention the gap or run `/wiki-ingest` when asked.
 
 ## After completing a non-trivial task
 
+A context line starting `Codebase Wiki LLM (note, not a stop)` means earlier
+work changed code the wiki does not cover yet. Handle the user's message
+first; when that earlier work is done, run `/wiki-sync`, or say in one line
+why no wiki update is needed.
+
 If source/config/project files changed and `<wiki-root>/` exists:
 
 1. Run `/wiki-sync` unless the user opted out. It writes the `log` entry and

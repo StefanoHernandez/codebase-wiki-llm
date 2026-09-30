@@ -1,6 +1,6 @@
 {
   "codebase-wiki-sync-reminder": {
-    "Stop": [
+    "PreInvocation": [
       {
         "type": "command",
         "command": "sh ./scripts/remind-wiki-sync.sh --host antigravity",
