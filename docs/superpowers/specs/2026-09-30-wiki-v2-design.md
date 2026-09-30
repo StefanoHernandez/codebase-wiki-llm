@@ -211,9 +211,12 @@ without editing three places.
 - **Host differences only in the generators**: file layout (commands vs
   skills vs rules), manifest shape, hook wiring. No host-specific wording in
   `canonical/`.
-- **One version per plugin.** A single `VERSION` constant per generator feeds
+- **One version per plugin.** A one-line file per plugin,
+  `canonical/codebase/VERSION` and `canonical/secondbrain/VERSION`, feeds
   every manifest, including `.claude-plugin/marketplace.json`, which becomes
   generated (today it is edited by hand and the version is written four times).
+  Release = edit `VERSION`, run `python3 scripts/generate-host-packages.py`,
+  commit.
 - **One hooks file for Claude and Codex** (same format), wired from both
   manifests; Antigravity gets its own generated `hooks.json` calling the same
   scripts.
