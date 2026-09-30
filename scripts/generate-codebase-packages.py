@@ -132,6 +132,8 @@ REFERENCES = (
     "references/agent-context-template.md",
     "references/agent-handoff-template.md",
     "references/work-tracker-template.md",
+    "references/decision-template.md",
+    "references/troubleshooting-template.md",
 )
 
 

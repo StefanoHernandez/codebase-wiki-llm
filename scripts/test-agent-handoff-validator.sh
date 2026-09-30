@@ -24,23 +24,22 @@ confidence: high
 
 # Agent Context
 
-## Project Snapshot
-Example project.
+## Goals And Non-Goals
+- Goal: example service. Non-goal: a UI.
 
-## Architecture
-Example service.
+## Non-Negotiable Rules
+- Do not invent unsupported facts.
 
-## Core Commands
-- Setup: `npm install`
-- Test: `npm test`
-- Lint: `npm run lint`
-- Build: `npm run build`
+## Frequent Commands
+- Test: `npm test` (verified 2026-07-01)
+
+## Verified Facts
+| Fact | Value | Evidence | Verified |
+| --- | --- | --- | --- |
+| Node | 20 | `node --version` | 2026-07-01 |
 
 ## Read First
 - `README.md`
-
-## Risks
-- Do not invent unsupported facts.
 EOF
 
 cat > "$TMP_DIR/wiki/agent/handoff.md" <<'EOF'
@@ -76,6 +75,20 @@ printf '\357\273\277.wiki\r\n' > "$TMP_DIR/repo/.wikidir"
 (cd "$TMP_DIR/repo" && "$ROOT_DIR/scripts/validate-agent-handoff.py")
 printf '\377\376.\000w\000i\000k\000i\000\r\000\n\000' > "$TMP_DIR/repo/.wikidir"
 (cd "$TMP_DIR/repo" && "$ROOT_DIR/scripts/validate-agent-handoff.py")
+
+# Core map relocates context and handoff (adopted wiki).
+mkdir -p "$TMP_DIR/adopted/docs/00-project"
+cp "$TMP_DIR/repo/.wiki/agent/context.md" "$TMP_DIR/adopted/docs/00-project/context.md"
+cp "$TMP_DIR/repo/.wiki/agent/handoff.md" "$TMP_DIR/adopted/docs/00-project/handoff.md"
+printf '## Core map\n\n| Role | Path |\n| --- | --- |\n| context | `00-project/context.md` |\n| handoff | 00-project/handoff.md |\n' > "$TMP_DIR/adopted/docs/SCHEMA.md"
+"$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/adopted/docs"
+
+# v1 context headings are rejected.
+sed -i 's/## Verified Facts/## Old Facts/' "$TMP_DIR/adopted/docs/00-project/context.md"
+if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/adopted/docs" >"$FAIL_OUT" 2>"$FAIL_ERR"; then
+  echo "expected validator failure for missing Verified Facts" >&2
+  exit 1
+fi
 
 cat > "$TMP_DIR/wiki/agent/handoff.md" <<'EOF'
 ---

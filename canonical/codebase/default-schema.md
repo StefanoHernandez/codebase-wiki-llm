@@ -12,143 +12,111 @@ before editing wiki content.
 
 ## Mission
 
-This wiki is an engineering-first software project wiki. It exists to help
-engineers change the software safely, help project leads understand state and
-risk, preserve agent activity and handoff context, and prepare reusable project
-documentation.
+This wiki keeps shared context between the people and the agents working on
+this repository, a log of what was done with its evidence, and the decisions
+taken and why. Everything else is an optional topic listed in `## Topics`.
 
 ## Truth hierarchy
 
-1. Source code, tests, migrations, configs, CI, and runtime manifests.
-2. `engineering/` and `modules/`.
-3. `project/`.
-4. `project-docs/`.
-5. `agent/` and historical logs.
+1. Source code, tests, configs, CI, runtime manifests, command output.
+2. Topic pages (`## Topics`).
+3. `tracker`, `decisions`, `risks` (Core map).
+4. `context`, `handoff`, `log`.
 
-Engineering is authoritative. Project and project-docs pages must not
-contradict engineering pages or source evidence.
+A page must not contradict a higher level. When it does, fix the lower page.
 
-## Scope
+## Project profile
 
-**In scope**:
+| Setting | Value |
+| --- | --- |
+| Language | English |
+| Project division | none (phases/WP · releases · sprints/milestones · none) |
+| Sensitive data | no |
+| Agent entry file | none (CLAUDE.md · AGENTS.md · none) |
 
-- Core architecture, module boundaries, data/control flows, and invariants.
-- Public interfaces: APIs, CLIs, SDKs, jobs, events, services, and exported
-  functions/classes.
-- Development workflow: setup, commands, tests, linters, build, CI.
-- Runtime/operations: configuration, env vars, deploy, migrations, external
-  services, monitoring, troubleshooting.
-- Project management: status, roadmap, milestones, requirements, risks, and
-  decisions.
-- Reusable project documentation: briefs, value proposition, use cases,
-  audience, impact, evidence, demo material, FAQ.
-- Agent continuity: context, activity, and handoff notes under `agent/`.
+## Core map
 
-**Out of scope**:
+Every workflow finds the core pages through this table. Paths are relative to
+the wiki root. Change a path here to relocate a page.
 
-- Generated artifacts, build output, caches, logs, fixtures, and vendored
-  dependencies unless they define public behavior.
-- Internal implementation details that change frequently and do not affect how
-  engineers safely change the system.
-- `.git/`, dependency folders, virtual environments, `dist/`, `build/`,
-  `.next/`, `node_modules/`, `__pycache__/`, and lockfiles unless the repo
-  schema explicitly says otherwise.
-- Unsupported claims in `project-docs/`.
+| Role | Path |
+| --- | --- |
+| index | `index.md` |
+| log | `log.md` |
+| log-archive | `log/` |
+| tracker | `project/work-tracker.md` |
+| decisions | `project/decisions/` |
+| risks | `project/risks.md` |
+| context | `agent/context.md` |
+| handoff | `agent/handoff.md` |
+| troubleshooting | `troubleshooting.md` |
+| glossary | `glossary.md` |
 
-## Directory layout
+## Conventions
 
-```text
-<wiki-root>/
-├── index.md
-├── SCHEMA.md
-├── log.md
-├── overview.md
-├── overview-<project-slug>.md
-├── engineering/
-│   ├── architecture.md
-│   ├── data-model.md
-│   ├── development.md
-│   ├── testing.md
-│   ├── operations.md
-│   ├── troubleshooting.md
-│   └── change-map.md
-├── modules/
-│   └── <module-or-area>.md
-├── project/
-│   ├── status.md
-│   ├── work-tracker.md
-│   ├── roadmap.md
-│   ├── milestones.md
-│   ├── risks.md
-│   ├── requirements.md
-│   └── decisions.md
-├── project-docs/
-│   ├── project-brief.md
-│   ├── value-proposition.md
-│   ├── use-cases.md
-│   ├── audience.md
-│   ├── impact.md
-│   ├── evidence.md
-│   ├── demo-materials.md
-│   └── faq.md
-├── agent/
-│   ├── context.md
-│   ├── activity.md
-│   └── handoff.md
-└── glossary.md
+- Activity IDs: prefix `T`, stable, never reused; status lives only in the
+  tracker.
+- Status: 🟢 done and verified · 🟡 in progress · ⚪ to do · 🔴 blocked.
+  🔴 means "work stopped", not "serious". A page that uses the icons for
+  something else (e.g. risk severity) says so at the top.
+- Dates: `YYYY-MM-DD`.
+
+## Evidence
+
+A technical claim carries the command that supports it, its essential output,
+and the date. What is expected but not verified is marked
+`> ⚠️ NOT VERIFIED`. Never write invented output "by way of example" next to
+real output.
+
+## Confidentiality
+
+Off by default. When `Sensitive data` is `yes`:
+
+- forbidden terms are listed one per line in `<wiki-root>/.private-terms`,
+  which is git-ignored and never committed; this page records only the
+  generic wording to use instead (e.g. "the partner");
+- local-only paths are listed here and must be git-ignored
+  (`git check-ignore -v <path>`);
+- `.git/hooks/pre-commit` runs the maintainer skill's
+  `scripts/check-private-terms.sh`.
+
+| Local-only path | Why |
+| --- | --- |
+
+## Budgets
+
+| Budget | Default |
+| --- | --- |
+| Single page | 20 KB |
+| Per-session read set (agent entry file, index, context, handoff, tracker, log) | 40 KB |
+| log | 30 KB |
+
+## Log format
+
+```markdown
+## YYYY-MM-DD · <title> · human | agent
+- What: <what was done>
+- Evidence: `<command>` → <essential output>   (or `> ⚠️ NOT VERIFIED`)
+- IDs: T12, T13
 ```
+
+When a phase of the project division closes, or the log exceeds its budget,
+entries up to that date move to `log-archive/<phase-or-period>.md` and the
+log keeps one link line per archive.
+
+## Topics
+
+| Topic | Path | What belongs there |
+| --- | --- | --- |
+| architecture | `architecture.md` | components, boundaries, data/control flow, invariants |
 
 ## Page granularity
 
-- One module page per coherent code area.
-- Keep `engineering/` pages cross-cutting and operational.
-- Keep `project/` pages about delivery state, requirements, risks, and
-  decisions.
-- Keep `project/work-tracker.md` as the compact active/planned/completed/blocked
-  work register that links project state to agent handoff tasks.
-- Keep `project-docs/` pages reusable and evidence-backed.
-- Keep `agent/` pages concise and useful for future sessions.
-- Keep `overview-<project-slug>.md` as the portable project card for
-  SecondBrain import.
+- One page per coherent topic or code area; split a page that nears its budget.
+- Keep the tracker the only place where status lives; other pages cite IDs.
+- Keep `context` and `handoff` short and useful for the next session.
 
-## Portable project overview
-
-Each project wiki must include:
-
-```text
-overview-<project-slug>.md
-```
-
-Use lowercase kebab-case for `<project-slug>`. This page is a concise,
-portable summary of the project. It must link back to the detailed technical
-wiki and include a `## Personal Wiki Export` section.
-
-Required content:
-
-- what the project is;
-- why it exists;
-- current status;
-- main stack or technical areas;
-- milestones or next steps;
-- important decisions to remember;
-- links to the most relevant engineering, module, project, and project-docs
-  pages;
-- `## Personal Wiki Export` for import into a general SecondBrain vault.
-
-The `Personal Wiki Export` section should include:
-
-- project name and short description;
-- current status;
-- role of the project in the user's work/life;
-- personal motivation, only if known;
-- technologies or skills represented;
-- important next steps;
-- long-term notes.
-
-Do not invent personal motivation, career goals, subjective meaning, or user
-priorities. If unknown, write `Da confermare.`
-
-## Module page template
+## Module page template (optional `modules` topic)
 
 Use these sections when evidence exists:
 
@@ -166,54 +134,11 @@ Use these sections when evidence exists:
 ## Open risks
 ```
 
-## Agent continuity
-
-`agent/context.md` is the fast onboarding page for coding agents. It should
-include:
-
-- project snapshot;
-- architecture or main areas;
-- non-negotiable technical rules;
-- setup, test, lint, and build commands;
-- files to read first;
-- risks and invariants;
-- links to the most important wiki pages.
-
-`agent/handoff.md` is the pass-the-baton page. It must include:
-
-- current work state;
-- last completed step;
-- prioritized next tasks;
-- blockers and risks;
-- commands already run and results;
-- work not to redo;
-- git branch, last commit, and clean/dirty worktree when git is available;
-- `## Baton For Next Coding Agent`.
-
-The baton section must use this table:
-
-```markdown
-| Order | Task | Start files | Done when | Verification command | Notes / blockers |
-| --- | --- | --- | --- | --- | --- |
-```
-
-Each task must have start files, done criteria, and a verification command. If
-verification is not possible, write `Not verified - <reason>`.
-
-`agent/activity.md` is append-only. Add an entry after non-trivial source,
-config, project, or wiki operations with agent, trigger, intent, actions, files
-changed, validation, decisions, and follow-up.
-
 ## Decay policy
 
-- Fast decay: `modules/*`, `engineering/data-model.md`,
-  `engineering/testing.md`, `engineering/operations.md`,
-  `engineering/change-map.md`.
-- Medium decay: `overview.md`, `engineering/architecture.md`,
-  `overview-<project-slug>.md`, `project/status.md`, `project/roadmap.md`,
-  `project/risks.md`, `project/work-tracker.md`, `agent/handoff.md`.
-- Slow decay: `project/decisions.md`, `project-docs/*`, `glossary.md`,
-  `agent/context.md`.
+- Fast decay: topic pages.
+- Medium decay: `tracker`, `risks`, `handoff`, `log`.
+- Slow decay: `decisions`, `glossary`, `context`.
 
 Lint should flag pages as low confidence when five or more commits touched their
 listed sources since `source_commit`, when sources are missing, or when claims
@@ -229,7 +154,7 @@ may propose retirement:
 - `BUILD_PHASES.md`
 - `ARCHITECTURE.md`
 - `ROADMAP.md`
-- `CHANGELOG.md` if it duplicates `agent/activity.md` or `log.md`
+- `CHANGELOG.md` if it duplicates the `log`
 
 Never delete automatically.
 
