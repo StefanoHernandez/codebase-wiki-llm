@@ -47,13 +47,19 @@ run "clean tree is quiet" "" "$(claude "$r")" --host claude
 r="$(new_repo dirty-start)"; echo x > "$r/main.c"
 run "changes from before the session are baseline" "" "$(claude "$r")" --host claude
 run "baseline state stays quiet" "" "$(claude "$r")" --host claude
+echo v2 > "$r/main.c"
+run "editing an initially dirty file is a new change" "$(note main.c no)" "$(claude "$r")" --host claude
+run "unchanged initially dirty edit stays quiet" "" "$(claude "$r")" --host claude
 echo y > "$r/other.c"
-run "a new change names only the files changed in the session" "$(note other.c no)" "$(claude "$r")" --host claude
+run "a new change names only the files changed in the session" "$(note 'main.c, other.c' no)" "$(claude "$r")" --host claude
 
 r="$(new_repo code)"; run "baseline" "" "$(claude "$r")" --host claude
 echo x > "$r/main.c"
 run "code change without wiki change notes" "$(note main.c no)" "$(claude "$r")" --host claude
 run "same state is noted once" "" "$(claude "$r")" --host claude
+echo v2 > "$r/main.c"
+run "new content at an already-notified path is noted again" "$(note main.c no)" "$(claude "$r")" --host claude
+run "same second edit is noted once" "" "$(claude "$r")" --host claude
 run "another session has its own baseline" "" "$(claude "$r" s2)" --host claude
 for f in a b c d e f; do echo x > "$r/$f.c"; done
 run "long lists are cut at five" "$(note 'a.c, b.c, c.c, d.c, e.c (+2 more)' no)" "$(claude "$r")" --host claude
@@ -64,6 +70,66 @@ mkdir -p "$r/src"; echo x > "$r/src/api.c"; echo entry > "$r/wiki/log.md"
 run "wiki changed but a page listing the file did not" "$(note src/api.c yes wiki/api.md)" "$(claude "$r")" --host claude
 echo more >> "$r/wiki/api.md"
 run "updating the page that lists the file is quiet" "" "$(claude "$r")" --host claude
+run "unchanged covered content stays quiet" "" "$(claude "$r")" --host claude
+echo v2 > "$r/src/api.c"
+run "editing a covered source makes it eligible again" "$(note src/api.c no wiki/api.md)" "$(claude "$r")" --host claude
+run "unchanged second edit stays quiet" "" "$(claude "$r")" --host claude
+
+r="$(new_repo deletion)"; echo v1 > "$r/main.c"; page "$r" main.md main.c; commit "$r" source
+run "deletion baseline" "" "$(claude "$r")" --host claude
+rm "$r/main.c"
+run "deleted source is noted" "$(note main.c no wiki/main.md)" "$(claude "$r")" --host claude
+run "unchanged deletion stays quiet" "" "$(claude "$r")" --host claude
+echo entry >> "$r/wiki/main.md"
+run "deletion covered by the wiki stays quiet" "" "$(claude "$r")" --host claude
+run "unchanged covered deletion stays quiet" "" "$(claude "$r")" --host claude
+echo v2 > "$r/main.c"
+run "recreating a covered deleted source is noted" "$(note main.c no wiki/main.md)" "$(claude "$r")" --host claude
+
+r="$(new_repo legacy-state)"
+run "legacy state baseline" "" "$(claude "$r")" --host claude
+printf 'main.c\n' > "$r/.git/codebase-wiki/covered-s1"
+echo v2 > "$r/main.c"
+run "legacy path-only coverage cannot hide new content" "$(note main.c no)" "$(claude "$r")" --host claude
+
+r="$(new_repo source-spaces)"; echo v1 > "$r/my source.c"; page "$r" source.md 'my source.c'; commit "$r" source
+echo v2 > "$r/my source.c"
+run "source with spaces starts dirty quietly" "" "$(claude "$r")" --host claude
+echo v3 > "$r/my source.c"
+run "new content at an initially dirty spaced path is noted" "$(note 'my source.c' no wiki/source.md)" "$(claude "$r")" --host claude
+echo entry >> "$r/wiki/source.md"
+run "spaced source is covered quietly" "" "$(claude "$r")" --host claude
+echo v4 > "$r/my source.c"
+run "new content at a covered spaced path is noted" "$(note 'my source.c' no wiki/source.md)" "$(claude "$r")" --host claude
+
+r="$(new_repo restore-covered)"; echo v1 > "$r/main.c"; page "$r" main.md main.c; commit "$r" source
+run "restored source baseline" "" "$(claude "$r")" --host claude
+echo v2 > "$r/main.c"
+run "restored source first edit is noted" "$(note main.c no wiki/main.md)" "$(claude "$r")" --host claude
+echo entry >> "$r/wiki/main.md"
+run "restored source edit is covered" "" "$(claude "$r")" --host claude
+echo v1 > "$r/main.c"
+run "restoring a covered source to HEAD is still a new state" "$(note main.c no wiki/main.md)" "$(claude "$r")" --host claude
+echo entry >> "$r/wiki/main.md"
+run "restored source is covered again" "" "$(claude "$r")" --host claude
+echo v2 > "$r/main.c"
+run "returning to earlier content after coverage is noted" "$(note main.c no wiki/main.md)" "$(claude "$r")" --host claude
+
+r="$(new_repo removed-baseline)"; echo v1 > "$r/main.c"
+run "untracked baseline before deletion" "" "$(claude "$r")" --host claude
+rm "$r/main.c"
+run "removing an initially untracked file is a new state" "$(note main.c no)" "$(claude "$r")" --host claude
+run "unchanged removed baseline stays quiet" "" "$(claude "$r")" --host claude
+
+sub="$(new_repo submodule-source)"; echo v1 > "$sub/main.c"; commit "$sub" source
+r="$(new_repo submodule-parent)"
+git -C "$r" -c protocol.file.allow=always submodule add -q "$sub" module
+commit "$r" submodule
+run "submodule baseline" "" "$(claude "$r")" --host claude
+echo v2 > "$r/module/main.c"; echo v1 > "$r/main.c"
+run "a changed submodule does not hide ordinary source changes" "$(note 'main.c, module' no)" "$(claude "$r")" --host claude
+echo v3 > "$r/module/main.c"
+run "another submodule edit cannot be silently deduplicated" "$(note 'main.c, module' no)" "$(claude "$r")" --host claude
 
 r="$(new_repo unlisted)"; page "$r" api.md src/api.c; commit "$r" pages
 run "baseline" "" "$(claude "$r")" --host claude
