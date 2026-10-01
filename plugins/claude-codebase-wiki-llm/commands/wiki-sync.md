@@ -104,9 +104,9 @@ Apply minimum edits:
   date and never delete the row silently;
 - `tracker` and `handoff` are updated in Step 6.
 
-Do not create new pages during sync, except log archives (Step 6) and the
-decision file the user confirmed in Step 7. If a new page is needed, report the gap and
-recommend `/wiki-ingest`.
+Do not create new pages during sync, except log archives (Step 6) and decision
+records (Step 7). If another new page is needed, report the gap and recommend
+`/wiki-ingest`.
 
 ## Step 5 - Update index only if necessary
 
@@ -117,10 +117,15 @@ Touch `index` only when summaries, titles, or page availability changed.
 1. Append one entry to `log` in SCHEMA `## Log format`, author `agent`.
 2. Update the status of every touched ID in `tracker`; never write status
    anywhere else. Mark 🟢 only when the row's `Done when` criteria are proven
-   (evidence in `Criteria met`); otherwise keep it open and name what is
-   missing. New work the change suggests goes to `## Proposals`.
-3. Rewrite `handoff`: last completed step, next tasks (baton table), what not
-   to redo, commands already run.
+   (proof in `Criteria met` and its source in `Evidence`). Explicit human
+   closure without proof moves the row to Done with Status ⚫ and
+   `closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met`,
+   citing the human closure source in `Evidence`; never infer that authority.
+   Otherwise keep it Open and name what is missing. New work the change
+   suggests goes to `## Proposals`.
+3. Rewrite `handoff`: `Tracker IDs`, last completed step, next tasks (baton
+   table with tracker IDs), what not to redo, commands already run and Git
+   state. Activity status remains in the tracker.
 4. Archive the log without asking when the SCHEMA `## Log format` rule
    applies. When a phase of the project division closed, move the entries
    dated up to its closing date that are still in `log` to `<phase>.md`. When
@@ -134,13 +139,19 @@ Touch `index` only when summaries, titles, or page availability changed.
    edit; when git does not track the wiki, list the moved date range in the
    report, since git cannot undo it.
 
-## Step 7 - Proposals (ask, do not write)
+## Step 7 - Decisions and unresolved proposals
 
-- **Decision**: the change adds a dependency, changes architecture, or rejects
-  an alternative -> propose `NNNN-<slug>.md` under the `decisions` path (Core map)
-  (`references/decision-template.md`) with status `proposed`; write `accepted`
-  only when the user explicitly approves the decision itself, and record that
-  under `## Approval`.
+- **Already approved decision**: when the change implements a recorded human
+  choice or approval documented in the project's process, create or update
+  `NNNN-<slug>.md` under the `decisions` path (Core map) as `accepted` using
+  `references/decision-template.md`. Record who approved it, where and when
+  under `## Approval`; documenting that authority needs no repeat permission.
+- **Unresolved decision**: when the change suggests a new dependency,
+  architecture choice or alternative, record the idea as `proposed` with who
+  proposed it and when, and ask only for the unresolved choice. Never infer
+  approval from implementation, invent reasons or rejected alternatives.
+- Resolve source placeholders to concrete repository-relative paths before
+  writing decision records, and update the mapped `index` for any new record.
 - **Troubleshooting**: the session solved a non-obvious or recurring problem -> propose an
   entry (`references/troubleshooting-template.md`).
 
@@ -155,7 +166,8 @@ List the proposals made and any log archive (file, entry count, date range).
 
 ## Guardrails
 
-- Never create new pages during sync, except log archives (Step 6) and the decision file the user confirmed in Step 7.
+- Never create new pages during sync, except log archives (Step 6) and decision
+  records (Step 7).
 - Never delete pages during sync.
 - Never touch source code.
 - If unsure whether the change is small, do not edit; recommend ingest or lint.

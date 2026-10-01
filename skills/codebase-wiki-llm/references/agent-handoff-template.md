@@ -11,9 +11,9 @@ title: Agent Handoff
 updated: YYYY-MM-DD
 sources:
   - <wiki-root>/SCHEMA.md
-  - the `log` page (Core map)
-  - the `tracker` page (Core map)
-  - <changed-source-or-config-file>
+  - <wiki-root>/<Core map log path>
+  - <wiki-root>/<Core map tracker path>
+  - <source-path>
 source_commit: <short-sha-or-unknown>
 confidence: high | medium | low
 ---
@@ -23,7 +23,7 @@ confidence: high | medium | low
 ## Current Work State
 <!-- wiki:state -->
 
-- Status: <not started | in progress | blocked | ready for review | done | unknown>
+- Tracker IDs: <IDs for current work, or none; status is in the mapped tracker>
 - Goal: <current objective>
 - Last completed step: <evidence-backed step, or Not verified - <reason>>
 - Current branch: `<branch or unknown>`
@@ -35,7 +35,7 @@ confidence: high | medium | low
 
 | Order | Task | Start files | Done when | Verification command | Notes / blockers |
 | --- | --- | --- | --- | --- | --- |
-| 1 | <next task> | `<file>`, `<file>` | <observable completion criterion> | `<command>` | <risk/blocker/unknown> |
+| 1 | T1 - <next step> | `<file>`, `<file>` | <observable completion criterion> | `<command>` | <risk/blocker/unknown> |
 
 ## Blockers
 <!-- wiki:blockers -->
@@ -73,6 +73,10 @@ confidence: high | medium | low
 
 Rules:
 
+- `Tracker IDs` references the mapped tracker; do not duplicate activity
+  status here. Git state and verified steps remain in the handoff.
+- Resolve source placeholders to concrete repository-relative paths before
+  writing; use the confirmed wiki root and Core map paths.
 - Every task in `Baton For Next Coding Agent` needs start files, done criteria,
   and a verification command. If verification is impossible, write
   `Not verified - <reason>`.

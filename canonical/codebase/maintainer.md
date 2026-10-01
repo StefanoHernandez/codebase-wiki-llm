@@ -55,6 +55,17 @@ taken and why. Everything else is an optional topic.
 
 ## Page conventions
 
+The maintainer ships `scripts/validate-wiki.py` in every distribution. `/wiki-lint`
+runs `python3 <maintainer skill>/scripts/validate-wiki.py <wiki-root>` before
+semantic review. Python 3.10+ is optional and uses only the standard library;
+missing or older Python explicitly skips deterministic validation and the
+agent continues read-only. Never install it implicitly or report a skipped
+check as passing. The script returns 0 for valid structure, 1 for file/line
+findings and 2 for invocation/configuration errors. It reads the target wiki,
+resolves sources from the target repository and links from each page, and
+never reads `.private-terms` or modifies files. It checks the documented
+format, not arbitrary YAML/Markdown or the semantic truth of evidence.
+
 Every wiki page must have YAML frontmatter:
 
 ```yaml

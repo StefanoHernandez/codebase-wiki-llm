@@ -29,6 +29,20 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.9.1
+
+- Reminder coverage tracks source content: another edit at a covered path or
+  a path already dirty at session start prompts another next-turn note.
+- Every maintainer distribution ships a standalone deterministic wiki
+  validator. `/wiki-lint` runs it before the agent's semantic review.
+- Tracker terminal rows distinguish 🟢 verified completion from ⚫ work a
+  person explicitly closed without proven criteria. Handoff cites tracker IDs.
+- Already approved decisions can be recorded as `accepted` with who, where
+  and when; new unresolved ideas remain `proposed`.
+- Automated checks precede the main/tag push. Real-host Codex, Claude Code
+  and Antigravity trials remain pending until Stefano's trials after the push:
+  [release checklist](docs/release-checklist.md).
+
 ### Changes in 0.9.0
 
 - v2 core: a small fixed core (index, log, tracker, decisions, risks, context,
@@ -112,7 +126,8 @@ In a target repository, `/wiki-init` creates a local wiki shaped like this
 
 `SCHEMA.md` holds the project profile, the **Core map** (role to path, so
 commands never hard-code paths), conventions (ID prefix `T`; 🟢 done and
-verified, 🟡 in progress, ⚪ to do, 🔴 blocked), size budgets (page 20 KB,
+verified, ⚫ closed by a person without proven criteria, 🟡 in progress,
+⚪ to do, 🔴 blocked), size budgets (page 20 KB,
 core read at a new context 60 KB, `log.md` 30 KB) and the topics table. Edit
 these files yourself or ask the agent; it records changes in `SCHEMA.md`.
 
@@ -434,6 +449,7 @@ Generated files include a `Generated from ...` marker and should not be edited d
 ```bash
 # edit canonical/...
 python3 scripts/generate-host-packages.py
+git add plugins skills .claude-plugin
 bash scripts/run-tests.sh
 git add . && git commit -m "Update wiki workflow prompts" && git push
 ```
@@ -456,7 +472,33 @@ Once installed, in any repository:
 - `/secondbrain-sync` — surgically update existing vault notes.
 - `/secondbrain-lint` — read-only health report for a SecondBrain vault.
 
-Local validator for generated project wikis:
+Installed structural validator for project wikis (Codebase 0.9.1):
+
+```bash
+python3 <maintainer-skill>/scripts/validate-wiki.py path/to/repo/wiki
+```
+
+The same standalone script is shipped in the Codex, Claude Code and
+Antigravity maintainer skills and `skills/codebase-wiki-llm`. It requires
+**Python 3.10+**, standard library only. This is an optional `/wiki-lint`
+dependency: if Python is missing or older, the agent explicitly reports that
+deterministic validation was skipped and continues its read-only review.
+It never installs a runtime implicitly or treats a skipped check as passing.
+The main hooks still require only POSIX shell and Git.
+
+The script is read-only. Exit 0 means documented structure passed, 1 means
+file/line findings, and 2 means invocation/configuration error. Sources are
+relative to the target repository (nearest ancestor with `.git`, or the wiki's
+parent without Git); links are relative to each page. It checks the documented
+scalar frontmatter and indented source lists, real ISO dates, confidence,
+sources, inline/reference Markdown file links, Core map roles and paths,
+tracker IDs, continuity markers (with legacy English heading fallback), baton
+rows and explicit green/black closure claims. Fenced code and external links
+are ignored. It does not parse arbitrary YAML or every Markdown extension,
+read `.private-terms`, execute commands, or prove evidence and human authority.
+Semantic checks still belong to the agent.
+
+The development continuity CLI retains its narrower compatibility contract:
 
 ```bash
 scripts/validate-agent-handoff.py path/to/repo/wiki
@@ -497,6 +539,8 @@ scripts/check-generated.sh                  <- verifies generated files are curr
 scripts/run-tests.sh                        <- runs every test
 scripts/install-dev-hooks.sh                <- installs this repo's pre-commit drift guard
 scripts/validate-agent-handoff.py           <- validates agent context/handoff pages in a target wiki
+canonical/codebase/scripts/validate-wiki.py <- installed read-only structural validator
+scripts/test-wiki-validator.sh              <- behavioral fixtures and standalone package checks
 scripts/test-agent-handoff-validator.sh      <- tests the validator against valid and invalid fixtures
 scripts/test-*.sh                           <- tests: resolver, hooks, private terms, generators, validator
 skills/                                     <- generated generic Agent Skills distribution

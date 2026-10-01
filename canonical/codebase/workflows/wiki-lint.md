@@ -13,6 +13,33 @@ Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
 - If Step 0 found no wiki, tell the user to run `/wiki-init` first.
 - Prefer git over mtimes when available.
 
+### Deterministic structural validation first
+
+Before gathering semantic facts, locate `scripts/validate-wiki.py` inside the
+installed wiki maintainer skill and run:
+
+```sh
+python3 <maintainer skill>/scripts/validate-wiki.py <wiki-root>
+```
+
+This optional check requires Python 3.10+ with its standard library only.
+First check `python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))'`.
+If Python is missing or older, explicitly report "deterministic structural
+validation skipped: Python 3.10+ unavailable" and continue the agent's
+read-only review. Never install Python implicitly or claim this check passed
+when it did not run.
+
+Exit 0 means the documented structure passed, 1 means file/line findings,
+and 2 means invocation/configuration failed. Include failures or findings in
+the report and continue the read-only semantic checks; do not label an exit 2
+as passing. The standalone script checks scalar frontmatter and indented
+source lists, dates, confidence, repository-relative sources, standard inline
+and reference Markdown link targets, the Core map, tracker IDs, continuity
+sections and baton structure, and explicit green/black closure claims.
+It ignores fenced examples and external links. It does not parse arbitrary
+YAML or every Markdown extension, read private terms, verify human authority,
+run evidence commands, or assess staleness and truth of claims.
+
 ## Step 2 - Gather facts
 
 Read:

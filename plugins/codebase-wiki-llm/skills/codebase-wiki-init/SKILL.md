@@ -126,7 +126,8 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   existing project log → `log`, an `adr/` folder → `decisions`). For a v1 wiki
   map `agent/activity.md` under a row `activity (v1)` and propose merging it
   into the log.
-- List core roles with no existing file and propose creating only those.
+- List core roles with no existing file and propose creating only those,
+  using the templates and source substitutions in Step 5.
 - Insert the missing section markers (SCHEMA `## Conventions`) on the line
   under the matching headings of the adopted `context`, `handoff` and
   `tracker` pages; these one-line edits stay inside the wiki. List them in the
@@ -154,6 +155,20 @@ Populate only what the survey supports; everything else is an explicit stub.
 `context` follows `references/agent-context-template.md`; `handoff` follows
 `references/agent-handoff-template.md`; `tracker` follows
 `references/work-tracker-template.md`.
+
+Before writing any new or adopted content page from a template (including a
+decision record), resolve `sources:` placeholders: `<wiki-root>` is the
+confirmed folder, `<Core map index path>`, `<Core map log path>`,
+`<Core map tracker path>` and `<Core map handoff path>` come from the resolved
+Core map, and `<source-path>` is an actual supporting repository-relative
+file or directory path from the survey. Use adopted paths, not default paths.
+Write one entry per source; never leave a placeholder or a descriptive phrase
+as a source. Include a path only when it exists by the end of init; omit
+unsupported optional source slots rather than assuming `README.md` exists.
+Mapped wiki pages may be sources when they support the content. If there is
+no source evidence, keep the content an explicit gap instead of inventing a
+path or a claim. Fill `source_commit` with the current short SHA, or `unknown`
+when git is unavailable. SCHEMA is configuration and does not require `sources:`.
 
 ## Step 6 - Configuration outside the wiki (confirmed in Step 3 or Step 1 only)
 

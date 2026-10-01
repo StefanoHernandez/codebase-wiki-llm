@@ -10,7 +10,7 @@
       "name": "codebase-wiki-llm",
       "source": "./plugins/claude-codebase-wiki-llm",
       "description": "Maintain a living, LLM-owned wiki of a codebase (wiki/ by default, or a folder you choose such as .wiki/). Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
-      "version": "0.9.0"
+      "version": "0.9.1"
     },
     {
       "name": "secondbrain-wiki-llm",

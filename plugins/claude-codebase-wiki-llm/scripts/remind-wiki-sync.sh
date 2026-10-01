@@ -4,13 +4,14 @@
 #   remind-wiki-sync.sh --host antigravity   Antigravity (PreInvocation; injectSteps JSON;
 #                                            cwd is the plugin folder)
 # Reads the hook payload on stdin. The first call of a session records the
-# base (HEAD at that call) and the files already dirty then, which are left
-# out, and stays quiet. Later calls look at code changed since the base,
+# base (HEAD at that call) and content fingerprints of files already dirty
+# then, and stays quiet. Later calls look at code changed since the base,
 # committed or not, and at wiki files edited since the base or the last
 # covered state (by modification time, so a wiki git ignores works too). They
 # speak when code changed and either no wiki file changed, or a wiki page
 # listing a changed file in `sources:` was not updated; once per changed set
-# of paths. Once the wiki covers a change, its paths are not noted again.
+# of file states. Baseline and covered files stay quiet while their content
+# matches the saved fingerprint; editing them again makes them eligible.
 # Antigravity speaks only on the first model call of a turn (initialNumSteps
 # changes).
 
@@ -75,18 +76,52 @@ paths=$({
 } | tr '\000' '\n' | sed '/^$/d' | sort -u)
 wiki_re=$(printf '%s' "$wiki" | sed 's/\./\\./g')
 code=$(printf '%s\n' "$paths" | grep -v -e "^$wiki_re/" -e '^\.wikidir$' -e '^$')
-# Paths dirty at the first call or already covered by a wiki change.
 covered="$state_dir/covered-$key"
-[ -f "$covered" ] && code=$(printf '%s\n' "$code" | grep -v -x -F -f "$covered")
-if [ "$first" = yes ]; then save "covered-$key" "$code"; quiet; fi
-[ -n "$code" ] || quiet
+# Saved paths may have returned to HEAD or disappeared from the untracked list.
+[ ! -f "$covered" ] || code=$({ printf '%s\n' "$code"; awk -F '\t' 'NF == 2 { print $1 }' "$covered"; } | sed '/^$/d' | sort -u)
+# One path<TAB>fingerprint record per source state; deletions differ from blobs.
+code_states=$(printf '%s\n' "$code" | while IFS= read -r path; do
+  [ -n "$path" ] || continue
+  if [ -L "$root/$path" ]; then
+    # A link's Git content is its target text; never follow the referent.
+    fingerprint=unavailable
+  elif [ -f "$root/$path" ]; then
+    if fingerprint=$(git -C "$root" hash-object --no-filters -- "$root/$path" 2>/dev/null); then
+      fingerprint="blob:$fingerprint"
+    else
+      # Unreadable files must not silence other changed sources.
+      fingerprint=unavailable
+    fi
+  elif [ -e "$root/$path" ]; then
+    # Gitlinks and special files (including FIFOs) cannot be blob-hashed.
+    fingerprint=unavailable
+  else
+    fingerprint=deleted
+  fi
+  printf '%s\t%s\n' "$path" "$fingerprint"
+done) || quiet
+# Only the same content as the baseline or the latest wiki coverage is excluded.
+# Legacy path-only records cannot match a fingerprint and are ignored safely.
+if [ "$first" = yes ]; then save "covered-$key" "$code_states"; quiet; fi
+if [ -f "$covered" ]; then
+  code_states=$(printf '%s\n' "$code_states" | awk -F '\t' '
+    FILENAME == ARGV[1] { if (NF == 2) covered[$1] = $2; next }
+    NF == 2 && ($2 == "unavailable" || !($1 in covered) || covered[$1] != $2)
+  ' "$covered" -)
+fi
+code=$(printf '%s\n' "$code_states" | cut -f1)
+if [ -z "$code" ]; then save "said-$key" ""; quiet; fi
 # Wiki files edited since the last covered state, or since the session start.
 since="$state_dir/stamp-$key"
 [ -f "$since" ] || since="$state_dir/base-$key"
 wikichg=$(cd "$root" && find "$wiki" -type f -newer "$since" ! -name .private-terms 2>/dev/null | sort)
 
-state=$(printf '%s\n%s\n' "$code" "$wikichg" | cksum)
-[ "$(cat "$state_dir/said-$key" 2>/dev/null)" = "$state" ] && quiet
+state=$(printf '%s\n%s\n' "$code_states" "$wikichg" | cksum)
+# Without a content fingerprint, repeated notes are safer than hiding edits.
+unfingerprinted=$(printf '%s\n' "$code_states" | awk -F '\t' '$2 == "unavailable" { print "yes"; exit }')
+if [ -z "$unfingerprinted" ]; then
+  [ "$(cat "$state_dir/said-$key" 2>/dev/null)" = "$state" ] && quiet
+fi
 
 tmp=$(mktemp -d 2>/dev/null) || quiet
 trap 'rm -rf "$tmp"' EXIT
@@ -115,8 +150,12 @@ stale=$(awk -F '\t' '
     for (c in code) if (c == s || index(c, s "/") == 1) { seen[$1] = 1; print $1; break } }
 ' "$tmp/code" "$tmp/wiki" "$tmp/pairs" | sort)
 if [ -n "$wikichg" ] && [ -z "$stale" ]; then
-  # ponytail: a covered path edited again later is not noted again; per-path mtimes if that matters.
-  { printf '%s\n' "$code" >> "$covered" && printf '' > "$state_dir/stamp-$key"; } 2>/dev/null
+  # Replace coverage for these paths, retaining the other baseline/covered states.
+  coverage=$({ [ ! -f "$covered" ] || cat "$covered"; printf '%s\n' "$code_states"; } |
+    awk -F '\t' 'NF == 2 { states[$1] = $0 } END { for (path in states) print states[path] }' | sort)
+  save "covered-$key" "$coverage"
+  save "stamp-$key" ""
+  save "said-$key" ""
   quiet
 fi
 save "said-$key" "$state"
