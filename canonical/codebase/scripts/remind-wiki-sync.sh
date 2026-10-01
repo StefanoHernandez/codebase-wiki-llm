@@ -82,13 +82,19 @@ covered="$state_dir/covered-$key"
 # One path<TAB>fingerprint record per source state; deletions differ from blobs.
 code_states=$(printf '%s\n' "$code" | while IFS= read -r path; do
   [ -n "$path" ] || continue
-  if [ -e "$root/$path" ]; then
+  if [ -L "$root/$path" ]; then
+    # A link's Git content is its target text; never follow the referent.
+    fingerprint=unavailable
+  elif [ -f "$root/$path" ]; then
     if fingerprint=$(git -C "$root" hash-object --no-filters -- "$root/$path" 2>/dev/null); then
       fingerprint="blob:$fingerprint"
     else
-      # Gitlinks and unreadable files must not silence other changed sources.
+      # Unreadable files must not silence other changed sources.
       fingerprint=unavailable
     fi
+  elif [ -e "$root/$path" ]; then
+    # Gitlinks and special files (including FIFOs) cannot be blob-hashed.
+    fingerprint=unavailable
   else
     fingerprint=deleted
   fi
