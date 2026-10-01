@@ -141,9 +141,19 @@ def run():
         ("directory and suffixed sources", ("index", "src/main.py", "./src/main.py:1#main\n  - src/"), 0, ""),
         ("broken relative link", ("index", "# Page", "[missing](no.md)"), 1, "link"),
         ("decoded page-relative link", ("context", "Read source.", "[ok](../space%20name.md#anchor)"), 0, ""),
+        ("balanced parenthesized inline link", ("index", "# Page", '[Guide](guide(v2).md "Guide title")'), 0, ""),
+        ("nested parenthesized inline link", ("index", "# Page", "[Guide](guide(v(2)).md#anchor 'Guide title')"), 0, ""),
+        ("escaped parenthesized inline link", ("index", "# Page", r"[Guide](guide\(v2\).md)"), 0, ""),
+        ("escaped unmatched parenthesis inline link", ("index", "# Page", r"[Guide](guide\)v2.md)"), 0, ""),
+        ("angle inline link with spaces and title", ("index", "# Page", '[Guide](<guide (v2).md> "Guide title")'), 0, ""),
+        ("angle inline link with escaped parentheses", ("index", "# Page", r"[Guide](<guide\(v2\).md> 'Guide title')"), 0, ""),
+        ("broken parenthesized inline link", ("index", "# Page", '[Guide](missing(v2).md "Guide title")'), 1, "link"),
+        ("broken escaped parenthesized inline link", ("index", "# Page", r"[Guide](missing\(v2\).md)"), 1, "link"),
         ("code and external links ignored", ("index", "# Page", "[web](https://example.org/no.md) [mail](mailto:a@example.org)\n```md\n[missing](no.md)\n<!-- wiki:baton -->\n```\n`[inline](missing.md)`\n[anchor](#absent)"), 0, ""),
         ("unsafe Core path", ("SCHEMA", "`index.md`", "`../outside.md`"), 1, "Core map"),
         ("missing Core path", ("SCHEMA", "`index.md`", "`absent.md`"), 1, "Core map"),
+        ("adopted decisions file retained", ("SCHEMA", "`project/decisions/`", "`project/decisions.md`"), 0, ""),
+        ("adopted decisions file frontmatter checked", ("SCHEMA", "`project/decisions/`", "`project/decisions.md`"), 1, "updated"),
         ("missing Core role", ("SCHEMA", "| index | `index.md` |", ""), 1, "Core map"),
         ("duplicate Core role", ("SCHEMA", "| index | `index.md` |", "| index | `index.md` |\n| index | `log.md` |"), 1, "Core map"),
         ("duplicate tracker ID", ("tracker", TRACKER, TRACKER + GREEN.replace("T2", "T1")), 1, "duplicate"),
@@ -152,6 +162,15 @@ def run():
         ("mapped internal directory symlink", ("context", "## Read First\n<!-- wiki:read-first -->", "## Leggi prima"), 1, "wiki:read-first"),
         ("missing handoff state marker", ("handoff", "## Current Work State\n<!-- wiki:state -->", "## Stato"), 1, "wiki:state"),
         ("no-work with open tracker", ("handoff", HANDOFF.split("## Baton For Next Coding Agent\n<!-- wiki:baton -->\n")[1].split("## Blockers")[0], "No open work.\n"), 1, "open"),
+        ("no-work open row without leading pipe", None, 1, "contradicts open tracker"),
+        ("no-work open row without trailing pipe", None, 1, "contradicts open tracker"),
+        ("no-work open row without outer pipes", None, 1, "contradicts open tracker"),
+        ("duplicate ID row without leading pipe", ("tracker", TRACKER, TRACKER + GREEN.replace("T2", "T1").lstrip("|")), 1, "duplicate"),
+        ("black closure without trailing pipe", ("tracker", TRACKER, TRACKER + GREEN.replace("🟢", "⚫").rstrip("\n|") + "\n"), 1, "closed by"),
+        ("green unproven row without outer pipes", ("tracker", TRACKER, TRACKER + BLACK.replace("⚫", "🟢").strip("\n|") + "\n"), 1, "unproven"),
+        ("healthy tables without outer pipes", None, 0, ""),
+        ("unsupported contiguous tracker row", ("tracker", TRACKER.splitlines()[4], "T1 unsupported row"), 1, "table row"),
+        ("escaped pipe table commands", None, 0, ""),
         ("missing baton verification", ("handoff", "| `python3 -m unittest` | none |", "| Not verified - | none |"), 1, "verification"),
         ("reordered baton header", ("handoff", "| Order | Task | Start files", "| Task | Order | Start files"), 1, "baton"),
         ("baton missing delimiter", ("handoff", "| --- | --- | --- | --- | --- | --- |\n", ""), 1, "delimiter"),
@@ -206,6 +225,36 @@ def run():
                 path.write_text(original.replace(old, new))
             if name == "decoded page-relative link":
                 (wiki / "space name.md").write_text(frontmatter() + "# Page\n")
+            if "inline link" in name and not name.startswith("broken"):
+                target = {"nested parenthesized inline link": "guide(v(2)).md",
+                          "escaped unmatched parenthesis inline link": "guide)v2.md",
+                          "angle inline link with spaces and title": "guide (v2).md"}.get(name, "guide(v2).md")
+                (wiki / target).write_text(frontmatter() + "# Guide\n")
+            if name.startswith("adopted decisions file"):
+                page = frontmatter("Decisions") + "# Existing v1 decisions\n"
+                if name.endswith("frontmatter checked"):
+                    page = page.replace("2026-10-01", "2026-02-30")
+                (wiki / "project/decisions.md").write_text(page)
+            if name.startswith("no-work open row without"):
+                row = TRACKER.splitlines()[4]
+                if name.endswith("leading pipe") or name.endswith("outer pipes"):
+                    row = row.lstrip("|")
+                if name.endswith("trailing pipe") or name.endswith("outer pipes"):
+                    row = row.rstrip("|")
+                tracker = wiki / roles["tracker"]
+                tracker.write_text(tracker.read_text().replace(TRACKER.splitlines()[4], row))
+                handoff = wiki / roles["handoff"]
+                old = HANDOFF.split("<!-- wiki:baton -->\n")[1].split("## Blockers")[0]
+                handoff.write_text(handoff.read_text().replace(old, "No open work.\n"))
+            if name == "healthy tables without outer pipes":
+                for role in ("tracker", "handoff"):
+                    page = wiki / roles[role]
+                    page.write_text("\n".join(line.strip("|") if line.startswith("|") else line
+                                              for line in page.read_text().splitlines()) + "\n")
+            if name == "escaped pipe table commands":
+                for role in ("tracker", "handoff"):
+                    page = wiki / roles[role]
+                    page.write_text(page.read_text().replace("`python3 -m unittest`", r"`printf x \| cat`"))
             if name == "mapped internal directory symlink":
                 (wiki / "alias").symlink_to(wiki / "agent", target_is_directory=True)
                 schema = wiki / "SCHEMA.md"

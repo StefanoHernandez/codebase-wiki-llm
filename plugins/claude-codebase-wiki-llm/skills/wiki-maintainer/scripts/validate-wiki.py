@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime
 import re
+import string
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -82,6 +83,58 @@ def unfenced(lines: list[str]) -> list[str]:
         else:
             out.append(line)
     return out
+
+
+def inline_destinations(line: str) -> list[str]:
+    """Read ordinary inline destinations, balancing parentheses and escapes."""
+    destinations = []
+    for match in re.finditer(r"!?\[[^\]]*\]\(", line):
+        pos = match.end()
+        while pos < len(line) and line[pos].isspace():
+            pos += 1
+        angle = pos < len(line) and line[pos] == "<"
+        if angle:
+            pos += 1
+        value = []
+        depth = 0
+        while pos < len(line):
+            char = line[pos]
+            if char == "\\" and pos + 1 < len(line) and line[pos + 1] in string.punctuation:
+                value.append(line[pos + 1])
+                pos += 2
+                continue
+            if angle:
+                if char == ">":
+                    break
+            elif char.isspace() or (char == ")" and depth == 0):
+                break
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+            value.append(char)
+            pos += 1
+        if pos == len(line) or depth or (angle and line[pos] != ">"):
+            continue
+        if angle:
+            pos += 1
+        end = pos
+        while pos < len(line) and line[pos].isspace():
+            pos += 1
+        # A title must be separated from the destination by whitespace.
+        if pos > end and pos < len(line) and line[pos] in "\"'(":
+            closing = ")" if line[pos] == "(" else line[pos]
+            pos += 1
+            while pos < len(line) and line[pos] != closing:
+                pos += 2 if line[pos] == "\\" and pos + 1 < len(line) else 1
+            if pos == len(line):
+                continue
+            pos += 1
+            while pos < len(line) and line[pos].isspace():
+                pos += 1
+        if pos < len(line) and line[pos] == ")":
+            destinations.append("".join(value))
+    return destinations
 
 
 @dataclass
@@ -193,9 +246,17 @@ class Validator:
     def table(self, page: Page, section):
         rows = []
         for number, line in section:
-            if line.strip().startswith("|") and line.strip().endswith("|"):
-                cells = [cell.strip() for cell in re.split(r"(?<!\\)\|", line.strip()[1:-1])]
+            cells = re.split(r"(?<!\\)\|", line.strip())
+            if len(cells) > 1:
+                # Outer delimiters are optional; preserve empty interior cells.
+                if cells[0] == "":
+                    cells.pop(0)
+                if cells[-1] == "":
+                    cells.pop()
+                cells = [cell.strip() for cell in cells]
                 rows.append((number, cells))
+            elif rows and number == rows[-1][0] + 1 and line.strip():
+                self.error(page.path, number, "unsupported table row; use pipe-separated cells matching the header")
         if not rows:
             return []
         if (len(rows) < 2 or rows[1][0] != rows[0][0] + 1
@@ -238,9 +299,15 @@ class Validator:
         paths = {}
         for role, value in mapping.items():
             target = self.wiki / value
-            is_dir = role == "log-archive" or (role == "decisions" and bool(section))
-            if private_terms_path(target) or not target.resolve().is_relative_to(self.wiki) or not (target.is_dir() if is_dir else target.is_file()):
-                self.error(schema.path, 1, f"Core map {role} must point to an existing {'directory' if is_dir else 'file'} inside the wiki")
+            is_dir = role == "log-archive"
+            valid_kind = target.is_dir() if is_dir else target.is_file()
+            kind = "directory" if is_dir else "file"
+            # Adoption maps a v1 decisions file in place before any optional split.
+            if role == "decisions" and section:
+                valid_kind = target.is_file() or target.is_dir()
+                kind = "file or directory"
+            if private_terms_path(target) or not target.resolve().is_relative_to(self.wiki) or not valid_kind:
+                self.error(schema.path, 1, f"Core map {role} must point to an existing {kind} inside the wiki")
             else:
                 paths[role] = target
         return paths
@@ -248,13 +315,13 @@ class Validator:
     def links(self, page: Page):
         for number, line in enumerate(page.lines, 1):
             line = re.sub(r"(`+).*?\1", "", line)
-            links = re.findall(r"!?\[[^\]]*\]\(\s*(<[^>]+>|[^\s)]+)(?:\s+[\"'].*?[\"'])?\s*\)", line)
+            links = inline_destinations(line)
             # Standard reference definitions are checked too; no arbitrary Markdown extensions.
             reference = re.match(r"^ {0,3}\[[^\]]+\]:\s*(<[^>]+>|\S+)", line)
             if reference:
-                links.append(reference[1])
+                links.append(reference[1].strip("<>"))
             for link in links:
-                url = urlsplit(link.strip("<>"))
+                url = urlsplit(link)
                 if url.scheme or url.netloc or not url.path:
                     continue
                 path = unquote(url.path)
