@@ -24,6 +24,17 @@ run() {
   [ "$actual" = "$expected" ] || { echo "FAIL $name: expected [$expected] got [$actual]" >&2; failures=$((failures + 1)); }
 }
 
+# Keep special-file regressions bounded and terminate blocked hook descendants.
+run_bounded() {
+  local name="$1" expected="$2" payload="$3" actual status=0
+  actual="$(cd "$TMP_DIR" && printf '%s' "$payload" | timeout --kill-after=1 3 sh "$HOOK" --host claude)" || status=$?
+  if [ "$status" -ne 0 ]; then
+    echo "FAIL $name: hook did not finish successfully within 3s (exit $status)" >&2
+    failures=$((failures + 1)); return
+  fi
+  [ "$actual" = "$expected" ] || { echo "FAIL $name: expected [$expected] got [$actual]" >&2; failures=$((failures + 1)); }
+}
+
 commit() { git -C "$1" add -A; git -C "$1" -c user.email=t@example.com -c user.name=t commit -qm "${2:-c}"; }
 new_repo() {
   local dir="$TMP_DIR/$1"
@@ -130,6 +141,41 @@ echo v2 > "$r/module/main.c"; echo v1 > "$r/main.c"
 run "a changed submodule does not hide ordinary source changes" "$(note 'main.c, module' no)" "$(claude "$r")" --host claude
 echo v3 > "$r/module/main.c"
 run "another submodule edit cannot be silently deduplicated" "$(note 'main.c, module' no)" "$(claude "$r")" --host claude
+
+r="$(new_repo fifo)"; echo v1 > "$r/main.c"; commit "$r" source
+run "FIFO source baseline" "" "$(claude "$r")" --host claude
+rm "$r/main.c"; mkfifo "$r/main.c"
+run_bounded "a tracked source replaced by a FIFO cannot block" "$(note main.c no)" "$(claude "$r")"
+
+r="$(new_repo dangling-symlink)"; ln -s missing-a "$r/linked.c"; commit "$r" source
+run "dangling symlink baseline" "" "$(claude "$r")" --host claude
+ln -sf missing-b "$r/linked.c"
+run "first dangling symlink target edit is noted" "$(note linked.c no)" "$(claude "$r")" --host claude
+ln -sf missing-c "$r/linked.c"
+run "another dangling symlink target edit is noted" "$(note linked.c no)" "$(claude "$r")" --host claude
+echo entry > "$r/wiki/log.md"
+run "dangling symlink edit can be covered" "" "$(claude "$r")" --host claude
+ln -sf missing-d "$r/linked.c"
+run "a covered dangling symlink target edit is noted" "$(note linked.c no)" "$(claude "$r")" --host claude
+
+r="$(new_repo dirty-symlink)"; ln -s missing-a "$r/linked.c"; commit "$r" source
+ln -sf missing-b "$r/linked.c"
+run "initially dirty dangling symlink baseline" "" "$(claude "$r")" --host claude
+ln -sf missing-c "$r/linked.c"
+run "an initially dirty dangling symlink target edit is noted" "$(note linked.c no)" "$(claude "$r")" --host claude
+
+r="$(new_repo equal-symlink-targets)"; echo v1 > "$r/a.c"; echo v1 > "$r/b.c"; echo v1 > "$r/c.c"
+ln -s a.c "$r/linked.c"; commit "$r" source
+run "equal symlink referents baseline" "" "$(claude "$r")" --host claude
+ln -sf b.c "$r/linked.c"
+run "first symlink target edit with equal referent bytes is noted" "$(note linked.c no)" "$(claude "$r")" --host claude
+ln -sf c.c "$r/linked.c"
+run "another symlink target edit with equal referent bytes is noted" "$(note linked.c no)" "$(claude "$r")" --host claude
+
+r="$(new_repo symlink-fifo)"; echo v1 > "$r/linked.c"; commit "$r" source
+run "symlink to FIFO baseline" "" "$(claude "$r")" --host claude
+mkfifo "$TMP_DIR/source.fifo"; ln -sf "$TMP_DIR/source.fifo" "$r/linked.c"
+run_bounded "a source symlink to a FIFO cannot block" "$(note linked.c no)" "$(claude "$r")"
 
 r="$(new_repo unlisted)"; page "$r" api.md src/api.c; commit "$r" pages
 run "baseline" "" "$(claude "$r")" --host claude
