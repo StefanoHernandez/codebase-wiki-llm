@@ -169,6 +169,12 @@ def run():
         ("black closure without trailing pipe", ("tracker", TRACKER, TRACKER + GREEN.replace("🟢", "⚫").rstrip("\n|") + "\n"), 1, "closed by"),
         ("green unproven row without outer pipes", ("tracker", TRACKER, TRACKER + BLACK.replace("⚫", "🟢").strip("\n|") + "\n"), 1, "unproven"),
         ("healthy tables without outer pipes", None, 0, ""),
+        ("pipeline prose before Open table", ("tracker", "<!-- wiki:open -->\n", "<!-- wiki:open -->\n\nVerification uses `printf x | cat`.\n\n"), 0, ""),
+        ("pipeline prose after Open table", ("tracker", "## Proposals", "\nVerification uses `printf x | cat`.\n\n## Proposals"), 0, ""),
+        ("pipeline prose around tables", None, 0, ""),
+        ("pipeline prose around localized tables", None, 0, ""),
+        ("pipeline prose around legacy tables", None, 0, ""),
+        ("pipeline prose around tables without outer pipes", None, 0, ""),
         ("unsupported contiguous tracker row", ("tracker", TRACKER.splitlines()[4], "T1 unsupported row"), 1, "table row"),
         ("escaped pipe table commands", None, 0, ""),
         ("missing baton verification", ("handoff", "| `python3 -m unittest` | none |", "| Not verified - | none |"), 1, "verification"),
@@ -216,7 +222,8 @@ def run():
     for name, mutation, expected, diagnostic in cases:
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
-            wiki, roles = fixture(repo, localized="localized" in name, legacy=name == "legacy English fallback")
+            wiki, roles = fixture(repo, localized="localized" in name,
+                                  legacy=name in ("legacy English fallback", "pipeline prose around legacy tables"))
             if mutation:
                 role, old, new = mutation
                 path = wiki / ("SCHEMA.md" if role == "SCHEMA" else roles[role])
@@ -251,6 +258,18 @@ def run():
                     page = wiki / roles[role]
                     page.write_text("\n".join(line.strip("|") if line.startswith("|") else line
                                               for line in page.read_text().splitlines()) + "\n")
+            if name.startswith("pipeline prose around"):
+                for role in ("SCHEMA", "tracker", "handoff"):
+                    page = wiki / ("SCHEMA.md" if role == "SCHEMA" else roles[role])
+                    lines = page.read_text().splitlines()
+                    body = []
+                    for i, line in enumerate(lines):
+                        if line.startswith("|") and (not i or not lines[i - 1].startswith("|")):
+                            body.extend(["", "Verification uses `printf x | cat`.", ""])
+                        body.append(line.strip("|") if "without outer pipes" in name and line.startswith("|") else line)
+                        if line.startswith("|") and (i + 1 == len(lines) or not lines[i + 1].startswith("|")):
+                            body.extend(["", "Recorded output uses `printf x | cat`.", ""])
+                    page.write_text("\n".join(body) + "\n")
             if name == "escaped pipe table commands":
                 for role in ("tracker", "handoff"):
                     page = wiki / roles[role]

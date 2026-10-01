@@ -255,15 +255,27 @@ class Validator:
                     cells.pop()
                 cells = [cell.strip() for cell in cells]
                 rows.append((number, cells))
-            elif rows and number == rows[-1][0] + 1 and line.strip():
-                self.error(page.path, number, "unsupported table row; use pipe-separated cells matching the header")
         if not rows:
             return []
+        # The immediate delimiter identifies the header, not earlier pipe prose.
+        # Keep the first candidate as a fallback so malformed tables still fail.
+        start = next((i for i in range(len(rows) - 1)
+                      if rows[i + 1][0] == rows[i][0] + 1
+                      and all(re.fullmatch(r":?-{3,}:?", cell) for cell in rows[i + 1][1])), 0)
+        rows = rows[start:]
         if (len(rows) < 2 or rows[1][0] != rows[0][0] + 1
                 or len(rows[1][1]) != len(rows[0][1])
                 or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in rows[1][1])):
             self.error(page.path, rows[0][0], "table header needs a matching Markdown delimiter immediately below it")
             return []
+        # A blank line ends this table region; later prose is not another row.
+        end = next((number for number, line in section
+                    if number > rows[0][0] and not line.strip()), section[-1][0] + 1)
+        rows = [row for row in rows if row[0] < end]
+        row_numbers = {number for number, _cells in rows}
+        for number, line in section:
+            if rows[0][0] < number < end and number not in row_numbers and line.strip():
+                self.error(page.path, number, "unsupported table row; use pipe-separated cells matching the header")
         return [row for row in rows if not all(re.fullmatch(r":?-{3,}:?", cell) for cell in row[1])]
 
     def core_map(self, schema: Page):
