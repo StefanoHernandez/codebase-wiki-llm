@@ -57,6 +57,15 @@ def private_terms_path(path: Path) -> bool:
     return ".private-terms" in path.parts or ".private-terms" in path.resolve().parts
 
 
+def explicit_unproven(value: str) -> bool:
+    """Recognize a cell's fixed negative claim, not prose discussing one."""
+    value = value.strip()
+    return bool(re.match(
+        r"^(?:>\s*)?(?:⚠\ufe0f?\s*)?(?:not verified(?:\s*-|\s*$)|not proven:)"
+        r"|^closed by .+? \d{4}-\d{2}-\d{2}; not proven:", value, re.I,
+    ))
+
+
 def unfenced(lines: list[str]) -> list[str]:
     """Blank fenced examples while retaining original diagnostic line numbers."""
     out = []
@@ -108,7 +117,7 @@ class Validator:
                 item = re.fullmatch(r"  - (.+)", line)
                 scalar = re.fullmatch(r"([a-z_]+):(?: (.*))?", line)
                 if item and current == "sources" and isinstance(fields.get(current), list):
-                    fields[current].append(self.scalar(item[1]))
+                    fields[current].append(self.scalar(item[1], path, number))
                 elif scalar:
                     current = scalar[1]
                     value = (scalar[2] or "").strip()
@@ -116,7 +125,7 @@ class Validator:
                         self.error(path, number, "unsupported frontmatter value; use a plain or quoted scalar (sources uses an indented list)")
                     if current in fields:
                         self.error(path, number, f"duplicate frontmatter key {current}")
-                    fields[current] = [] if current == "sources" and not scalar[2] else self.scalar(scalar[2] or "")
+                    fields[current] = [] if current == "sources" and not scalar[2] else self.scalar(scalar[2] or "", path, number)
                     locations[current] = number
                 else:
                     self.error(path, number, "unsupported frontmatter structure; use scalar fields and an indented sources list")
@@ -127,11 +136,15 @@ class Validator:
         self.pages[path] = page
         return page
 
-    @staticmethod
-    def scalar(value: str) -> str:
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            return value[1:-1].strip()
-        return value.strip()
+    def scalar(self, value: str, path: Path, line: int) -> str:
+        value = value.strip()
+        if value.startswith(("\"", "'")):
+            escaped_end = value[0] == '"' and (len(value[:-1]) - len(value[:-1].rstrip("\\"))) % 2 == 1
+            if len(value) < 2 or value[-1] != value[0] or escaped_end:
+                self.error(path, line, "unterminated quoted frontmatter scalar")
+            else:
+                return value[1:-1].strip()
+        return value
 
     def frontmatter(self, page: Page):
         schema = page.path == self.wiki / "SCHEMA.md"
@@ -182,9 +195,15 @@ class Validator:
         for number, line in section:
             if line.strip().startswith("|") and line.strip().endswith("|"):
                 cells = [cell.strip() for cell in re.split(r"(?<!\\)\|", line.strip()[1:-1])]
-                if not all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
-                    rows.append((number, cells))
-        return rows
+                rows.append((number, cells))
+        if not rows:
+            return []
+        if (len(rows) < 2 or rows[1][0] != rows[0][0] + 1
+                or len(rows[1][1]) != len(rows[0][1])
+                or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in rows[1][1])):
+            self.error(page.path, rows[0][0], "table header needs a matching Markdown delimiter immediately below it")
+            return []
+        return [row for row in rows if not all(re.fullmatch(r":?-{3,}:?", cell) for cell in row[1])]
 
     def core_map(self, schema: Page):
         section = self.section(schema, "core-map", "Core map", required=False)
@@ -294,8 +313,8 @@ class Validator:
                     self.error(page.path, number, "terminal tracker status must be 🟢 or ⚫")
                 if not iso_date(row["Closed"]):
                     self.error(page.path, number, "Closed must be a real ISO date")
-                if status == "🟢" and re.search(r"closed by |not proven|unproven|not verified", row["Criteria met"], re.I):
-                    self.error(page.path, number, "green row contains explicit unproven closure or criteria")
+                if status == "🟢" and any(explicit_unproven(row[column]) for column in ("Criteria met", "Evidence")):
+                    self.error(page.path, number, "green row contains an explicit unproven claim in criteria or evidence")
                 if status == "⚫":
                     closure = re.fullmatch(r"closed by (.+?) (\d{4}-\d{2}-\d{2}); not proven: (.+)", row["Criteria met"])
                     if not closure or unresolved(closure[1]) or unresolved(closure[3]) or closure[1].lower() in ("agent", "coding agent", "ai"):
