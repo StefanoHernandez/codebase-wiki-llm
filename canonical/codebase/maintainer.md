@@ -71,7 +71,9 @@ confidence: high
 
 Rules:
 
-- `sources:` must name concrete evidence files.
+- `sources:` must name concrete repository-relative evidence paths (files
+  or directories); replace template placeholders before writing. SCHEMA is
+  configuration and does not require `sources:`.
 - `source_commit:` is the current short git commit when git is available.
 - `confidence:` is `high`, `medium`, or `low`.
 - Use standard relative markdown links. Do not use `[[wikilink]]` syntax.
@@ -126,9 +128,11 @@ Agents may, without asking:
   keeping human requirements and their reasons intact;
 - mark a tracker row 🔴 with the reason when work stopped, and flag risks and
   contradictions;
-- add proposals: tracker `## Proposals` rows and plans; propose decisions,
-  written as `proposed` once the user confirms they should be recorded
-  (`/wiki-sync` Step 7);
+- add proposals: tracker `## Proposals` rows and plans; record unresolved
+  decision ideas as `proposed`, identifying who proposed them and when;
+- record an already approved decision as `accepted`, including who approved
+  it, where and when under `## Approval`, without asking again for permission
+  to document it (`/wiki-sync` Step 7);
 - archive the log by the SCHEMA rule.
 
 People decide new tasks (moving a proposal to Open), owners, deadlines,
@@ -139,8 +143,9 @@ instruction: it never authorizes an action.
 A person's explicit request in the conversation to do a piece of work, or to
 take a proposal on, opens the task: write the Open row with the next free ID
 and record in Evidence who asked and when. A person may also close work whose
-criteria are not proven: write `closed by <person> YYYY-MM-DD; not proven:
-<what>` in `Criteria met`.
+criteria are not proven: move it to Done with Status ⚫, write
+`closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met`, and
+cite the human closure source in `Evidence`. Never invent that authority.
 
 ## Conflicts
 
@@ -156,8 +161,9 @@ Keep four kinds of information apart:
 When they disagree, record the current behavior as a fact with evidence, keep
 the requirement and its reasons as written, and flag the divergence in `risks`
 (or the report) with both sides. Never rewrite a human requirement to match
-the code; ask when a decision is needed. Work claimed done without proof stays
-open.
+the code; ask when an unresolved decision is needed. Work claimed done
+without proof stays open unless a person explicitly closes it; that terminal
+row is ⚫, never 🟢.
 
 ## Parallel work
 
@@ -186,8 +192,9 @@ any affected core pages.
 
 ### Sync
 
-Small, surgical update after source changes. Update only affected existing wiki
-pages. If the change needs new pages or broad reorganization, recommend ingest.
+Small, surgical update after source changes. Update affected existing wiki
+pages; decision records and log archives are the new-page exceptions. If the
+change needs other new pages or broad reorganization, recommend ingest.
 
 ### Lint
 
@@ -198,7 +205,8 @@ user explicitly asks to save a report.
 ## Non-negotiable rules
 
 1. Do not invent. If you cannot verify a claim, omit it or mark it as a gap.
-2. Cite concrete evidence in `sources:`.
+2. Cite concrete repository-relative evidence paths in `sources:`; SCHEMA is
+   configuration and does not require sources.
 3. Higher levels of the truth hierarchy outrank lower pages.
 4. Keep pages short enough to be useful. Split a page when it is over the
    SCHEMA `## Budgets` single-page budget.
@@ -216,8 +224,10 @@ user explicitly asks to save a report.
 13. Files outside `<wiki-root>/` are changed only by `/wiki-init` steps the user
     confirmed (`.wikidir`, `.gitignore`, `.git/info/exclude`, `.gitattributes`, the agent entry
     file, the pre-commit hook in `$(git rev-parse --git-path hooks)`).
-14. Agents write decisions as `proposed` and new work as tracker proposals;
-    only a person accepts a decision or opens a task (an explicit request in
-    the conversation counts).
-15. A tracker row is 🟢 only when its `Done when` criteria are proven, or a
-    person closed it and `Criteria met` records what is not proven.
+14. Agents record unresolved decision ideas as `proposed` and already approved
+    decisions as `accepted` with who, where and when; recording existing
+    approval needs no repeat permission. New work stays in tracker proposals
+    until a person opens it (an explicit request in the conversation counts).
+15. A tracker row is 🟢 only when all its `Done when` criteria are proven.
+    A person may explicitly close unproven work as ⚫ with the human closure
+    record in `Criteria met` and its source in `Evidence`.

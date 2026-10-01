@@ -8,7 +8,7 @@ that a new coding agent can read it before searching the codebase.
 title: Agent Context
 updated: YYYY-MM-DD
 sources:
-  - README.md
+  - <source-path>
   - <wiki-root>/<Core map index path>
   - <wiki-root>/SCHEMA.md
 source_commit: <short-sha-or-unknown>
@@ -51,6 +51,9 @@ marked `⚠️ TO RE-VERIFY`.
 Rules:
 
 - Do not write a generic project summary. Every fact needs evidence.
+- Cite tracker IDs for activity status; keep status in the mapped tracker.
+- Resolve source placeholders to concrete repository-relative paths before
+  writing; use the confirmed wiki root and Core map paths.
 - Write headings in the SCHEMA language; keep each `<!-- wiki:... -->` marker on
   the line under its heading.
 - Mark unverified commands and facts `⚠️ NOT VERIFIED - <reason>`.

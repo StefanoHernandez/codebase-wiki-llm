@@ -94,7 +94,8 @@ first, or links to important pages.
 Apply SCHEMA `## Evidence` by claim type. Flag verifications with no command,
 no date or no code state (`@<short-sha>`), command output with no command,
 descriptions with no precise source, `accepted` decisions with no recorded
-approval, risks with no stated assumption, and example output placed next to
+approval (respect the legacy exception under Decisions), risks with no stated
+assumption, and example output placed next to
 real output. A `⚠️ NOT VERIFIED` without a reason is a finding too.
 
 ### Verified facts
@@ -112,9 +113,18 @@ and IDs reused for a different task.
 Flag Open rows without status, evidence, or next verification.
 
 Flag Open rows without `Done when`, Done rows without `Criteria met` or
-evidence, rows marked 🟢 whose criteria are neither proven nor recorded as
-`closed by <person>`, Proposals with an ID or a status icon, and external
-issue or PR state copied as status.
+evidence, and new Done rows without Status. Legacy Done rows without Status
+remain valid when their criteria are proven.
+
+Flag 🟢 rows with unproven criteria, including an explicit unproven human
+closure; 🟢 always means all criteria are proven. Flag ⚫ rows without
+`closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met` or
+without evidence of the explicit human closure. A closed-but-unproven claim
+never supplies verification proof.
+
+Flag Proposals with an ID or a status icon, and external issue or PR state
+copied as status. IDs cited elsewhere are references, not duplicate
+definitions; each ID is defined only once across Open and Done.
 
 ### Decisions
 
@@ -122,7 +132,10 @@ Flag decision files whose `status` is not `proposed`, `accepted`, `rejected`
 or `superseded by NNNN`; `accepted` decisions without an `## Approval` naming
 who, where and when (a decision accepted before this rule may read `Approval
 not recorded.`); and reasons stated with no source (they should read
-`Reasons not recorded.`).
+`Reasons not recorded.`), and rejected alternatives stated without evidence
+(they should read `Alternatives not recorded.`). A new agent idea stays
+`proposed`; an already approved choice may be recorded directly as `accepted`
+with its authority, without another request to document it.
 
 ### Handoff
 
@@ -132,8 +145,11 @@ Flag `handoff` when it lacks current work state, last completed step, a
 baton for the next agent, prioritized next tasks, blockers and risks,
 commands already run with results, work not to redo, or (when git is
 available) branch, last commit, and worktree state. Flag baton tasks lacking
-start files, done criteria, a verification command or
+tracker IDs, start files, done criteria, a verification command or
 `Not verified - <reason>`, or notes when blocked or risky.
+
+Flag activity status duplicated in the handoff; current work state should
+refer to `Tracker IDs`. Preserve Git state and evidence-backed next steps.
 
 Flag claims about project state, git state, completed work, verification, or
 sources that are not supported by source files, command results, git data, or
@@ -194,8 +210,10 @@ Never delete.
 
 ### Frontmatter hygiene
 
-Flag missing fields, invalid dates, invalid confidence, and missing source
-files.
+Flag missing fields, invalid dates, invalid confidence, missing source
+paths, and unresolved placeholders or descriptive phrases in `sources:`.
+Sources name concrete repository-relative files or directories, including
+resolved Core map paths; SCHEMA is configuration and need not list sources.
 
 ## Step 4 - Report
 
