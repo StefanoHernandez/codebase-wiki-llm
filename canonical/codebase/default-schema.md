@@ -57,9 +57,15 @@ the wiki root. Change a path here to relocate a page.
 
 - Activity IDs: prefix `T`, stable, never reused; status lives only in the
   tracker.
-- Status: 🟢 done and verified · 🟡 in progress · ⚪ to do · 🔴 blocked.
+- Status: 🟢 done and verified · ⚫ closed by a person without proven criteria
+  · 🟡 in progress · ⚪ to do · 🔴 blocked.
   🔴 means "work stopped", not "serious". A page that uses the icons for
   something else (e.g. risk severity) says so at the top.
+- Terminal tracker rows carry `Status`: 🟢 requires every `Done when`
+  criterion to be proven; ⚫ requires explicit human closure recorded as
+  `closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met`,
+  with the closure source in `Evidence`. Never infer closure authority.
+  Legacy Done rows without `Status` remain valid when their criteria are proven.
 - Dates: `YYYY-MM-DD`.
 - The `tracker` is the only source of status; external tools are linked, never copied as status.
 - Language: headings and prose use the Project profile language. Fixed tokens
@@ -78,7 +84,7 @@ Evidence is proportional to the claim:
 | --- | --- |
 | Verification (test, build, command result) | command, essential output, date, code state |
 | Description (files, structure, relations, behavior read from code) | the precise source: a file in `sources:` or inline, with symbol or line when useful |
-| Decision | who approved it, where (message, PR, meeting note) and when; reasons nobody recorded are written as unknown |
+| Decision | accepted: who approved it, where (message, PR, meeting note) and when; proposed: who proposed it and when; reasons nobody recorded are written as unknown |
 | Risk | the stated assumption and what would trigger it |
 
 Code state is `@<short-sha>`, plus `+local` when uncommitted changes to the
@@ -204,8 +210,10 @@ Never delete automatically.
 - `/wiki-init`: ask once to confirm scope before writing; in adopt mode, also
   ask once for the migration plan.
 - `/wiki-ingest` without a target: ask what to ingest.
-- `/wiki-sync`: do not ask, except Step 7 proposals; archive the log by the
-  `## Log format` rule without asking; run only for small source changes.
+- `/wiki-sync`: do not ask, except unresolved Step 7 proposals; document an
+  already approved decision as `accepted` with its recorded authority without
+  asking again; archive the log by the `## Log format` rule without asking;
+  run only for small source changes.
 - `/wiki-lint`: do not ask; produce a read-only report.
 
 ## What this repo is about
