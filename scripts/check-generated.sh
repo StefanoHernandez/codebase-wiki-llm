@@ -81,6 +81,8 @@ require "check-private-terms.sh --all" canonical/codebase/workflows/wiki-lint.md
 require "### Budget" canonical/codebase/workflows/wiki-lint.md
 require "### Evidence" canonical/codebase/workflows/wiki-lint.md
 require "### Single status" canonical/codebase/workflows/wiki-lint.md
+require "scripts/validate-wiki.py" canonical/codebase/workflows/wiki-lint.md canonical/codebase/maintainer.md
+require "Python 3.10+" canonical/codebase/workflows/wiki-lint.md canonical/codebase/maintainer.md
 require "Core map" canonical/codebase/rules/wiki-context.md
 require "⚠️ NOT VERIFIED" canonical/codebase/rules/wiki-context.md
 

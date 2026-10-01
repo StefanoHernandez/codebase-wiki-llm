@@ -42,5 +42,13 @@ assert v == {"codebase-wiki-llm": sys.argv[1], "secondbrain-wiki-llm": sys.argv[
 EOF
 if grep -rq "@VERSION@" plugins .claude-plugin; then fail "unreplaced @VERSION@ token"; fi
 
+for package in \
+  plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer \
+  plugins/claude-codebase-wiki-llm/skills/wiki-maintainer \
+  plugins/antigravity-codebase-wiki-llm/skills/wiki-maintainer \
+  skills/codebase-wiki-llm; do
+  cmp -s canonical/codebase/scripts/validate-wiki.py "$package/scripts/validate-wiki.py" || fail "validator differs or missing: $package"
+done
+
 [ "$failures" -eq 0 ] || { echo "$failures generator test(s) failed" >&2; exit 1; }
 echo "generator tests passed"

@@ -1,6 +1,6 @@
 {
   "name": "codebase-wiki-llm",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",

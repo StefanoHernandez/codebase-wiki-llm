@@ -91,7 +91,19 @@ For each affected page:
 4. Add supersession notes when correcting old claims.
 5. Preserve and add relative links where useful.
 
-Every claim follows SCHEMA `## Evidence`.
+Every claim follows SCHEMA `## Evidence`. Resolve template source placeholders
+to concrete repository-relative paths using the confirmed wiki root and Core
+map before writing new pages.
+
+Record already approved decisions as `accepted` with who, where and when under
+`## Approval`, without requesting permission again to document them. New
+unresolved ideas remain `proposed`; never infer approval or invent reasons
+or rejected alternatives.
+
+For terminal tracker rows, use 🟢 only when every `Done when` criterion is
+proven. Explicit human closure without proof is ⚫ with
+`closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met` and its
+source in `Evidence`; otherwise the row stays Open.
 
 If creating a module page, use the module quality bar from the maintainer skill.
 
@@ -105,8 +117,9 @@ tasks, blockers, or verification commands, update:
   verification state changed.
 
 Keep `handoff` task-oriented. Its baton table (marker `<!-- wiki:baton -->`)
-must keep start files, done criteria, and verification commands for each next
-task.
+must keep tracker IDs, start files, done criteria, and verification commands
+for each next task. Its current work state cites `Tracker IDs`; activity
+status remains in the tracker.
 
 ## Step 6 - Update index and log
 

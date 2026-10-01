@@ -201,6 +201,7 @@ CODEBASE_CLAUDE_PLUGIN_JSON = """{
 
 HOOK_SCRIPTS = ("scripts/resolve-wiki-root.sh", "scripts/remind-wiki-sync.sh")
 PRIVATE_TERMS_SCRIPT = "scripts/check-private-terms.sh"
+WIKI_VALIDATOR_SCRIPT = "scripts/validate-wiki.py"
 
 # Claude Code and Codex read the same hook format; one text, two copies.
 SHARED_HOOKS_JSON = r"""{
@@ -285,6 +286,7 @@ def generate_codex() -> None:
     )
     write_hooks("plugins/codebase-wiki-llm")
     copy_script(PRIVATE_TERMS_SCRIPT, "plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer/scripts")
+    copy_script(WIKI_VALIDATOR_SCRIPT, "plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer/scripts")
     write(
         "plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer/SKILL.md",
         "maintainer.md",
@@ -329,6 +331,7 @@ def generate_claude() -> None:
     )
     write_hooks("plugins/claude-codebase-wiki-llm")
     copy_script(PRIVATE_TERMS_SCRIPT, "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/scripts")
+    copy_script(WIKI_VALIDATOR_SCRIPT, "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/scripts")
     write(
         "plugins/claude-codebase-wiki-llm/skills/wiki-maintainer/SKILL.md",
         "maintainer.md",
@@ -375,6 +378,7 @@ def generate_antigravity() -> None:
     for rel in HOOK_SCRIPTS:
         copy_script(rel, "plugins/antigravity-codebase-wiki-llm/scripts")
     copy_script(PRIVATE_TERMS_SCRIPT, "plugins/antigravity-codebase-wiki-llm/skills/wiki-maintainer/scripts")
+    copy_script(WIKI_VALIDATOR_SCRIPT, "plugins/antigravity-codebase-wiki-llm/skills/wiki-maintainer/scripts")
     write(
         "plugins/antigravity-codebase-wiki-llm/rules/AGENTS.md",
         "rules/wiki-context.md",
@@ -411,6 +415,7 @@ def generate_antigravity() -> None:
 
 def generate_agent_skills() -> None:
     copy_script(PRIVATE_TERMS_SCRIPT, "skills/codebase-wiki-llm/scripts")
+    copy_script(WIKI_VALIDATOR_SCRIPT, "skills/codebase-wiki-llm/scripts")
     write(
         "skills/codebase-wiki-llm/SKILL.md",
         "maintainer.md",

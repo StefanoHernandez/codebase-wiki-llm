@@ -39,6 +39,33 @@ that does not exist, stop and tell the user without guessing another location.
 - If Step 0 found no wiki, tell the user to run `/wiki-init` first.
 - Prefer git over mtimes when available.
 
+### Deterministic structural validation first
+
+Before gathering semantic facts, locate `scripts/validate-wiki.py` inside the
+installed wiki maintainer skill and run:
+
+```sh
+python3 <maintainer skill>/scripts/validate-wiki.py <wiki-root>
+```
+
+This optional check requires Python 3.10+ with its standard library only.
+First check `python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))'`.
+If Python is missing or older, explicitly report "deterministic structural
+validation skipped: Python 3.10+ unavailable" and continue the agent's
+read-only review. Never install Python implicitly or claim this check passed
+when it did not run.
+
+Exit 0 means the documented structure passed, 1 means file/line findings,
+and 2 means invocation/configuration failed. Include failures or findings in
+the report and continue the read-only semantic checks; do not label an exit 2
+as passing. The standalone script checks scalar frontmatter and indented
+source lists, dates, confidence, repository-relative sources, standard inline
+and reference Markdown link targets, the Core map, tracker IDs, continuity
+sections and baton structure, and explicit green/black closure claims.
+It ignores fenced examples and external links. It does not parse arbitrary
+YAML or every Markdown extension, read private terms, verify human authority,
+run evidence commands, or assess staleness and truth of claims.
+
 ## Step 2 - Gather facts
 
 Read:
@@ -120,7 +147,8 @@ first, or links to important pages.
 Apply SCHEMA `## Evidence` by claim type. Flag verifications with no command,
 no date or no code state (`@<short-sha>`), command output with no command,
 descriptions with no precise source, `accepted` decisions with no recorded
-approval, risks with no stated assumption, and example output placed next to
+approval (respect the legacy exception under Decisions), risks with no stated
+assumption, and example output placed next to
 real output. A `⚠️ NOT VERIFIED` without a reason is a finding too.
 
 ### Verified facts
@@ -138,9 +166,18 @@ and IDs reused for a different task.
 Flag Open rows without status, evidence, or next verification.
 
 Flag Open rows without `Done when`, Done rows without `Criteria met` or
-evidence, rows marked 🟢 whose criteria are neither proven nor recorded as
-`closed by <person>`, Proposals with an ID or a status icon, and external
-issue or PR state copied as status.
+evidence, and new Done rows without Status. Legacy Done rows without Status
+remain valid when their criteria are proven.
+
+Flag 🟢 rows with unproven criteria, including an explicit unproven human
+closure; 🟢 always means all criteria are proven. Flag ⚫ rows without
+`closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met` or
+without evidence of the explicit human closure. A closed-but-unproven claim
+never supplies verification proof.
+
+Flag Proposals with an ID or a status icon, and external issue or PR state
+copied as status. IDs cited elsewhere are references, not duplicate
+definitions; each ID is defined only once across Open and Done.
 
 ### Decisions
 
@@ -148,7 +185,10 @@ Flag decision files whose `status` is not `proposed`, `accepted`, `rejected`
 or `superseded by NNNN`; `accepted` decisions without an `## Approval` naming
 who, where and when (a decision accepted before this rule may read `Approval
 not recorded.`); and reasons stated with no source (they should read
-`Reasons not recorded.`).
+`Reasons not recorded.`), and rejected alternatives stated without evidence
+(they should read `Alternatives not recorded.`). A new agent idea stays
+`proposed`; an already approved choice may be recorded directly as `accepted`
+with its authority, without another request to document it.
 
 ### Handoff
 
@@ -158,8 +198,11 @@ Flag `handoff` when it lacks current work state, last completed step, a
 baton for the next agent, prioritized next tasks, blockers and risks,
 commands already run with results, work not to redo, or (when git is
 available) branch, last commit, and worktree state. Flag baton tasks lacking
-start files, done criteria, a verification command or
+tracker IDs, start files, done criteria, a verification command or
 `Not verified - <reason>`, or notes when blocked or risky.
+
+Flag activity status duplicated in the handoff; current work state should
+refer to `Tracker IDs`. Preserve Git state and evidence-backed next steps.
 
 Flag claims about project state, git state, completed work, verification, or
 sources that are not supported by source files, command results, git data, or
@@ -220,8 +263,10 @@ Never delete.
 
 ### Frontmatter hygiene
 
-Flag missing fields, invalid dates, invalid confidence, and missing source
-files.
+Flag missing fields, invalid dates, invalid confidence, missing source
+paths, and unresolved placeholders or descriptive phrases in `sources:`.
+Sources name concrete repository-relative files or directories, including
+resolved Core map paths; SCHEMA is configuration and need not list sources.
 
 ## Step 4 - Report
 
