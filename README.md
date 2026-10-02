@@ -29,6 +29,22 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.9.2
+
+- Adoption inventories missing metadata, incompatible tracker tables and
+  local conventions before proposing edits. Gradual recovery keeps gaps
+  explicit; adopting the structure does not certify old content.
+- Missing frontmatter produces one finding per page. An unreadable Open
+  tracker reports unavailable handoff reference checks without cascading
+  missing-ID errors; baton fields and links are still checked.
+- The log archive directory is created at the first archive write; its
+  reserved path must remain safe and creatable.
+- Existing project log rules take precedence, including bans on commit
+  hashes. Sync validates Git anchors and reports incomplete committed-change
+  coverage when a usable baseline is absent or history has been rewritten.
+- Regression fixtures include 47 pages without metadata and legacy tracker
+  columns, in addition to current templates at adopted paths.
+
 ### Changes in 0.9.1
 
 - Reminder coverage tracks source content: another edit at a covered path or
@@ -472,7 +488,7 @@ Once installed, in any repository:
 - `/secondbrain-sync` — surgically update existing vault notes.
 - `/secondbrain-lint` — read-only health report for a SecondBrain vault.
 
-Installed structural validator for project wikis (Codebase 0.9.1):
+Installed structural validator for project wikis (Codebase 0.9.1+):
 
 ```bash
 python3 <maintainer-skill>/scripts/validate-wiki.py path/to/repo/wiki

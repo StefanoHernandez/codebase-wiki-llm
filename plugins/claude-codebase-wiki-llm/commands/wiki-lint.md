@@ -64,6 +64,10 @@ sections and baton structure, and explicit green/black closure claims.
 It ignores fenced examples and external links. It does not parse arbitrary
 YAML or every Markdown extension, read private terms, verify human authority,
 run evidence commands, or assess staleness and truth of claims.
+Missing/unterminated frontmatter is one finding per page; links and continuity
+checks still run. An unreadable Open tracker produces a single explicit
+`references not checked` finding for dependent handoff IDs; check the baton
+fields independently. Deferred adoption gaps keep exit 1 and are never a pass.
 
 ## Step 2 - Gather facts
 
@@ -93,10 +97,14 @@ Find checked sections by their `<!-- wiki:<id> -->` marker, or by the English
 template heading in pages without markers. Flag a `context`, `handoff` or
 `tracker` section found by neither, naming the marker to add.
 
-Rules added in 0.9.0 (code state on log entries, `## Approval` on decisions,
-`Done when` on tracker rows) apply to content written after the wiki adopted
-them. Report older content once, as counts (for example `12 log entries
-without code state`), not as findings.
+Rules added in 0.9.0 for code state on log entries and `## Approval` on
+decisions apply to content written after the wiki adopted them. Summarize
+those older omissions once as counts (for example `12 log entries without
+code state`), respecting the Decisions exception below and the local log
+policy. Required metadata, readable tracker layouts and completion proof are
+not exempted from validation. Missing legacy criteria remain recovery gaps;
+normalizing columns or adding metadata does not make old outcomes newly
+verified. Group gaps without duplicating deterministic findings.
 
 ### Core map
 
@@ -105,11 +113,15 @@ without `## Core map` is a v1 wiki (old `overview.md`, `agent/`, `project/`
 layout): check it against the v1 paths in the maintainer skill and suggest
 `/wiki-init --adopt <root>`. A Core map row `activity (v1)` left by a v1 adopt
 is part of the log until merged: suggest merging it.
+An absent `log-archive` directory is a valid reservation until first use;
+flag unsafe paths, files or dangling symlinks blocking its creation instead.
 
 ### Staleness
 
-For each page, read `git diff <source_commit>..HEAD -- <source>` for its listed
-sources and judge the impact: flag the page when a change can affect what it
+For each page, validate its `source_commit` as a resolvable commit and ancestor
+of HEAD before using a revision range (the checks in `/wiki-sync` Step 2).
+For usable baselines, read `git diff <resolved-commit>..HEAD -- <source>` for
+its listed sources and judge the impact: flag the page when a change can affect what it
 says (an interface, contract, command, config key or described behavior) and
 name the affected claims; ignore cosmetic changes. Also flag:
 
@@ -117,6 +129,11 @@ name the affected claims; ignore cosmetic changes. Also flag:
 - confidence `low`;
 - as signals to check, not verdicts: five or more commits touching listed
   sources since `source_commit`, or `updated` older than schema policy.
+
+Missing metadata or an unavailable baseline means staleness is not
+established. Report that gap, inspect current sources where useful, and do
+not treat an invalid Git range as no changes. A metadata edit date is not a
+verification date for old claims.
 
 ### Drift
 
@@ -143,8 +160,8 @@ first, or links to important pages.
 
 ### Evidence
 
-Apply SCHEMA `## Evidence` by claim type. Flag verifications with no command,
-no date or no code state (`@<short-sha>`), command output with no command,
+Apply SCHEMA `## Evidence` and `## Log format` by claim type. Flag verifications with no command,
+no date or no code state in the project's permitted representation, command output with no command,
 descriptions with no precise source, `accepted` decisions with no recorded
 approval (respect the legacy exception under Decisions), risks with no stated
 assumption, and example output placed next to
@@ -173,6 +190,9 @@ closure; 🟢 always means all criteria are proven. Flag ⚫ rows without
 `closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met` or
 without evidence of the explicit human closure. A closed-but-unproven claim
 never supplies verification proof.
+Preserve unresolved historical terminal rows for human resolution; do not
+silently reopen or relabel them during adoption or unrelated sync. Their
+missing evidence still prevents declaring a fully validated wiki.
 
 Flag Proposals with an ID or a status icon, and external issue or PR state
 copied as status. IDs cited elsewhere are references, not duplicate
@@ -209,6 +229,8 @@ linked pages.
 
 A baton holding `No open work.` with no task rows is valid; flag it only when
 the tracker has open rows.
+When Open IDs cannot be read, report that tracker references could not be
+checked; do not turn each baton reference into an allegedly nonexistent task.
 
 ### Budget
 
@@ -266,6 +288,11 @@ Flag missing fields, invalid dates, invalid confidence, missing source
 paths, and unresolved placeholders or descriptive phrases in `sources:`.
 Sources name concrete repository-relative files or directories, including
 resolved Core map paths; SCHEMA is configuration and need not list sources.
+Group adopted pages without frontmatter by count and paths, one root finding
+per page; do not repeat missing-field/date/confidence checks for absent
+metadata or count the deterministic finding twice. Sources are supporting
+evidence, not a mechanical copy of every link in old prose. Report gradual
+recovery as incomplete validation, including when structural adoption succeeded.
 
 ## Step 4 - Report
 

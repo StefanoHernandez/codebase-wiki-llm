@@ -1,6 +1,6 @@
 ---
 title: Wiki Schema
-updated: 2026-05-19
+updated: 2026-10-02
 confidence: high
 ---
 
@@ -39,6 +39,8 @@ Level 1 tells what the system does now, not what it should do: code can hold a b
 
 Every workflow finds the core pages through this table. Paths are relative to
 the wiki root. Change a path here to relocate a page.
+`log-archive` reserves a directory created on the first archive write; an
+empty archive directory is not required at init or adoption.
 
 | Role | Path |
 | --- | --- |
@@ -75,6 +77,13 @@ the wiki root. Change a path here to relocate a page.
 - Section markers: sections that tools check carry their marker on the line
   right under the heading (context, handoff and tracker templates). Translate
   the heading, keep the marker.
+- Page metadata: new and substantively updated pages require frontmatter
+  with `title`, `updated`, actual supporting `sources`, `source_commit`, and
+  `confidence`. During gradual adoption, untouched legacy pages and
+  marker-only edits retain explicit metadata gaps. Structural adoption does
+  not certify them; validation stays incomplete until the gaps are resolved.
+  An unknown reviewed source baseline is `source_commit: unknown`; metadata
+  dates and current commits never establish verification of old prose.
 
 ## Evidence
 
@@ -90,6 +99,10 @@ Evidence is proportional to the claim:
 Code state is `@<short-sha>`, plus `+local` when uncommitted changes to the
 relevant files were part of the result; add branch or environment when they
 affect the result; without git write `code state unknown`.
+For log entries, an explicit local `## Log format` rule may require a
+different representation, such as code state not recorded by project policy.
+Preserve the actual verification evidence and state the limit on identifying
+its code baseline.
 
 What cannot be checked (missing tests, unreachable service, access denied, no
 git) is marked `> ⚠️ NOT VERIFIED - <reason>` on that conclusion only; the
@@ -126,6 +139,14 @@ Off by default. When `Sensitive data` is `yes`:
 | log | 30 KB |
 
 ## Log format
+
+These are defaults. Keep an explicit existing project log convention during
+adoption and record it here, including a ban on commit hashes when present.
+When hashes cannot be recorded, retain commands, essential output, dates and
+relevant environment; mark code state as not recorded by project policy.
+This log restriction does not automatically apply to page `source_commit`.
+Sync validates every Git anchor before using it; with no usable log baseline,
+it reports incomplete committed-change coverage rather than `nothing to do`.
 
 ```markdown
 ## YYYY-MM-DD · <title> · human | agent

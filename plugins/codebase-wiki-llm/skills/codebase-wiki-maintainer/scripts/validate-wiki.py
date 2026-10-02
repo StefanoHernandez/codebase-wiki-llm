@@ -143,6 +143,7 @@ class Page:
     lines: list[str]
     fields: dict[str, str | list[str]]
     locations: dict[str, int]
+    has_frontmatter: bool
 
 
 class Validator:
@@ -185,7 +186,7 @@ class Validator:
         else:
             self.error(path, 1, "missing or unterminated frontmatter")
         body = [""] * (end + 1) + lines[end + 1:] if end else lines
-        page = Page(path, unfenced(body), fields, locations)
+        page = Page(path, unfenced(body), fields, locations, bool(end))
         self.pages[path] = page
         return page
 
@@ -200,6 +201,10 @@ class Validator:
         return value
 
     def frontmatter(self, page: Page):
+        # One root finding already identifies missing/unterminated metadata.
+        # Links and role-specific checks still run on this page's body.
+        if not page.has_frontmatter:
+            return
         schema = page.path == self.wiki / "SCHEMA.md"
         required = {"title", "updated", "confidence"} | (set() if schema else {"sources", "source_commit"})
         for key in sorted(required - page.fields.keys()):
@@ -314,6 +319,13 @@ class Validator:
             is_dir = role == "log-archive"
             valid_kind = target.is_dir() if is_dir else target.is_file()
             kind = "directory" if is_dir else "file"
+            if is_dir and not target.exists() and not target.is_symlink():
+                # The archive is a reservation until the first archive write.
+                # A file or dangling symlink in its ancestry cannot be created
+                # through; an outside symlink is rejected by the boundary check.
+                valid_kind = all(parent.is_dir() or not (parent.exists() or parent.is_symlink())
+                                 for parent in target.parents if parent.is_relative_to(self.wiki))
+                kind = "directory or creatable reserved path"
             # Adoption maps a v1 decisions file in place before any optional split.
             if role == "decisions" and section:
                 valid_kind = target.is_file() or target.is_dir()
@@ -344,11 +356,18 @@ class Validator:
     def tracker(self, page: Page):
         ids = set()
         open_ids = set()
+        open_readable = True
         for kind, heading in TRACKER.items():
+            before = len(self.findings)
             section = self.section(page, kind, heading)
             rows = self.table(page, section)
+            if kind == "open" and len(self.findings) != before:
+                open_readable = False
             if not rows:
-                self.error(page.path, 1, f"missing {kind} tracker table")
+                if len(self.findings) == before:
+                    self.error(page.path, 1, f"missing {kind} tracker table")
+                if kind == "open":
+                    open_readable = False
                 continue
             header = rows[0][1]
             if kind == "proposals":
@@ -367,15 +386,21 @@ class Validator:
                 positions = {c: i for i, c in enumerate(columns)}
             else:
                 self.error(page.path, rows[0][0], f"unsupported {kind} tracker columns")
+                if kind == "open":
+                    open_readable = False
                 continue
             for number, cells in rows[1:]:
                 if len(cells) != len(header):
                     self.error(page.path, number, f"{kind} tracker row does not match its header")
+                    if kind == "open":
+                        open_readable = False
                     continue
                 row = {c: cells[i] for c, i in positions.items()}
                 activity = row["ID"]
                 if not re.fullmatch(r"T[1-9]\d*", activity):
                     self.error(page.path, number, "tracker ID must be T followed by a positive integer")
+                    if kind == "open":
+                        open_readable = False
                 if activity in ids:
                     self.error(page.path, number, f"duplicate tracker ID {activity}")
                 ids.add(activity)
@@ -400,9 +425,11 @@ class Validator:
                         self.error(page.path, number, "black row needs 'closed by <person> YYYY-MM-DD; not proven: <what>' and human closure evidence")
                     elif not iso_date(closure[2]):
                         self.error(page.path, number, "black row has invalid closure date")
-        return open_ids
+        return open_ids if open_readable else None
 
-    def handoff(self, page: Page, open_ids: set[str]):
+    def handoff(self, page: Page, open_ids: set[str] | None):
+        if open_ids is None:
+            self.error(page.path, 1, "handoff tracker references not checked: Open tracker IDs are unavailable")
         sections = {marker: self.section(page, marker, heading) for marker, heading in HANDOFF.items()}
         baton = sections["baton"]
         rows = self.table(page, baton)
@@ -427,7 +454,7 @@ class Validator:
                 continue
             order, task, start, done, verification, _notes = cells
             activity = re.match(r"^(T[1-9]\d*)\s*-\s*\S", task)
-            if not activity or activity[1] not in open_ids:
+            if not activity or (open_ids is not None and activity[1] not in open_ids):
                 self.error(page.path, number, "baton task must start with an open tracker ID (T1 - task)")
             if not re.fullmatch(r"[1-9]\d*", order):
                 self.error(page.path, number, "baton order must be a positive integer")
@@ -460,7 +487,7 @@ class Validator:
             for marker, heading in CONTEXT.items():
                 self.section(context, marker, heading)
         tracker = self.pages.get(paths.get("tracker"))
-        open_ids = self.tracker(tracker) if tracker else set()
+        open_ids = self.tracker(tracker) if tracker else None
         handoff = self.pages.get(paths.get("handoff"))
         if handoff:
             self.handoff(handoff, open_ids)
