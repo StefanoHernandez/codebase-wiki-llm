@@ -21,8 +21,11 @@ exist is not an error: propose that name in Step 3.
 
 ## Step 1 - Check preconditions
 
-- If Step 0 resolved a wiki whose `SCHEMA.md` has a `## Core map`, stop and ask
-  whether to skip, re-init, run `/wiki-ingest`, or install/repair the
+- An explicit `--adopt <folder>` also works when that wiki already has a Core
+  map: continue with the read-only survey and scoped compatibility recovery,
+  preserving its paths and content. This is not scaffold re-initialization.
+- Otherwise, if Step 0 resolved a wiki whose `SCHEMA.md` has a `## Core map`, stop and ask
+  whether to skip, use `--adopt` for compatibility recovery, re-init, run `/wiki-ingest`, or install/repair the
   forbidden-terms hook only (the hook part of Step 6, nothing else). Re-init
   rebuilds the scaffold after explicit confirmation; existing pages are never
   deleted, only proposed for replacement one by one.
@@ -37,6 +40,11 @@ Collect: top-level layout; existing documentation folders (`docs`, `wiki`,
 `documentation`) and their Markdown page count; `CLAUDE.md` / `AGENTS.md`;
 README language; manifests, tests, CI, build and deploy signals; `.gitignore`.
 Do not read every source file.
+
+For adoption, inventory missing page frontmatter, the actual tracker columns,
+and explicit project rules in existing docs (especially the log). Counting
+metadata gaps does not verify the old content. Keep these findings for the
+scope proposal; a numbered layout is not a compatibility problem.
 
 ## Step 3 - One message with numbered proposals
 
@@ -60,6 +68,16 @@ all; `3: releases, 5: yes` overrides by number.
    `.gitattributes`, so log entries written in parallel merge without
    conflicts · no. Default yes when git tracks the wiki, no for a local-only
    wiki.
+
+For adoption, include a compatibility plan within proposal 1: the number of
+pages missing metadata, the tracker columns before and after normalization,
+and local rules the schema will retain. Propose gradual metadata recovery:
+new and substantively updated pages get supported metadata; untouched pages
+and marker-only edits remain listed as gaps. Full recovery is an alternative
+only when the user chooses it. Show which existing tracker rows lack criteria,
+verification or closure evidence; normalization preserves their content and
+IDs, and leaves missing values explicit. Scope approval covers only the edits
+shown; do not treat adoption as approval to verify or rewrite all old pages.
 
 Show conventions and budgets as defaults from SCHEMA; do not ask about them.
 Also state whether git will track the folder: run `git check-ignore -q
@@ -88,12 +106,32 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
 
 - `.wikidir` is written in Step 6.
 - If the folder has no `SCHEMA.md`, write one from the default schema,
-  replacing each `<wiki-root>` placeholder with the folder name. If it already
+  replacing each `<wiki-root>` placeholder with the folder name and carrying
+  forward the explicit project rules found in Step 2. For example, a rule
+  forbidding hashes in the log changes `## Log format`, not automatically
+  page `source_commit` policy. If it already
   has one (v1 wikis included), keep it: add the missing v2 sections (`## Project
   profile`, `## Core map`, `## Conventions`, `## Budgets`, `## Topics`,
   `## Evidence`, `## Confidentiality`, `## Log format`) and preserve existing
   content. If an existing section conflicts with a v2 one, show both and ask.
   Never replace an existing `SCHEMA.md` wholesale.
+- Apply the compatibility edits confirmed in Step 3. If a newly discovered
+  conflict requires different edits, propose those before changing the
+  affected content. Keep metadata recovery scoped: actual evidence paths
+  must support the page's claims, not merely appear among its links. A new
+  metadata date or current commit never proves old prose; use `unknown` for
+  an unestablished source baseline and assess confidence from evidence.
+  When no supporting sources are established, retain the page as a reported
+  metadata gap rather than manufacture a source list.
+- Normalize confirmed tracker tables to the template columns, retaining
+  all original information. Translated tables keep the documented column
+  order; retain extra data in labeled notes associated with the same IDs.
+  Split grouped IDs
+  only as an approved mapping preserving their original meaning and evidence.
+  Move annotations out of date cells without inventing dates or proof. Never
+  infer a human closure, convert an unproven historical row to 🟢/⚫, or reopen
+  it solely to satisfy validation. Report unresolved status or authority for
+  human resolution; incomplete rows remain validation findings.
 - Fill `## Project profile` (language, project division, sensitive data, agent
   entry file) and `## Topics` from the answers confirmed in Step 3.
 - Fill `## Core map` with the existing files that play each role (e.g. an
@@ -102,12 +140,17 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   into the log.
 - List core roles with no existing file and propose creating only those,
   using the templates and source substitutions in Step 5.
+- `log-archive` is a reserved directory path inside the wiki. It need not
+  exist until the first archive write; do not create an empty directory or
+  `.gitkeep` solely for validation.
 - Insert the missing section markers (SCHEMA `## Conventions`) on the line
   under the matching headings of the adopted `context`, `handoff` and
   `tracker` pages; these one-line edits stay inside the wiki. List them in the
   report.
 - Never move, rename or delete files without confirmation.
-- Migration plan: once the Core map works in place, propose moving adopted
+- Migration plan: if the user already declined moves or asked to preserve the
+  layout, record the skipped moves without asking again. Otherwise, once the
+  Core map works in place, propose moving adopted
   files toward the default layout, as one numbered message: one line per move
   (`<from> → <to>`, why) and the links each move rewrites, plus the files
   outside the wiki that reference `<from>` (`git grep -l`), which it does not
@@ -116,8 +159,8 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   move: `git mv` when git tracks the file (plain move otherwise), rewrite
   relative links in every wiki page, update the Core map row. Never move a
   file outside `<wiki-root>/`.
-  Skipped moves stay mapped where they are; adoption is complete without any
-  move.
+  Skipped moves stay mapped where they are; structural adoption requires no
+  moves. It does not mean old pages or unresolved tracker rows are validated.
 
 ## Step 5 - New wiki
 
@@ -141,8 +184,10 @@ as a source. Include a path only when it exists by the end of init; omit
 unsupported optional source slots rather than assuming `README.md` exists.
 Mapped wiki pages may be sources when they support the content. If there is
 no source evidence, keep the content an explicit gap instead of inventing a
-path or a claim. Fill `source_commit` with the current short SHA, or `unknown`
-when git is unavailable. SCHEMA is configuration and does not require `sources:`.
+path or a claim. For new content, fill `source_commit` with the current short
+SHA, or `unknown` when git is unavailable. Retained old prose with no
+established baseline uses `unknown`, even when git exists. SCHEMA is
+configuration and does not require `sources:`.
 
 ## Step 6 - Configuration outside the wiki (confirmed in Step 3 or Step 1 only)
 
@@ -175,6 +220,14 @@ when git is unavailable. SCHEMA is configuration and does not require `sources:`
 Append the first log entry (SCHEMA `## Log format`) to the Core map `log`
 path (in adopt mode, created in Step 4 if that role was missing), then report: wiki root,
 adopted or created pages, migration moves done and skipped, stubs, files changed outside the wiki.
+
+In adopt mode, also report metadata gaps (count and paths), unresolved tracker
+fields and local conventions retained. Distinguish `structure adopted` from
+`structural validation passed`; deferred recovery is never a validator pass.
+If Python 3.10+ is available, run the installed maintainer's
+`scripts/validate-wiki.py` using the same invocation as `/wiki-lint` and report
+its actual exit status. Otherwise state that validation was not run. Do not
+fix deferred pages implicitly to obtain a green result.
 
 ## Guardrails
 

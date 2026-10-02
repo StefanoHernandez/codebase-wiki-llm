@@ -126,6 +126,150 @@ def fixture(repo, localized=False, legacy=False):
     return wiki, roles
 
 
+def adoption_cases():
+    """Exercise pre-existing docs, not just current templates at adopted paths."""
+    failures = 0
+    for name in (
+        "missing metadata reported once per page",
+        "missing metadata still checks links",
+        "unterminated metadata reported once",
+        "empty metadata remains invalid",
+        "archive reserved but absent",
+        "archive nested reservation",
+        "archive path is a file",
+        "archive parent is a file",
+        "archive dangling symlink",
+        "archive dangling ancestor symlink",
+        "archive symlink leaves wiki",
+        "unreadable Open tracker suppresses dependent ID findings",
+        "malformed Open tracker suppresses dependent ID findings",
+        "unreadable Done tracker still checks Open references",
+        "unreadable Open tracker still checks baton fields",
+        "combined legacy adoption",
+    ):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            wiki, roles = fixture(repo, localized=True)
+            count = None
+            required = []
+            forbidden = []
+            expected = 1
+            if name.startswith("missing metadata") or name == "combined legacy adoption":
+                for number in range(47):
+                    (wiki / f"existing-{number}.md").write_text("# Existing documentation\n")
+                count = 47
+                required = ["frontmatter"]
+                forbidden = ["missing frontmatter field", "confidence must", "sources must"]
+                if name.endswith("checks links"):
+                    (wiki / "existing-0.md").write_text("# Existing\n[missing](absent.md)\n")
+                    count = 48
+                    required.append("relative Markdown link")
+            if name == "unterminated metadata reported once":
+                (wiki / "existing.md").write_text("---\ntitle: Old page\n# Existing\n")
+                count = 1
+                required = ["unterminated frontmatter"]
+            if name == "empty metadata remains invalid":
+                (wiki / "existing.md").write_text("---\n---\n# Existing\n")
+                required = ["missing frontmatter field title"]
+            if name.startswith("archive") or name == "combined legacy adoption":
+                archive = wiki / roles["log-archive"]
+                archive.rmdir()
+                expected = 0
+                if name == "archive nested reservation":
+                    schema = wiki / "SCHEMA.md"
+                    schema.write_text(schema.read_text().replace(f"`{roles['log-archive']}`", "`future/nested/archive/`"))
+                elif name == "archive path is a file":
+                    archive.write_text("A file cannot become an archive directory.\n")
+                    expected = 1
+                elif name == "archive parent is a file":
+                    blocked = wiki / "blocked"
+                    blocked.write_text("file\n")
+                    schema = wiki / "SCHEMA.md"
+                    schema.write_text(schema.read_text().replace(f"`{roles['log-archive']}`", "`blocked/archive/`"))
+                    expected = 1
+                elif name == "archive dangling symlink":
+                    archive.symlink_to(wiki / "absent-directory", target_is_directory=True)
+                    expected = 1
+                elif name == "archive dangling ancestor symlink":
+                    (wiki / "dangling").symlink_to(wiki / "absent-directory", target_is_directory=True)
+                    schema = wiki / "SCHEMA.md"
+                    schema.write_text(schema.read_text().replace(f"`{roles['log-archive']}`", "`dangling/archive/`"))
+                    expected = 1
+                elif name == "archive symlink leaves wiki":
+                    outside = repo / "outside"
+                    outside.mkdir()
+                    archive.symlink_to(outside, target_is_directory=True)
+                    expected = 1
+                if expected == 1:
+                    required = ["Core map"]
+                else:
+                    count = 0
+            if "tracker" in name or name == "combined legacy adoption":
+                expected = 1
+                tracker = wiki / roles["tracker"]
+                # Localized fixture uses stable markers and positional columns.
+                text = tracker.read_text()
+                lines = text.splitlines()
+                open_marker = lines.index("<!-- wiki:open -->")
+                old_header = lines[open_marker + 1]
+                old_delimiter = lines[open_marker + 2]
+                old_row = lines[open_marker + 3]
+                if "Done tracker" in name:
+                    done_marker = lines.index("<!-- wiki:done -->")
+                    text = text.replace("\n" + lines[done_marker + 1] + "\n", "\n| ID | Goal | Closed | Evidence |\n")
+                    text = text.replace("\n" + lines[done_marker + 2] + "\n", "\n| --- | --- | --- | --- |\n", 1)
+                elif "malformed Open" in name:
+                    text = text.replace(old_delimiter, "| --- | --- | --- | --- | --- | --- | text |")
+                else:
+                    text = text.replace(old_header, "| ID | Status | Goal | Owner | Evidence |")
+                    text = text.replace(old_delimiter, "| --- | --- | --- | --- | --- |", 1)
+                    text = text.replace(old_row, "| T1 | 🟡 | Fix parser | Stefano | reproduced locally |")
+                if name == "combined legacy adoption":
+                    done_header = lines[lines.index("<!-- wiki:done -->") + 1]
+                    text = text.replace("\n" + done_header + "\n", "\n| ID | Goal | Closed | Evidence |\n")
+                    text = text.replace("<!-- wiki:done -->\n| ID | Goal | Closed | Evidence |\n" + lines[lines.index("<!-- wiki:done -->") + 2],
+                                        "<!-- wiki:done -->\n| ID | Goal | Closed | Evidence |\n| --- | --- | --- | --- |")
+                tracker.write_text(text)
+                handoff = wiki / roles["handoff"]
+                # Five legitimate tasks expose the old cascade from an unreadable Open table.
+                text = handoff.read_text()
+                task_row = next(line for line in text.splitlines() if line.startswith("| 1 | T1"))
+                text = text.replace(task_row, "\n".join(task_row.replace("| 1 |", f"| {n} |", 1) for n in range(1, 6)))
+                if "Done tracker" in name:
+                    text = text.replace("T1 - Fix parser", "T99 - Missing task")
+                    required = ["unsupported done tracker columns", "open tracker ID"]
+                    forbidden = ["references not checked"]
+                    count = 6
+                else:
+                    required = ["references not checked"]
+                    forbidden = ["baton task must start with an open tracker ID"]
+                    count = 2
+                if "baton fields" in name:
+                    text = text.replace("| `python3 -m unittest` |", "| |")
+                    count = 7
+                    required.append("missing verification command")
+                handoff.write_text(text)
+                if name == "combined legacy adoption":
+                    count = 50  # 47 metadata gaps, 2 tracker layouts, 1 skipped reference check.
+                    required += ["unsupported open tracker columns", "unsupported done tracker columns"]
+                    forbidden += ["Core map log-archive", "missing frontmatter field"]
+            before = {p.relative_to(repo): p.read_bytes() for p in repo.rglob("*") if p.is_file()}
+            before_nodes = {p.relative_to(repo): (p.is_dir(), p.is_symlink()) for p in repo.rglob("*")}
+            result = subprocess.run([sys.executable, "-I", str(VALIDATOR), str(wiki)], cwd=repo, capture_output=True, text=True)
+            output = result.stdout + result.stderr
+            findings = result.stderr.splitlines()
+            after = {p.relative_to(repo): p.read_bytes() for p in repo.rglob("*") if p.is_file()}
+            after_nodes = {p.relative_to(repo): (p.is_dir(), p.is_symlink()) for p in repo.rglob("*")}
+            ok = (result.returncode == expected and (count is None or len(findings) == count)
+                  and all(term in output for term in required) and all(term not in output for term in forbidden)
+                  and before == after and before_nodes == after_nodes)
+            print(("PASS " if ok else "FAIL ") + name)
+            if not ok:
+                failures += 1
+                print(f"  expected exit {expected}, findings {count}; got {result.returncode}, {len(findings)}: {output.strip()}")
+    return failures
+
+
 def run():
     if not VALIDATOR.is_file():
         print(f"FAIL installed structural validation absent: {VALIDATOR}", file=sys.stderr)
@@ -305,6 +449,7 @@ def run():
             if result.returncode != 2:
                 print(f"FAIL configuration exit 2: {args}: {result.returncode}")
                 failures += 1
+    failures += adoption_cases()
     return int(failures > 0)
 
 

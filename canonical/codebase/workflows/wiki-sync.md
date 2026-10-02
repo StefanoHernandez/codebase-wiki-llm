@@ -11,7 +11,8 @@ Requires the wiki maintainer skill. Respect `<wiki-root>/SCHEMA.md`.
 ## Step 1 - Fast preconditions
 
 - If Step 0 found no wiki, exit silently.
-- If no source/config/project files changed and the log-archive rule (SCHEMA
+- Only after Step 2 established usable change coverage, if no
+  source/config/project files changed and the log-archive rule (SCHEMA
   `## Log format`) does not apply, report `wiki-sync: nothing to do.`
   Changed files include uncommitted ones, those committed since the code
   state (`@<short-sha>`) of the latest `log` entry, and those named by a
@@ -23,13 +24,30 @@ Prefer git:
 
 1. `git status --porcelain` for uncommitted and untracked files.
 2. `git diff --name-only HEAD` for working-tree changes.
-3. `git diff --name-only <sha>..HEAD`, where `<sha>` is the code state of the
-   latest `log` entry, for work committed since the last sync; add the files
-   named by a `Codebase Wiki LLM (note, not a stop)` line.
-4. For each wiki page source, `git log <source_commit>..HEAD -- <source>` for
-   committed changes since the page was written.
+3. Read SCHEMA `## Log format`: use the latest log's code state only when
+   the project permits recording it. Before any revision range, resolve its
+   anchor with `git rev-parse --verify --end-of-options '<sha>^{commit}'` and
+   establish that it is an ancestor of HEAD (`git merge-base --is-ancestor
+   <resolved-commit> HEAD`). Use `git diff --name-only <resolved-commit>..HEAD`
+   only for a usable anchor. Add the files named by a
+   `Codebase Wiki LLM (note, not a stop)` line regardless of anchor availability.
+4. For each wiki page source, validate `source_commit` the same way before
+   `git log <resolved-commit>..HEAD -- <source>`. Missing/`unknown`, unresolvable
+   or non-ancestor anchors are unavailable baselines, not empty diffs.
 
-If git is unavailable, use mtimes.
+If the latest log has no usable baseline (project policy, legacy content or
+rewritten history), state `committed-change coverage incomplete` and why.
+Use available page baselines, working-tree changes and reminder paths; inspect
+current sources for affected pages with no baseline and compare their claims.
+Pages without metadata are unanchored; do not assume them current. Report
+unmapped or unexamined coverage and recommend `/wiki-lint` or `/wiki-ingest`
+for broader recovery. This fallback cannot prove every committed change was
+covered and must never yield `wiki-sync: nothing to do.`
+
+If git is unavailable, use mtimes only as signals to inspect current sources
+and report incomplete committed-change coverage. Timestamp comparisons alone
+do not prove pages current. Apply Step 3's small-change limit to the fallback
+too; do not silently expand sync into a full migration.
 
 Filter out paths excluded by `<wiki-root>/SCHEMA.md` and `<wiki-root>/` itself.
 
@@ -89,7 +107,11 @@ Touch `index` only when summaries, titles, or page availability changed.
 
 ## Step 6 - Log, tracker, handoff
 
-1. Append one entry to `log` in SCHEMA `## Log format`, author `agent`.
+1. Append one entry to `log` in SCHEMA `## Log format`, author `agent`. Preserve
+   a project ban on commit hashes: retain the actual command, essential
+   output, date and relevant environment, with code state not recorded by
+   project policy. Do not invent a replacement digest or insert a hash to
+   repair the sync baseline. Report any incomplete change coverage.
 2. Update the status of every touched ID in `tracker`; never write status
    anywhere else. Mark 🟢 only when the row's `Done when` criteria are proven
    (proof in `Criteria met` and its source in `Evidence`). Explicit human
@@ -98,6 +120,11 @@ Touch `index` only when summaries, titles, or page availability changed.
    citing the human closure source in `Evidence`; never infer that authority.
    Otherwise keep it Open and name what is missing. New work the change
    suggests goes to `## Proposals`.
+   This rule governs current work and new completion claims. Do not reclassify
+   unresolved historical terminal rows encountered during unrelated sync:
+   preserve them, report missing proof/authority for human resolution, and
+   keep the validation gap explicit. Adoption's column normalization alone
+   never supplies that resolution.
 3. Rewrite `handoff`: `Tracker IDs`, last completed step, next tasks (baton
    table with tracker IDs), what not to redo, commands already run and Git
    state. Activity status remains in the tracker.
@@ -106,7 +133,9 @@ Touch `index` only when summaries, titles, or page availability changed.
    dated up to its closing date that are still in `log` to `<phase>.md`. When
    `log` is over its budget, move whole calendar months, oldest first, to
    `<YYYY-MM>.md` until it fits, always keeping at least the last 10 entries.
-   Both go under the `log-archive` path (Core map). Entries move unchanged
+   Both go under the `log-archive` path (Core map). At the first actual archive
+   write, validate that this path stays inside the wiki and is not blocked by
+   a file or dangling symlink, then create its missing directories. Entries move unchanged
    (dates, evidence and links kept; relative links rewritten only so they
    still resolve); an existing archive file is appended to, never replaced;
    `log` keeps one link line per archive. The fixed names and cuts make

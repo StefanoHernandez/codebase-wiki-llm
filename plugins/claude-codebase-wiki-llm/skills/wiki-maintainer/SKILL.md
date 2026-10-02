@@ -92,7 +92,11 @@ resolves sources from the target repository and links from each page, and
 never reads `.private-terms` or modifies files. It checks the documented
 format, not arbitrary YAML/Markdown or the semantic truth of evidence.
 
-Every wiki page must have YAML frontmatter:
+The fully validated format requires YAML frontmatter on every wiki page.
+Adoption may recover existing pages gradually: new and substantively updated
+pages follow this format; untouched legacy pages and marker-only edits remain
+explicit metadata gaps, not exceptions that make validation pass. Init
+reports their count and paths and the agreed recovery scope.
 
 ```yaml
 ---
@@ -111,7 +115,13 @@ Rules:
 - `sources:` must name concrete repository-relative evidence paths (files
   or directories); replace template placeholders before writing. SCHEMA is
   configuration and does not require `sources:`.
-- `source_commit:` is the current short git commit when git is available.
+- `source_commit:` identifies the source baseline actually reviewed. For new
+  content use the current short git commit when git is available; for old
+  prose with no established baseline use `unknown`. Adding metadata never
+  proves the page's old claims. Local log rules do not automatically change
+  page metadata policy.
+  This field is a commit baseline; evidence of a reviewed working copy records
+  relevant uncommitted changes as `+local` under SCHEMA `## Evidence`.
 - `confidence:` is `high`, `medium`, or `low`.
 - Use standard relative markdown links. Do not use `[[wikilink]]` syntax.
 - Write headings and prose in the SCHEMA `## Project profile` language; keep
@@ -120,6 +130,13 @@ Rules:
 - Prefer Mermaid for flows, module relationships, and state machines.
 - Every write follows SCHEMA `## Evidence`; log entries follow SCHEMA
   `## Log format`.
+- During adoption, preserve explicit project rules even when they currently
+  live in the log or other docs, and carry them into SCHEMA. Its log format
+  may forbid commit hashes; sync then reports missing committed-change
+  coverage and uses the available page baselines/current sources. Never
+  silently replace an agreed local convention with a default.
+- `log-archive` reserves a safe directory path. Create it on the first archive
+  write; absence alone is not a structural finding.
 
 ## Engineering quality bar
 
@@ -201,6 +218,14 @@ the requirement and its reasons as written, and flag the divergence in `risks`
 the code; ask when an unresolved decision is needed. Work claimed done
 without proof stays open unless a person explicitly closes it; that terminal
 row is ⚫, never 🟢.
+
+Historical terminal rows encountered during adoption or unrelated sync are
+not new completion claims. Preserve their recorded content and flag missing
+proof or closure authority for human resolution; do not reopen them or assign
+a new terminal icon solely to satisfy validation. Normalizing columns does
+not establish proof. These unresolved rows remain validation/semantic gaps.
+When a person resumes the work or resolves its closure, update that ID under
+the current Open/🟢/⚫ rules with the recorded evidence and authority.
 
 ## Parallel work
 
