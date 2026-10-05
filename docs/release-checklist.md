@@ -8,10 +8,26 @@ archive) was reproduced in a synthetic fixture, not by inspecting the target
 project. The 0.9.1 validator produced 431 findings; the corrected fixture
 expects 50 root/gap findings and exit 1, retaining incomplete validation.
 
-- [ ] Full automated suite passes on the patch commit.
-- [ ] Independent code review and workflow application scenarios complete;
+- [x] Full automated suite passes on the patch commit.
+- [x] Independent code review and workflow application scenarios complete;
   material findings resolved.
-- [ ] Main and `v0.9.2` pushed; remote SHAs verified.
+- [x] Main and `v0.9.2` pushed; remote SHAs verified.
+
+Verified on 2026-10-02 at release commit
+`e4bf94ffa936edc9adca3e0fb03edbe15d6a51db`:
+`bash scripts/run-tests.sh` exited 0, including 102 validator fixtures on the
+canonical script and all four byte-identical standalone distributions, plus
+the existing generator, continuity, reminder, privacy and hook checks.
+Independent read-only code review found no unresolved material issues.
+Five workflow application scenarios covered gradual adoption, explicit
+re-adoption, a hash-free log, rewritten history and incomplete full recovery;
+the historical-closure ambiguities they found were corrected and rechecked.
+These application exercises are not real-host trials.
+
+Remote verification confirmed main and peeled `v0.9.2` at the release commit
+above; the annotated tag object is
+`ce3d24fb4eac96b5d0b91edb3ef2afe4a33f6a78`. Later documentation-only commits
+may advance main without changing the tagged plugin files.
 
 Following Stefano's requested ordering, automated checks and publication
 precede further real-project trials. The forwarded adoption attempt is
@@ -38,9 +54,9 @@ than changing the evidence needed for real-host compatibility claims.
 
 ## Automatic
 
-- [ ] `bash scripts/run-tests.sh` passes on the release commit.
-- [ ] Whole-branch review passes; material findings are resolved.
-- [ ] Main and `v0.9.1` pushed; remote SHAs verified before user field trials.
+- [x] `bash scripts/run-tests.sh` passes on the release commit.
+- [x] Whole-branch review passes; material findings are resolved.
+- [x] Main and `v0.9.1` pushed; remote SHAs verified before user field trials.
 
 ## Per host (real session)
 
@@ -51,12 +67,15 @@ Current state: **pending on all three hosts; trials follow the main push**.
 | --- | --- | --- | --- |
 | Install from the branch; the four commands or skills appear | | | |
 | `/wiki-init` on a repo without docs: one-message survey (7 items, language asked), wiki written | | | |
-| `/wiki-init --adopt <folder>` on a repo with docs: pages mapped in place, markers added, migration plan proposed as one numbered list, each move accepted or skipped | | | |
+| `/wiki-init --adopt <folder>` on a repo with docs: compatibility scope proposed, pages mapped in place, markers added, gaps explicit; optional moves accepted or skipped, respecting an earlier no | | | |
+| Explicit `--adopt` on an already mapped wiki: recover approved gaps in place without rebuilding the scaffold | | | |
+| Adopt older pages without frontmatter and a custom tracker: gradual recovery preserves evidence and IDs, reports incomplete validation, and does not fabricate historical closure | | | |
 | New session: `wiki_root` and `new context` lines (Codex, Claude Code) or the rule (Antigravity); the agent reads the core once | | | |
 | Change code, send another message: the note appears once and does not block | | | |
 | Antigravity: the note appears once per turn (initialNumSteps stays constant within a turn) and a quiet hook's {} output is accepted | n/a | n/a | |
 | Codex: SessionStart and UserPromptSubmit plugin hooks run (${CLAUDE_PLUGIN_ROOT} resolves) | | n/a | n/a |
-| `/wiki-sync`: log entry with `@<sha>`, tracker row, handoff; log archived when over budget | | | |
+| `/wiki-sync`: log entry in project format, tracker row, handoff; first actual archive creates its directory and archiving follows budget | | | |
+| Hash-free log policy or rewritten Git history: sync preserves conventions, validates anchors and reports incomplete coverage without a false nothing-to-do | | | |
 | Switch participant or host mid-task: the next agent continues from the handoff without redoing work | | | |
 | `/wiki-lint`: report with no false alarms on a healthy wiki | | | |
 | `/wiki-lint`: installed deterministic validator runs; missing or older Python explicitly skips it while read-only review continues | | | |
