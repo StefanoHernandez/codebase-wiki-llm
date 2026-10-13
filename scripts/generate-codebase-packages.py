@@ -101,7 +101,7 @@ REFERENCES = (
 
 CODEBASE_CODEX_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Global Codex plugin for maintaining a living LLM wiki for each codebase.",
   "author": {
     "name": "Stefano"
@@ -146,7 +146,7 @@ CODEBASE_CODEX_PLUGIN_JSON = """{
 
 CODEBASE_CLAUDE_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
   "author": {
     "name": "Stefano Paradisi",
@@ -182,7 +182,7 @@ CLAUDE_HOOKS_JSON = r"""{
 
 ANTIGRAVITY_PLUGIN_JSON = """{
   "name": "codebase-wiki-llm",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Bootstrap and maintain a living wiki (wiki/ by default, or a folder you choose such as .wiki/) that stays in sync with source code. Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint."
 }
 """

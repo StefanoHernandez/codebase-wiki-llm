@@ -95,7 +95,8 @@ For each affected page:
 
 1. Read the current page.
 2. Make the minimum accurate edit.
-3. Update frontmatter: `updated`, `sources`, `source_commit`, `confidence`.
+3. Update frontmatter: `title`, `type`, `description`, `status`,
+   `generated`, `sources`, `source_commit`, `confidence`.
 4. Add supersession notes when correcting old claims.
 5. Preserve and add relative links where useful.
 

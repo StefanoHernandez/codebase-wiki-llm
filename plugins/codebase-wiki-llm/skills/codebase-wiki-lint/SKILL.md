@@ -58,7 +58,7 @@ Do targeted source reads only where needed to verify claims.
 
 Flag pages when:
 
-- `updated` is older than schema policy and sources changed;
+- `generated.at` (falling back to legacy `updated`) is older than schema policy and sources changed;
 - five or more commits touched listed sources since `source_commit`;
 - confidence is `low`;
 - listed sources are missing.
@@ -167,10 +167,20 @@ Never delete.
 
 ### Frontmatter hygiene
 
-Flag missing fields, invalid dates, invalid confidence, and missing source
-files.
+Flag frontmatter issues:
+
+- missing `type` or `description`: warning for new pages, `info` for legacy pages that predate OKF-lite schema;
+- invalid `status`: error if present and not one of `draft`, `stable`, `deprecated`;
+- invalid `generated.by`: warning if not in actor format (`<host>/<model>`, `human:<id>`, or `process:<id>`);
+- deprecated link target: warning if a `deprecated` page is linked by an active `stable` page;
+- general hygiene: missing mandatory fields (`title`, `sources`, `confidence`), invalid timestamps, invalid confidence level (`low|medium|high`), or missing source files.
 
 ## Step 4 - Report
+
+Compute derived trust tiers:
+- `unverified`: pages without `verified`;
+- `machine-confirmed`: pages verified only by non-human verifiers (`process:<id>`, etc.);
+- `human-reviewed`: pages with at least one `human:<id>` verifier.
 
 Produce a concise markdown report:
 
@@ -192,6 +202,7 @@ Produce a concise markdown report:
 - Contradictions: <n>
 - Legacy: <n>
 - Frontmatter: <n>
+- Trust: unverified <n>, machine-confirmed <n>, human-reviewed <n>
 
 ## Findings
 ...

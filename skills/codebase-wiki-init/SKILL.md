@@ -121,8 +121,8 @@ After confirmation:
    `wiki`, do not create `.wikidir`.
 3. Copy or adapt the default schema to `<wiki-root>/SCHEMA.md`, replacing each
    `<wiki-root>` placeholder in it with the chosen name.
-4. Create pages with frontmatter: `title`, `updated`, `sources`,
-   `source_commit` when git is available, and `confidence`.
+4. Create pages with frontmatter: `title`, `type`, `description`, `status`,
+   `generated`, `sources`, `source_commit` when git is available, and `confidence`.
 5. Populate only what is supported by evidence. Use explicit stubs for pages
    that matter but have no verified content yet.
 
@@ -232,7 +232,8 @@ Create `<wiki-root>/project/work-tracker.md` using
 ## Step 9 - Update index and log
 
 Make `index.md` a complete catalog grouped by Overview, Engineering, Modules,
-Project, Project Docs, Agent, and Reference.
+Project, Project Docs, Agent, and Reference, using each page's `description`
+for entry summaries.
 
 Append to `log.md`:
 

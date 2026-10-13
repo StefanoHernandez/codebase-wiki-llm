@@ -13,7 +13,7 @@ pointer="$root/.wikidir"
 if [ -f "$pointer" ]; then
   # Drop NUL bytes, UTF-8/UTF-16 BOM bytes and CR so files written by
   # PowerShell still read as plain ASCII; valid names are ASCII only.
-  value=$(tr -d '\000\015\357\273\277\376\377' < "$pointer" | sed -n '/[^[:space:]]/{p;q;}' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+  value=$(LC_ALL=C tr -d '\000\015\357\273\277\376\377' < "$pointer" | sed -n '/[^[:space:]]/{p;q;}' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
   lower=$(printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]')
   case "$lower" in
     .git|.github|.claude|.codex|.agents|.agent|.gemini|.opencode|.obsidian|.vscode|node_modules|.wikidir)
