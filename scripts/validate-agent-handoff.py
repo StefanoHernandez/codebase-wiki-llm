@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-REQUIRED_FRONTMATTER = {"title", "updated", "sources", "confidence"}
+REQUIRED_FRONTMATTER = {"title", "sources", "confidence"}
 BATON_HEADING = "## Baton For Next Coding Agent"
 TABLE_COLUMNS = [
     "Order",
@@ -90,6 +90,8 @@ def validate_frontmatter(page: Page) -> list[str]:
     missing = sorted(REQUIRED_FRONTMATTER - set(page.frontmatter))
     if missing:
         errors.append(f"{page.path}: missing frontmatter fields: {', '.join(missing)}")
+    if not {"updated", "generated"} & set(page.frontmatter):
+        errors.append(f"{page.path}: missing frontmatter fields: updated or generated")
 
     sources = page.frontmatter.get("sources")
     if not isinstance(sources, list) or not sources:
