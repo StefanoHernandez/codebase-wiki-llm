@@ -6,7 +6,9 @@ not a narrative session summary.
 ```markdown
 ---
 title: Agent Handoff
-updated: YYYY-MM-DD
+type: AgentNote
+description: <one line>
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 sources:
   - <wiki-root>/agent/activity.md
   - <wiki-root>/project/work-tracker.md

@@ -6,7 +6,9 @@ coding agent can read it before searching the codebase.
 ```markdown
 ---
 title: Agent Context
-updated: YYYY-MM-DD
+type: AgentNote
+description: <one line>
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 sources:
   - README.md
   - <wiki-root>/index.md

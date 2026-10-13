@@ -6,7 +6,9 @@ to agent handoff tasks.
 ```markdown
 ---
 title: Work Tracker
-updated: YYYY-MM-DD
+type: Project
+description: <one line>
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 sources:
   - <wiki-root>/agent/activity.md
   - <wiki-root>/agent/handoff.md
