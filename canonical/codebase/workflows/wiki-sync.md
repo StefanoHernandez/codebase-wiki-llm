@@ -85,7 +85,10 @@ Apply minimum edits:
 
 - fix factual claims;
 - update verification commands or failure modes;
-- update frontmatter;
+- update frontmatter on touched pages: add `type` and `description` if missing
+  (inferred from folder or content), set `generated: { by: <host>/<model>, at: <timestamp> }`,
+  and remove legacy `updated`. Agents must never write or edit `verified`
+  (reserved exclusively for explicit human confirmation or declared processes);
 - add supersession notes for corrected claims;
 - lower confidence when evidence is incomplete;
 - update `context` when project onboarding facts, commands, risks,

@@ -5,8 +5,10 @@ status and connects project state to agent handoff tasks.
 
 ```markdown
 ---
+type: Project
 title: Work Tracker
-updated: YYYY-MM-DD
+description: <one line>
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 sources:
   - <wiki-root>/<Core map log path>
   - <wiki-root>/<Core map handoff path>

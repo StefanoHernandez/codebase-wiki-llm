@@ -103,7 +103,7 @@ name the affected claims; ignore cosmetic changes. Also flag:
 - listed sources that are missing;
 - confidence `low`;
 - as signals to check, not verdicts: five or more commits touching listed
-  sources since `source_commit`, or `updated` older than schema policy.
+  sources since `source_commit`, or `generated.at` (falling back to legacy `updated`) older than schema policy.
 
 Missing metadata or an unavailable baseline means staleness is not
 established. Report that gap, inspect current sources where useful, and do
@@ -259,8 +259,13 @@ Never delete.
 
 ### Frontmatter hygiene
 
-Flag missing fields, invalid dates, invalid confidence, missing source
-paths, and unresolved placeholders or descriptive phrases in `sources:`.
+Flag frontmatter issues:
+
+- missing `type` or `description`: warning for new pages, `info` for legacy pages that predate OKF-lite schema;
+- invalid `status`: error if present and not one of `draft`, `stable`, `deprecated`;
+- invalid `generated.by`: warning if not in actor format (`<host>/<model>`, `human:<id>`, or `process:<id>`);
+- deprecated link target: warning if a `deprecated` page is linked by an active `stable` page;
+- general hygiene: missing mandatory fields (`title`, `sources`, `confidence`), invalid timestamps, invalid confidence level (`low|medium|high`), or missing source files.
 Sources name concrete repository-relative files or directories, including
 resolved Core map paths; SCHEMA is configuration and need not list sources.
 Group adopted pages without frontmatter by count and paths, one root finding
@@ -270,6 +275,11 @@ evidence, not a mechanical copy of every link in old prose. Report gradual
 recovery as incomplete validation, including when structural adoption succeeded.
 
 ## Step 4 - Report
+
+Compute derived trust tiers:
+- `unverified`: pages without `verified`;
+- `machine-confirmed`: pages verified only by non-human verifiers (`process:<id>`, etc.);
+- `human-reviewed`: pages with at least one `human:<id>` verifier.
 
 Produce a concise markdown report:
 
@@ -294,6 +304,7 @@ Produce a concise markdown report:
 - Contradictions: <n>
 - Legacy: <n>
 - Frontmatter: <n>
+- Trust: unverified <n>, machine-confirmed <n>, human-reviewed <n>
 
 | Scope | File | Size | Limit |
 | --- | --- | --- | --- |

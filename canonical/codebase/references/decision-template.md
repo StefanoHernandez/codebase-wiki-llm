@@ -5,12 +5,14 @@ One decision per file in the `decisions` role folder (Core map), named
 
 ````markdown
 ---
+type: Decision
 title: NNNN - <decision>
-updated: YYYY-MM-DD
+description: <one line>
+status: proposed | accepted | rejected | superseded by NNNN
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 sources:
   - <source-path>
 source_commit: <short-sha-or-unknown>
-status: proposed | accepted | rejected | superseded by NNNN
 confidence: high | medium | low
 ---
 

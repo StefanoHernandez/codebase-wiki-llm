@@ -7,8 +7,10 @@ that a new coding agent can read it before searching the codebase.
 
 ```markdown
 ---
+type: AgentNote
 title: Agent Context
-updated: YYYY-MM-DD
+description: <one line>
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 sources:
   - <source-path>
   - <wiki-root>/<Core map index path>

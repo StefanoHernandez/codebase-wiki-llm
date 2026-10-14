@@ -92,16 +92,16 @@ resolves sources from the target repository and links from each page, and
 never reads `.private-terms` or modifies files. It checks the documented
 format, not arbitrary YAML/Markdown or the semantic truth of evidence.
 
-The fully validated format requires YAML frontmatter on every wiki page.
-Adoption may recover existing pages gradually: new and substantively updated
-pages follow this format; untouched legacy pages and marker-only edits remain
-explicit metadata gaps, not exceptions that make validation pass. Init
-reports their count and paths and the agreed recovery scope.
+The fully validated format requires YAML frontmatter on every concept page
+(`index.md` and `log.md` are not concepts and take no `type`):
 
 ```yaml
 ---
+type: Module
 title: Short descriptive title
-updated: 2026-05-19
+description: One-line summary of the page.
+status: stable
+generated: { by: antigravity/gemini-3.5, at: 2026-05-19T10:00:00Z }
 sources:
   - src/routes/nodes.ts
   - tests/routes/nodes.test.ts
@@ -112,6 +112,25 @@ confidence: high
 
 Rules:
 
+- `type:` is a short string naming the kind of page. Defaults by location:
+  `overview.md` and `overview-<project-slug>.md` -> `Overview`, `engineering/`
+  -> `Engineering`, `modules/` -> `Module`, `project/` -> `Project`,
+  `project-docs/` -> `ProjectDoc`, `agent/` -> `AgentNote`, `SCHEMA.md` ->
+  `Schema`, `glossary.md` -> `Glossary`. Override only when the default is wrong.
+- `description:` is one line. Use it for the page's entry in `index.md`.
+- `status:` is `draft`, `stable`, or `deprecated`; absent means `stable`.
+  Deprecated pages stay for links and history; never delete them silently.
+- `generated:` is `{ by, at }`: `by` is the actor, `at` is an ISO 8601 UTC
+  datetime of the last meaningful change. It replaces the legacy `updated`.
+- An actor is `human:<id>`, or `<host>/<model>` with host `claude-code`,
+  `codex`, or `antigravity`. Unknown model: `<host>/unknown`.
+- `verified:` is optional: `{ by, at }` or a list of them. Agents never write or
+  edit it. Only the user's explicit confirmation of a page (actor `human:<id>`)
+  or a declared automated process (`process:<id>`) may set it.
+- Trust is derived, never stored: no `verified` is unverified; only non-human
+  actors is machine-confirmed; any `human:` actor is human-reviewed.
+- Pages that have `updated` and none of the new fields stay valid. Lint reports
+  them as info, and `/wiki-sync` upgrades them when it touches the page.
 - `sources:` must name concrete repository-relative evidence paths (files
   or directories); replace template placeholders before writing. SCHEMA is
   configuration and does not require `sources:`.

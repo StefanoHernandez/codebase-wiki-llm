@@ -175,7 +175,7 @@ class Validator:
                 elif scalar:
                     current = scalar[1]
                     value = (scalar[2] or "").strip()
-                    if value.startswith(("[", "{", "|", ">", "&", "*", "!")):
+                    if value.startswith(("[", "{", "|", ">", "&", "*", "!")) and current not in ("generated", "verified"):
                         self.error(path, number, "unsupported frontmatter value; use a plain or quoted scalar (sources uses an indented list)")
                     if current in fields:
                         self.error(path, number, f"duplicate frontmatter key {current}")
@@ -206,13 +206,15 @@ class Validator:
         if not page.has_frontmatter:
             return
         schema = page.path == self.wiki / "SCHEMA.md"
-        required = {"title", "updated", "confidence"} | (set() if schema else {"sources", "source_commit"})
+        required = {"title", "confidence"} | (set() if schema else {"sources", "source_commit"})
         for key in sorted(required - page.fields.keys()):
             self.error(page.path, 1, f"missing frontmatter field {key}")
+        if not ({"updated", "generated"} & page.fields.keys()):
+            self.error(page.path, 1, "missing frontmatter field updated or generated")
         for key in ("title", "source_commit"):
             if key in page.fields and (not isinstance(page.fields[key], str) or not page.fields[key]):
                 self.error(page.path, page.locations[key], f"{key} must be non-empty")
-        if not iso_date(str(page.fields.get("updated", ""))):
+        if "updated" in page.fields and not iso_date(str(page.fields.get("updated", ""))):
             self.error(page.path, page.locations.get("updated", 1), "updated must be a real ISO date YYYY-MM-DD")
         if page.fields.get("confidence") not in ("high", "medium", "low"):
             self.error(page.path, page.locations.get("confidence", 1), "confidence must be high, medium, or low")

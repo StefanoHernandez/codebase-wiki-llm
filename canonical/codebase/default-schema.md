@@ -1,6 +1,8 @@
 ---
+type: Schema
 title: Wiki Schema
-updated: 2026-10-02
+description: Repo-specific conventions that wiki workflows must follow.
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 confidence: high
 ---
 
@@ -172,6 +174,30 @@ archive in the log, and reports the move.
 - One page per coherent topic or code area; split a page that nears its budget.
 - Keep the tracker the only place where status lives; other pages cite IDs.
 - Keep `context` and `handoff` short and useful for the next session.
+
+## Page frontmatter
+
+Every concept page carries `type`, `title`, `description`, `status`,
+`generated`, `sources`, `source_commit`, and `confidence`, plus an optional
+`verified`. `index.md` and `log.md` are not concepts and take no `type`. The
+full rules live in the wiki maintainer skill; the defaults are:
+
+| Page | Default `type` |
+| --- | --- |
+| `overview.md`, `overview-<project-slug>.md` | `Overview` |
+| `engineering/*` | `Engineering` |
+| `modules/*` | `Module` |
+| `project/*` | `Project` |
+| `project-docs/*` | `ProjectDoc` |
+| `agent/*` | `AgentNote` |
+| `SCHEMA.md` | `Schema` |
+| `glossary.md` | `Glossary` |
+
+Actors in `generated.by` and `verified.by`: `human:<id>`, `process:<id>`, or
+`<host>/<model>` with host `claude-code`, `codex`, or `antigravity` (unknown
+model: `<host>/unknown`). Agents never write `verified`. Trust is derived from
+it: none is unverified, non-human only is machine-confirmed, any `human:` is
+human-reviewed.
 
 ## Module page template (optional `modules` topic)
 

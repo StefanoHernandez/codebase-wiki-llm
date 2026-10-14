@@ -62,6 +62,19 @@ EOF
 
 "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/wiki"
 
+# `generated` is accepted in place of `updated`.
+cp -R "$TMP_DIR/wiki" "$TMP_DIR/wiki-generated"
+sed -i.bak 's/^updated: .*/generated: { by: antigravity\/unknown, at: 2026-10-14T00:00:00Z }/' "$TMP_DIR"/wiki-generated/agent/*.md
+"$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/wiki-generated"
+
+# Neither `updated` nor `generated` is rejected, with a clear message.
+sed -i.bak '/^generated: /d' "$TMP_DIR/wiki-generated/agent/handoff.md"
+if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/wiki-generated" 2>"$TMP_DIR/gen.err"; then
+  echo "expected validator failure when neither updated nor generated is present" >&2
+  exit 1
+fi
+grep -q "updated or generated" "$TMP_DIR/gen.err"
+
 # Without an argument the validator uses ./wiki, or the folder named in ./.wikidir.
 (cd "$TMP_DIR" && "$ROOT_DIR/scripts/validate-agent-handoff.py")
 

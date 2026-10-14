@@ -7,8 +7,10 @@ not a narrative session summary.
 
 ```markdown
 ---
+type: AgentNote
 title: Agent Handoff
-updated: YYYY-MM-DD
+description: <one line>
+generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 sources:
   - <wiki-root>/SCHEMA.md
   - <wiki-root>/<Core map log path>
