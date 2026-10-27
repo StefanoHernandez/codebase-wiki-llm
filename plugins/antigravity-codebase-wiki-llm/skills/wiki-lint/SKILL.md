@@ -134,6 +134,15 @@ name the affected claims; ignore cosmetic changes. Also flag:
 - as signals to check, not verdicts: five or more commits touching listed
   sources since `source_commit`, or `generated.at` (falling back to legacy `updated`) older than schema policy.
 
+Stale verified (warning): for each `verified` entry, with `commit`, it is
+stale when `git log <commit>..HEAD -- <sources>` is non-empty; without, when
+`git log --since=<at> -- <sources>` is non-empty. An unresolvable commit or an
+`at` that is not a datetime is `info`: freshness undetermined. A page counts
+as stale verified when every entry giving its trust tier is stale (for
+human-reviewed, every `human:` entry); one fresh entry of that tier clears it.
+Name the actor and the changed sources. Never change the tier and never edit
+`verified`.
+
 Missing metadata or an unavailable baseline means staleness is not
 established. Report that gap, inspect current sources where useful, and do
 not treat an invalid Git range as no changes. A metadata edit date is not a
@@ -335,7 +344,7 @@ Produce a concise markdown report:
 - Contradictions: <n>
 - Legacy: <n>
 - Frontmatter: <n>
-- Trust: unverified <n>, machine-confirmed <n>, human-reviewed <n>
+- Trust: unverified <n>, machine-confirmed <n>, human-reviewed <n> (stale verified <n>)
 
 | Scope | File | Size | Limit |
 | --- | --- | --- | --- |

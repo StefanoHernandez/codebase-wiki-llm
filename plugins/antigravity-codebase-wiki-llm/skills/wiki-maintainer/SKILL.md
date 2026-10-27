@@ -125,14 +125,21 @@ Rules:
 - `status:` is `draft`, `stable`, or `deprecated`; absent means `stable`.
   Deprecated pages stay for links and history; never delete them silently.
 - `generated:` is `{ by, at }`: `by` is the actor, `at` is an ISO 8601 UTC
-  datetime of the last meaningful change. It replaces the legacy `updated`.
+  datetime (with `Z`; OKF ignores date-only values) of the last meaningful
+  change. It replaces the legacy `updated`. Meaningful means the page's claims
+  changed: facts, commands, evidence paths, status. Link, formatting,
+  reordering and metadata-only edits leave `generated` alone; a legacy page
+  touched only in metadata keeps `updated` and gets no `generated`.
 - An actor is `human:<id>`, or `<host>/<model>` with host `claude-code`,
   `codex`, or `antigravity`. Unknown model: `<host>/unknown`.
-- `verified:` is optional: `{ by, at }` or a list of them. Agents never write or
-  edit it. Only the user's explicit confirmation of a page (actor `human:<id>`)
+- `verified:` is optional: `{ by, at }` or a list of them, each with an
+  optional `commit: <sha>` naming the code state that was confirmed; `at` is a
+  datetime like `generated.at`. Agents never write or edit it. Only the user's explicit confirmation of a page (actor `human:<id>`)
   or a declared automated process (`process:<id>`) may set it.
 - Trust is derived, never stored: no `verified` is unverified; only non-human
-  actors is machine-confirmed; any `human:` actor is human-reviewed.
+  actors is machine-confirmed; any `human:` actor is human-reviewed. Lint
+  reports a confirmation whose sources changed afterwards as stale verified,
+  a freshness signal beside the tier that never lowers it.
 - Pages that have `updated` and none of the new fields stay valid. Lint reports
   them as info, and `/wiki-sync` upgrades them when it touches the page.
 - `sources:` must name concrete repository-relative evidence paths (files

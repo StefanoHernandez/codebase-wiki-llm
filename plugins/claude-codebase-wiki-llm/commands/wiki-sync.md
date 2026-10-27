@@ -112,8 +112,11 @@ Apply minimum edits:
 - fix factual claims;
 - update verification commands or failure modes;
 - update frontmatter on touched pages: add `type` and `description` if missing
-  (`type` from SCHEMA `## Page types`, else the folder default), set `generated: { by: <host>/<model>, at: <timestamp> }`,
-  and remove legacy `updated`. Agents must never write or edit `verified`
+  (`type` from SCHEMA `## Page types`, else the folder default). When the
+  page's claims changed (facts, commands, evidence paths, status), set
+  `generated: { by: <host>/<model>, at: <ISO 8601 UTC datetime> }` and remove
+  legacy `updated`; for link, formatting, reordering or metadata-only edits
+  leave `generated` (or legacy `updated`) as it is. Agents must never write or edit `verified`
   (reserved exclusively for explicit human confirmation or declared processes);
 - add supersession notes for corrected claims;
 - lower confidence when evidence is incomplete;
@@ -148,7 +151,9 @@ Touch `index` only when summaries, titles, or page availability changed.
    `closed by <person> YYYY-MM-DD; not proven: <what>` in `Criteria met`,
    citing the human closure source in `Evidence`; never infer that authority.
    Otherwise keep it Open and name what is missing. New work the change
-   suggests goes to `## Proposals`.
+   suggests goes to `## Proposals`. When a touched tracker row has `unknown`
+   in a required cell (older templates wrote it), replace it with the value
+   now known or `Not verified - <reason>`; do not migrate untouched rows.
    This rule governs current work and new completion claims. Do not reclassify
    unresolved historical terminal rows encountered during unrelated sync:
    preserve them, report missing proof/authority for human resolution, and
@@ -156,7 +161,8 @@ Touch `index` only when summaries, titles, or page availability changed.
    never supplies that resolution.
 3. Rewrite `handoff`: `Tracker IDs`, last completed step, next tasks (baton
    table with tracker IDs), what not to redo, commands already run and Git
-   state. Activity status remains in the tracker.
+   state. Activity status remains in the tracker. Baton cells never read
+   `unknown`: write the value or `Not verified - <reason>`.
 4. Archive the log without asking when the SCHEMA `## Log format` rule
    applies. When a phase of the project division closed, move the entries
    dated up to its closing date that are still in `log` to `<phase>.md`. When

@@ -223,9 +223,12 @@ example `type: Report`) when conformance matters.
 
 Actors in `generated.by` and `verified.by`: `human:<id>`, `process:<id>`, or
 `<host>/<model>` with host `claude-code`, `codex`, or `antigravity` (unknown
-model: `<host>/unknown`). Agents never write `verified`. Trust is derived from
-it: none is unverified, non-human only is machine-confirmed, any `human:` is
-human-reviewed.
+model: `<host>/unknown`). Timestamps are ISO 8601 datetimes with `Z`.
+Agents never write `verified`; an entry may carry `commit: <sha>`. Trust is
+derived from it: none is unverified, non-human only is machine-confirmed, any
+`human:` is human-reviewed. A confirmation whose sources changed afterwards is
+reported as stale verified without changing the tier. `generated` changes only
+when the page's claims change.
 
 ## Module page template (optional `modules` topic)
 
