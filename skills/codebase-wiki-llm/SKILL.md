@@ -116,7 +116,11 @@ Rules:
   `overview.md` and `overview-<project-slug>.md` -> `Overview`, `engineering/`
   -> `Engineering`, `modules/` -> `Module`, `project/` -> `Project`,
   `project-docs/` -> `ProjectDoc`, `agent/` -> `AgentNote`, `SCHEMA.md` ->
-  `Schema`, `glossary.md` -> `Glossary`. Override only when the default is wrong.
+  `Schema`, `glossary.md` -> `Glossary`. SCHEMA `## Page types` overrides
+  these defaults (first matching row wins). Override a single page only when
+  both are wrong.
+- Files matched by SCHEMA `## Excluded paths` are not wiki pages: never read,
+  write, lint or sync them as pages.
 - `description:` is one line. Use it for the page's entry in `index.md`.
 - `status:` is `draft`, `stable`, or `deprecated`; absent means `stable`.
   Deprecated pages stay for links and history; never delete them silently.

@@ -195,6 +195,34 @@ full rules live in the wiki maintainer skill; the defaults are:
 | `SCHEMA.md` | `Schema` |
 | `glossary.md` | `Glossary` |
 
+A wiki with its own folders may add an optional `## Page types` section: a
+`Path | type` table of globs relative to the wiki root. The first matching row
+wins, so put specific rows first; a path no row matches keeps the default above.
+
+```markdown
+## Page types
+
+| Path | type |
+| --- | --- |
+| `50-benchmark/*-plan.md` | `Plan` |
+| `adr/*` | `Decision` |
+```
+
+An optional `## Excluded paths` section lists Markdown that is not a wiki page,
+such as generated reports committed with raw data, one `` - `<glob>` `` bullet
+each; other lines in the section are ignored. Excluded files are never read,
+written, linted or synced as pages; links to them stay valid. SCHEMA and Core
+map files cannot be excluded. Globs in both sections match the wiki-relative
+path with `fnmatch`, where `*` also crosses `/`. For OKF readers an excluded
+`.md` file is still a concept without frontmatter; give it a bare `type:` (for
+example `type: Report`) when conformance matters.
+
+```markdown
+## Excluded paths
+
+- `50-benchmark/results/*-data/**`
+```
+
 Actors in `generated.by` and `verified.by`: `human:<id>`, `process:<id>`, or
 `<host>/<model>` with host `claude-code`, `codex`, or `antigravity` (unknown
 model: `<host>/unknown`). Agents never write `verified`. Trust is derived from

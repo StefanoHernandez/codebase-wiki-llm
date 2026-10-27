@@ -78,6 +78,10 @@ only when the user chooses it. Show which existing tracker rows lack criteria,
 verification or closure evidence; normalization preserves their content and
 IDs, and leaves missing values explicit. Scope approval covers only the edits
 shown; do not treat adoption as approval to verify or rewrite all old pages.
+When the adopted folders differ from the default layout, propose a SCHEMA
+`## Page types` table; when the survey finds generated Markdown that is not a
+page (reports committed with data), propose `## Excluded paths` globs. Write
+them only if confirmed.
 
 Show conventions and budgets as defaults from SCHEMA; do not ask about them.
 Also state whether git will track the folder: run `git check-ignore -q

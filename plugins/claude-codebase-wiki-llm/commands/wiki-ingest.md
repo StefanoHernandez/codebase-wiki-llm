@@ -87,7 +87,9 @@ For each affected page:
 1. Read the current page.
 2. Make the minimum accurate edit.
 3. Update frontmatter: `title`, `type`, `description`, `status`,
-   `generated`, `sources`, `source_commit`, `confidence`.
+   `generated`, `sources`, `source_commit`, `confidence`. Take `type` from
+   SCHEMA `## Page types`, else the folder default. Never ingest a file
+   matched by SCHEMA `## Excluded paths` as a page.
 4. Add supersession notes when correcting old claims.
 5. Preserve and add relative links where useful.
 

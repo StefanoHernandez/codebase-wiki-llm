@@ -49,7 +49,8 @@ and report incomplete committed-change coverage. Timestamp comparisons alone
 do not prove pages current. Apply Step 3's small-change limit to the fallback
 too; do not silently expand sync into a full migration.
 
-Filter out paths excluded by `<wiki-root>/SCHEMA.md` and `<wiki-root>/` itself.
+Filter out `<wiki-root>/` itself; files matched by SCHEMA `## Excluded paths`
+are never pages to update.
 
 ## Step 3 - Map changes to pages
 
@@ -86,7 +87,7 @@ Apply minimum edits:
 - fix factual claims;
 - update verification commands or failure modes;
 - update frontmatter on touched pages: add `type` and `description` if missing
-  (inferred from folder or content), set `generated: { by: <host>/<model>, at: <timestamp> }`,
+  (`type` from SCHEMA `## Page types`, else the folder default), set `generated: { by: <host>/<model>, at: <timestamp> }`,
   and remove legacy `updated`. Agents must never write or edit `verified`
   (reserved exclusively for explicit human confirmation or declared processes);
 - add supersession notes for corrected claims;

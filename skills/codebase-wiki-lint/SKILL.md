@@ -86,6 +86,9 @@ Read:
    `$(git rev-parse --git-path hooks)`;
 9. file sizes from `wc -c`.
 
+Skip files matched by SCHEMA `## Excluded paths`; report their count once as
+`info`.
+
 Do targeted source reads only where needed to verify claims.
 
 ## Step 3 - Checks
@@ -288,6 +291,8 @@ Never delete.
 Flag frontmatter issues:
 
 - missing `type` or `description`: warning for new pages, `info` for legacy pages that predate OKF-lite schema;
+- `type` differing from SCHEMA `## Page types` or the folder default: `info`
+  (an explicit per-page override is legal);
 - invalid `status`: error if present and not one of `draft`, `stable`, `deprecated`;
 - invalid `generated.by`: warning if not in actor format (`<host>/<model>`, `human:<id>`, or `process:<id>`);
 - deprecated link target: warning if a `deprecated` page is linked by an active `stable` page;

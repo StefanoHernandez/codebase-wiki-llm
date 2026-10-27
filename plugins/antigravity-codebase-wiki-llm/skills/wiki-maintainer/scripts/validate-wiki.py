@@ -9,6 +9,7 @@ not inspect private terms, verify claims, run commands, or alter any files.
 from __future__ import annotations
 
 import datetime
+import fnmatch
 import re
 import string
 import sys
@@ -152,6 +153,7 @@ class Validator:
         # Sources belong to the target repository, never the installed package.
         self.repo = next((p for p in self.wiki.parents if (p / ".git").exists()), self.wiki.parent)
         self.findings: list[str] = []
+        self.infos: list[str] = []
         self.pages: dict[Path, Page] = {}
 
     def error(self, path: Path, line: int, message: str):
@@ -338,6 +340,46 @@ class Validator:
                 paths[role] = target
         return paths
 
+    def glob_ok(self, schema: Page, number: int, glob: str, what: str) -> bool:
+        if not glob or Path(glob).is_absolute() or ".." in Path(glob).parts:
+            self.error(schema.path, number, f"unsafe {what} glob; use a wiki-relative pattern without ..")
+            return False
+        return True
+
+    def excluded(self, schema: Page, paths: dict[str, Path]) -> list[str]:
+        # Only bullets are rules; prose explaining the section is ignored.
+        globs = []
+        for number, line in self.section(schema, "excluded-paths", "Excluded paths", required=False):
+            if not line.startswith("- "):
+                continue
+            entry = re.fullmatch(r"- `([^`]+)`", line.strip())
+            if not entry:
+                self.error(schema.path, number, "Excluded paths entry must be - `<glob>`")
+            elif self.glob_ok(schema, number, entry[1], "Excluded paths"):
+                globs.append((number, entry[1]))
+        protected = [p.relative_to(self.wiki).as_posix() for p in (schema.path, *paths.values()) if p.is_file()]
+        kept = []
+        for number, glob in globs:
+            if any(fnmatch.fnmatchcase(rel, glob) for rel in protected):
+                self.error(schema.path, number, "Excluded paths must not match SCHEMA or Core map pages")
+            else:
+                kept.append(glob)
+        return kept
+
+    def page_types(self, schema: Page):
+        # Shape only: page `type` values are the lint's concern.
+        rows = self.table(schema, self.section(schema, "page-types", "Page types", required=False))
+        if not rows:
+            return
+        if rows[0][1] != ["Path", "type"]:
+            self.error(schema.path, rows[0][0], "unsupported Page types table; expected Path and type columns")
+            return
+        for number, cells in rows[1:]:
+            if len(cells) != 2 or unresolved(cells[1].strip("`")):
+                self.error(schema.path, number, "Page types row needs a glob and a type")
+                continue
+            self.glob_ok(schema, number, cells[0].strip("`"), "Page types")
+
     def links(self, page: Page):
         for number, line in enumerate(page.lines, 1):
             line = re.sub(r"(`+).*?\1", "", line)
@@ -467,6 +509,9 @@ class Validator:
     def run(self):
         schema = self.read_page(self.wiki / "SCHEMA.md")
         paths = self.core_map(schema)
+        exclusions = self.excluded(schema, paths)
+        self.page_types(schema)
+        skipped = 0
         # rglob does not follow directory symlinks. A safe adopted Core path
         # still needs its role-specific validation even when reached via one.
         for path in paths.values():
@@ -479,8 +524,13 @@ class Validator:
             if not path.resolve().is_relative_to(self.wiki):
                 self.error(path, 1, "wiki page points outside the wiki")
                 continue
+            if path not in self.pages and any(fnmatch.fnmatchcase(path.relative_to(self.wiki).as_posix(), g) for g in exclusions):
+                skipped += 1
+                continue
             if path not in self.pages:
                 self.read_page(path)
+        if skipped:
+            self.infos.append(f"info: {skipped} paths excluded by SCHEMA")
         for page in self.pages.values():
             self.frontmatter(page)
             self.links(page)
@@ -508,10 +558,13 @@ def main(argv: list[str]) -> int:
         print("configuration error: wiki-root needs a readable SCHEMA.md inside it", file=sys.stderr)
         return 2
     try:
-        findings = Validator(wiki).run()
+        validator = Validator(wiki)
+        findings = validator.run()
     except (OSError, UnicodeError, ValueError) as exc:
         print(f"configuration error: cannot read documented wiki format ({type(exc).__name__})", file=sys.stderr)
         return 2
+    for info in validator.infos:
+        print(info)
     if findings:
         print("\n".join(findings), file=sys.stderr)
         return 1
