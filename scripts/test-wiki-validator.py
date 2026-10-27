@@ -272,6 +272,7 @@ def adoption_cases():
 
 EXCL = "\n## Excluded paths\n\n- `results/*-data/**`\n"
 REPORT = "results/run-data/report-1.md"
+TYPES = "\n## Page types\n\n| Path | type |\n| --- | --- |\n| `project/*` | `Project` |\n"
 
 
 def schema_section_cases():
@@ -289,6 +290,11 @@ def schema_section_cases():
         ("excluded paths prose ignored", "\n## Excluded paths\n\nGenerated data, not pages.\n\n- `results/*-data/**`\n",
          True, "", 0, ["1 paths excluded"], []),
         ("no section, no info", "", False, "", 0, [], ["excluded"]),
+        ("valid page types", TYPES, False, "", 0, ["validation passed"], []),
+        ("page types wrong header", TYPES.replace("| Path | type |", "| Glob | Kind |"), False, "", 1, ["Page types table"], []),
+        ("page types one cell", TYPES + "| `adr/*` |\n", False, "", 1, ["Page types row"], []),
+        ("page types unsafe glob", TYPES + "| `../x/*` | `X` |\n", False, "", 1, ["unsafe Page types glob"], []),
+        ("page types empty type", TYPES + "| `adr/*` |  |\n", False, "", 1, ["Page types row"], []),
     ]
     for name, schema_suffix, report, index_suffix, expected, required, forbidden in cases:
         with tempfile.TemporaryDirectory() as temp:

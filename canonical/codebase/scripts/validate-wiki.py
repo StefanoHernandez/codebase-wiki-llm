@@ -366,6 +366,20 @@ class Validator:
                 kept.append(glob)
         return kept
 
+    def page_types(self, schema: Page):
+        # Shape only: page `type` values are the lint's concern.
+        rows = self.table(schema, self.section(schema, "page-types", "Page types", required=False))
+        if not rows:
+            return
+        if rows[0][1] != ["Path", "type"]:
+            self.error(schema.path, rows[0][0], "unsupported Page types table; expected Path and type columns")
+            return
+        for number, cells in rows[1:]:
+            if len(cells) != 2 or unresolved(cells[1].strip("`")):
+                self.error(schema.path, number, "Page types row needs a glob and a type")
+                continue
+            self.glob_ok(schema, number, cells[0].strip("`"), "Page types")
+
     def links(self, page: Page):
         for number, line in enumerate(page.lines, 1):
             line = re.sub(r"(`+).*?\1", "", line)
@@ -496,6 +510,7 @@ class Validator:
         schema = self.read_page(self.wiki / "SCHEMA.md")
         paths = self.core_map(schema)
         exclusions = self.excluded(schema, paths)
+        self.page_types(schema)
         skipped = 0
         # rglob does not follow directory symlinks. A safe adopted Core path
         # still needs its role-specific validation even when reached via one.
