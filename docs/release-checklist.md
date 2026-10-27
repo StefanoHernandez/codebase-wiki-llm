@@ -25,7 +25,11 @@ against OKF v0.2 upstream at `ad30107` (timestamps stay datetimes; staleness of
   the lint git check finds the source commit after `verified.at`.
 - [x] Whole-branch review (independent reviewer): no Critical; two Important
   doc ambiguities (glob semantics, `generated` criterion) fixed, minors deferred.
-- [ ] Main fast-forward, `v0.11.0` tag and push (on explicit go-ahead).
+- [x] Main fast-forward, `v0.11.0` tag and push (on explicit go-ahead).
+  Remote verified with `git ls-remote` on 2026-10-27: main, dev and peeled
+  `v0.11.0` at `236d81625fc4c969ebad02be15cc4b9969c2faca`; annotated tag object
+  `0de1db77c49f8bf1d0df6df256c645ded2491098`. Later documentation-only commits
+  may advance main without changing the tagged plugin files.
 - [ ] Real-host trial: rerun on the reporting wiki and record lint/sync output.
 
 ## 0.9.2 adoption compatibility patch
