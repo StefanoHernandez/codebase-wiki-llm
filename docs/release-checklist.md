@@ -27,8 +27,8 @@ against OKF v0.2 upstream at `ad30107` (timestamps stay datetimes; staleness of
   doc ambiguities (glob semantics, `generated` criterion) fixed, minors deferred.
 - [x] Main fast-forward, `v0.11.0` tag and push (on explicit go-ahead).
   Remote verified with `git ls-remote` on 2026-10-27: main, dev and peeled
-  `v0.11.0` at `236d81625fc4c969ebad02be15cc4b9969c2faca`; annotated tag object
-  `0de1db77c49f8bf1d0df6df256c645ded2491098`. Later documentation-only commits
+  `v0.11.0` at `acace6e251b139c7a3a8aacac10c261591e4ff3e`; annotated tag object
+  `b71936b365a710edb32929ec2f7bac038a4e3728`. Later documentation-only commits
   may advance main without changing the tagged plugin files.
 - [ ] Real-host trial: rerun on the reporting wiki and record lint/sync output.
 
@@ -46,7 +46,7 @@ expects 50 root/gap findings and exit 1, retaining incomplete validation.
 - [x] Main and `v0.9.2` pushed; remote SHAs verified.
 
 Verified on 2026-10-02 at release commit
-`e4bf94ffa936edc9adca3e0fb03edbe15d6a51db`:
+`ce3b4a934afdd0666a0caa8c3334c5d6c7a6325a`:
 `bash scripts/run-tests.sh` exited 0, including 102 validator fixtures on the
 canonical script and all four byte-identical standalone distributions, plus
 the existing generator, continuity, reminder, privacy and hook checks.

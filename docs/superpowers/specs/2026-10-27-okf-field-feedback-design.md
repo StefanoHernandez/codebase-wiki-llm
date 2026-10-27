@@ -1,6 +1,6 @@
 # Feedback dal campo su 0.10.0 (okf-lite): esclusioni, tipi per cartella, freschezza di `verified`
 
-Data: 2026-10-27 · Stato: bozza per revisione · Base: 0.10.0 (`9d912d0`) · Riferimento:
+Data: 2026-10-27 · Stato: bozza per revisione · Base: 0.10.0 (`a04ee96`) · Riferimento:
 OKF v0.2, `GoogleCloudPlatform/open-knowledge-format` a `ad30107`
 
 ## Intento
