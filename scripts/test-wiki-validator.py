@@ -270,6 +270,48 @@ def adoption_cases():
     return failures
 
 
+EXCL = "\n## Excluded paths\n\n- `results/*-data/**`\n"
+REPORT = "results/run-data/report-1.md"
+
+
+def schema_section_cases():
+    """Optional SCHEMA sections: Excluded paths and Page types."""
+    failures = 0
+    # name, SCHEMA suffix, create REPORT, index suffix, exit, required, forbidden
+    cases = [
+        ("excluded report skipped", EXCL, True, "", 0, ["1 paths excluded"], []),
+        ("report without exclusion", "", True, "", 1, ["missing or unterminated frontmatter"], []),
+        ("link into excluded file", EXCL, True, f"[r]({REPORT})\n", 0, ["1 paths excluded"], ["link"]),
+        ("exclusion cannot hide Core map", "\n## Excluded paths\n\n- `**`\n", False, "", 1,
+         ["Excluded paths must not match SCHEMA or Core map pages"], []),
+        ("unsafe exclusion glob", "\n## Excluded paths\n\n- `../x/*`\n", False, "", 1, ["unsafe Excluded paths glob"], []),
+        ("malformed exclusion bullet", "\n## Excluded paths\n\n- results/*\n", False, "", 1, ["Excluded paths entry"], []),
+        ("excluded paths prose ignored", "\n## Excluded paths\n\nGenerated data, not pages.\n\n- `results/*-data/**`\n",
+         True, "", 0, ["1 paths excluded"], []),
+        ("no section, no info", "", False, "", 0, [], ["excluded"]),
+    ]
+    for name, schema_suffix, report, index_suffix, expected, required, forbidden in cases:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            wiki, roles = fixture(repo)
+            schema = wiki / "SCHEMA.md"
+            schema.write_text(schema.read_text() + schema_suffix)
+            if report:
+                (wiki / REPORT).parent.mkdir(parents=True)
+                (wiki / REPORT).write_text("# no frontmatter\n")
+            index = wiki / roles["index"]
+            index.write_text(index.read_text() + index_suffix)
+            result = subprocess.run([sys.executable, "-I", str(VALIDATOR), str(wiki)], cwd=repo, capture_output=True, text=True)
+            output = result.stdout + result.stderr
+            ok = (result.returncode == expected and all(term in output for term in required)
+                  and all(term not in output for term in forbidden))
+            print(("PASS " if ok else "FAIL ") + name)
+            if not ok:
+                failures += 1
+                print(f"  expected exit {expected}; got {result.returncode}: {output.strip()}")
+    return failures
+
+
 def run():
     if not VALIDATOR.is_file():
         print(f"FAIL installed structural validation absent: {VALIDATOR}", file=sys.stderr)
@@ -450,6 +492,7 @@ def run():
                 print(f"FAIL configuration exit 2: {args}: {result.returncode}")
                 failures += 1
     failures += adoption_cases()
+    failures += schema_section_cases()
     return int(failures > 0)
 
 
