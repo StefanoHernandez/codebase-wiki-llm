@@ -95,14 +95,19 @@ Rules:
   both are wrong.
 - Files matched by SCHEMA `## Excluded paths` are not wiki pages: never read,
   write, lint or sync them as pages.
+- Globs in `## Page types` and `## Excluded paths` match the wiki-relative
+  POSIX path with Python `fnmatch`: `*` also crosses `/`, so `adr/*` covers
+  `adr/old/0001.md`. Do not read them with shell glob rules.
 - `description:` is one line. Use it for the page's entry in `index.md`.
 - `status:` is `draft`, `stable`, or `deprecated`; absent means `stable`.
   Deprecated pages stay for links and history; never delete them silently.
 - `generated:` is `{ by, at }`: `by` is the actor, `at` is an ISO 8601 UTC
   datetime (with `Z`; OKF ignores date-only values) of the last meaningful
   change. It replaces the legacy `updated`. Meaningful means the page's claims
-  changed: facts, commands, evidence paths, status. Link, formatting,
-  reordering and metadata-only edits leave `generated` alone; a legacy page
+  changed: facts, commands, a changed `status` value or `sources` list. Link,
+  formatting and reordering edits, adding `type`/`description`, and a
+  `source_commit` bump after re-checking an unchanged page leave `generated`
+  alone; a legacy page
   touched only in metadata keeps `updated` and gets no `generated`.
 - An actor is `human:<id>`, or `<host>/<model>` with host `claude-code`,
   `codex`, or `antigravity`. Unknown model: `<host>/unknown`.

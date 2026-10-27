@@ -23,7 +23,8 @@ against OKF v0.2 upstream at `ad30107` (timestamps stay datetimes; staleness of
   `results/run-data/`. Validator exit 0 with `info: 1 paths excluded by
   SCHEMA`; Page types resolve Project/Decision/Plan and fall back to defaults;
   the lint git check finds the source commit after `verified.at`.
-- [ ] Whole-branch review.
+- [x] Whole-branch review (independent reviewer): no Critical; two Important
+  doc ambiguities (glob semantics, `generated` criterion) fixed, minors deferred.
 - [ ] Main fast-forward, `v0.11.0` tag and push (on explicit go-ahead).
 - [ ] Real-host trial: rerun on the reporting wiki and record lint/sync output.
 

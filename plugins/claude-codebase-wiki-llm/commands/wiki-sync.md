@@ -113,10 +113,12 @@ Apply minimum edits:
 - update verification commands or failure modes;
 - update frontmatter on touched pages: add `type` and `description` if missing
   (`type` from SCHEMA `## Page types`, else the folder default). When the
-  page's claims changed (facts, commands, evidence paths, status), set
+  page's claims changed (facts, commands, a changed `status` value or
+  `sources` list), set
   `generated: { by: <host>/<model>, at: <ISO 8601 UTC datetime> }` and remove
-  legacy `updated`; for link, formatting, reordering or metadata-only edits
-  leave `generated` (or legacy `updated`) as it is. Agents must never write or edit `verified`
+  legacy `updated`; for link, formatting or reordering edits, added
+  `type`/`description`, or a `source_commit`-only bump, leave `generated` (or
+  legacy `updated`) as it is. Agents must never write or edit `verified`
   (reserved exclusively for explicit human confirmation or declared processes);
 - add supersession notes for corrected claims;
 - lower confidence when evidence is incomplete;
