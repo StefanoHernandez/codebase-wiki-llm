@@ -1,5 +1,32 @@
 # Release checklist
 
+## 0.11.0 field feedback
+
+Addresses the field report on 0.10.0 (okf-lite) applied to an adopted
+numbered wiki on 2026-10-27. Spec:
+`docs/superpowers/specs/2026-10-27-okf-field-feedback-design.md`, checked
+against OKF v0.2 upstream at `ad30107` (timestamps stay datetimes; staleness of
+`verified` is reported beside the trust tier, never lowering it).
+
+- Validator: optional SCHEMA `## Excluded paths` (files skipped, one `info`
+  line, SCHEMA/Core map not excludable) and `## Page types` shape check.
+- Workflows: `type` from `## Page types`; lint *Stale verified*; sync updates
+  `generated` only on claim changes and replaces touched `unknown` cells.
+- Feedback 4 (tracker findings hidden behind handoff errors) not reproduced:
+  `run()` validates the tracker unconditionally and before the handoff.
+
+- [x] `bash scripts/run-tests.sh` exit 0: 115 validator fixtures (13 new) on
+  the canonical script and the four byte-identical distributions, plus the
+  generator, continuity, reminder, privacy and hook checks.
+- [x] Application scenario (not a real-host trial): numbered wiki with
+  `00-project/`, `adr/`, `50-benchmark/` and a raw report under
+  `results/run-data/`. Validator exit 0 with `info: 1 paths excluded by
+  SCHEMA`; Page types resolve Project/Decision/Plan and fall back to defaults;
+  the lint git check finds the source commit after `verified.at`.
+- [ ] Whole-branch review.
+- [ ] Main fast-forward, `v0.11.0` tag and push (on explicit go-ahead).
+- [ ] Real-host trial: rerun on the reporting wiki and record lint/sync output.
+
 ## 0.9.2 adoption compatibility patch
 
 This patch addresses the adoption feedback forwarded by Stefano on 2026-10-01.
