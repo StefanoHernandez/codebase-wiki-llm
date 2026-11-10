@@ -35,6 +35,7 @@ Level 1 tells what the system does now, not what it should do: code can hold a b
 
 | Setting | Value |
 | --- | --- |
+| Log order | oldest first |
 | Language | English (headings and prose; fixed tokens in Conventions) |
 | Project division | none (phases/WP · releases · sprints/milestones · none) |
 | Sensitive data | no |
@@ -78,7 +79,8 @@ empty archive directory is not required at init or adoption.
 - Language: headings and prose use the Project profile language. Fixed tokens
   never change: section markers `<!-- wiki:<id> -->`, Core map role names,
   frontmatter keys, `⚠️ NOT VERIFIED`, `⚠️ TO RE-VERIFY`,
-  `Not verified - <reason>`, `No open work.`, `closed by … ; not proven:`, status icons, ID prefixes,
+  `Not verified - <reason>`, `No open work.`, `closed by … ; not proven:`, the `Log order` setting
+  and its values `oldest first`, `newest first`, status icons, ID prefixes,
   risk severities (`critical`, `high`, `medium`, `low`).
 - Risk IDs: prefix `R`, stable, never reused; the register lives in the
   `risks` page (`<!-- wiki:risk-register -->`).
@@ -152,7 +154,7 @@ Off by default. When `Sensitive data` is `yes`:
 
 ## Log format
 
-These are defaults. Keep an explicit existing project log convention during
+These are defaults. New entries go at the end of the log; when the Project profile says `Log order | newest first`, they go above the first dated entry. Append-only means nobody rewrites or removes an earlier entry. Keep an explicit existing project log convention during
 adoption and record it here, including a ban on commit hashes when present.
 When hashes cannot be recorded, retain commands, essential output, dates and
 relevant environment; mark code state as not recorded by project policy.
@@ -234,9 +236,7 @@ example `type: Report`) when conformance matters.
 - `50-benchmark/results/*-data/**`
 ```
 
-Actors in `generated.by` and `verified.by`: `human:<id>`, `process:<id>`, or
-`<host>/<model>` with host `claude-code`, `codex`, or `antigravity` (unknown
-model: `<host>/unknown`). Timestamps are ISO 8601 datetimes with `Z`.
+Actors: `generated.by` is `human:<id>`, `process:<id>`, or `<host>/<model>` with host `claude-code`, `codex`, or `antigravity` (unknown model: `<host>/unknown`); `verified.by` is only `human:<id>` or `process:<id>`. The validator checks both shapes. Timestamps are ISO 8601 datetimes with `Z`.
 Agents never write `verified`; an entry may carry `commit: <sha>`. `verified`
 stays on one line: `verified: { by: human:<id>, at: <datetime>, commit: <sha> }`
 for one entry, `verified: [{ … }, { … }]` for several; indented lists are not

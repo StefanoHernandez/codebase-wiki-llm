@@ -52,6 +52,13 @@ FORMAT_VERSION = "0.12.0"
 SCHEMA_SECTIONS = ["Project profile", "Conventions", "Evidence", "Confidentiality", "Budgets",
                    "Log format", "Topics", "Page frontmatter"]
 DECISION_STATUS = re.compile(r"(proposed|accepted|rejected|superseded by \d{4})")
+AGENT_NAMES = {"agent", "the agent", "coding agent", "ai", "assistant", "bot", "claude", "claude code",
+               "codex", "cursor", "cursor agent", "copilot", "github copilot", "gemini", "chatgpt", "gpt",
+               "antigravity", "composer"}
+ACTOR_ID = r"[A-Za-z0-9][A-Za-z0-9._-]*"
+GENERATED_BY = re.compile(rf"(?:human|process):{ACTOR_ID}|[a-z0-9-]+/\S+")
+VERIFIED_BY = re.compile(rf"(?:human|process):{ACTOR_ID}")
+DATETIME = re.compile(r"(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?Z")
 OWNERS_COLUMNS = ["Topic", "Owner page"]
 RISK_COLUMNS = ["ID", "Risk", "Severity", "Trigger", "Mitigation", "Owner", "IDs"]
 RISK_SEVERITY = {"critical", "high", "medium", "low"}
@@ -69,6 +76,24 @@ def columns_match(header: list[str], expected: list[str]) -> bool:
 def unresolved(value: str) -> bool:
     value = value.strip().strip("`").strip()
     return value.lower() in UNRESOLVED or bool(PLACEHOLDER.search(value))
+
+
+def flow_maps(value: str) -> list[dict[str, str]] | None:
+    """Read `{ k: v, … }` or `[{ … }, { … }]` written on one line; None for anything else."""
+    bodies = re.findall(r"\{([^{}]*)\}", value)
+    shape = re.sub(r"\{[^{}]*\}", "{}", value).replace(" ", "")
+    if not bodies or not re.fullmatch(r"\{\}|\[\{\}(?:,\{\})*\]", shape):
+        return None
+    maps = []
+    for body in bodies:
+        entry: dict[str, str] = {}
+        for part in body.split(","):
+            key, sep, item = part.partition(":")
+            if not sep or key.strip() in entry:
+                return None
+            entry[key.strip()] = item.strip().strip("\"'")
+        maps.append(entry)
+    return maps
 
 
 def iso_date(value: str) -> bool:
@@ -281,6 +306,32 @@ class Validator:
                 return value[1:-1].strip()
         return value
 
+    def attribution(self, page: Page, key: str):
+        if key not in page.fields:
+            return
+        verified = key == "verified"
+        maps = flow_maps(str(page.fields[key]))
+        by = VERIFIED_BY if verified else GENERATED_BY
+        allowed = {"by", "at", "commit"} if verified else {"by", "at"}
+
+        def good(entry: dict[str, str]) -> bool:
+            at = DATETIME.fullmatch(entry.get("at", ""))
+            return (set(entry) <= allowed and by.fullmatch(entry.get("by", "")) is not None
+                    and at is not None and iso_date(at[1])
+                    and ("commit" not in entry or re.fullmatch(r"[0-9a-f]{7,40}", entry["commit"]) is not None))
+
+        if maps is None or (not verified and len(maps) != 1) or not all(good(entry) for entry in maps):
+            self.error(page.path, page.locations.get(key, 1),
+                       "verified must be { by: human:<id> or process:<id>, at: <ISO 8601 UTC datetime with Z>[, commit: <sha>] } on one line, or a [ … ] list of them"
+                       if verified else
+                       "generated must be { by: <actor>, at: <ISO 8601 UTC datetime with Z> }")
+
+    def profile(self, schema: Page):
+        for number, line in self.section(schema, "project-profile", "Project profile", required=False):
+            row = re.fullmatch(r"\|\s*Log order\s*\|\s*`?([^|`]*?)`?\s*\|", line.strip())
+            if row and row[1] not in ("oldest first", "newest first"):
+                self.error(schema.path, number, "Log order must be `oldest first` or `newest first`")
+
     def frontmatter(self, page: Page):
         # One root finding already identifies missing/unterminated metadata.
         # Links and role-specific checks still run on this page's body.
@@ -299,6 +350,8 @@ class Validator:
             self.error(page.path, page.locations.get("updated", 1), "updated must be a real ISO date YYYY-MM-DD")
         if page.fields.get("confidence") not in ("high", "medium", "low"):
             self.error(page.path, page.locations.get("confidence", 1), "confidence must be high, medium, or low")
+        for key in ("generated", "verified"):
+            self.attribution(page, key)
         if "sources" not in page.fields and schema:
             return
         sources = page.fields.get("sources")
@@ -555,7 +608,8 @@ class Validator:
                     self.error(page.path, number, "green row contains an explicit unproven claim in criteria or evidence")
                 if status == "⚫":
                     closure = re.fullmatch(r"closed by (.+?) (\d{4}-\d{2}-\d{2}); not proven: (.+)", row["Criteria met"], re.I)
-                    if not closure or unresolved(closure[1]) or unresolved(closure[3]) or closure[1].lower() in ("agent", "coding agent", "ai"):
+                    if not closure or unresolved(closure[1]) or unresolved(closure[3]) \
+                            or closure[1].lower() in AGENT_NAMES or "/" in closure[1]:
                         self.error(page.path, number, "black row needs 'closed by <person> YYYY-MM-DD; not proven: <what>' and human closure evidence")
                     elif not iso_date(closure[2]):
                         self.error(page.path, number, "black row has invalid closure date")
@@ -704,6 +758,7 @@ class Validator:
         paths = self.core_map(schema)
         exclusions = self.excluded(schema, paths)
         self.page_types(schema)
+        self.profile(schema)
         skipped = 0
         # rglob does not follow directory symlinks. A safe adopted Core path
         # still needs its role-specific validation even when reached via one.
@@ -742,6 +797,14 @@ class Validator:
             page = self.pages.get(paths.get(role))
             if page:
                 check(page)
+        decisions = paths.get("decisions")
+        if decisions is not None and decisions.is_dir():
+            numbers: dict[str, Path] = {}
+            for path in sorted(decisions.glob("*.md")):
+                if re.fullmatch(r"\d{4}-.+\.md", path.name):
+                    if path.name[:4] in numbers:
+                        self.error(path, 1, f"duplicate decision number {path.name[:4]} (also {numbers[path.name[:4]].name})")
+                    numbers.setdefault(path.name[:4], path)
         has_core_map = any(l.strip() in ("## Core map", "<!-- wiki:core-map -->") for l in schema.lines)
         self.format_upgrades(schema, paths, has_core_map)
         return self.findings

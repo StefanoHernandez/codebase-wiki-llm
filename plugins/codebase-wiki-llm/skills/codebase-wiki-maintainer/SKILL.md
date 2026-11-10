@@ -153,11 +153,12 @@ Rules:
   `source_commit` bump after re-checking an unchanged page leave `generated`
   alone; a legacy page
   touched only in metadata keeps `updated` and gets no `generated`.
-- An actor is `human:<id>`, or `<host>/<model>` with host `claude-code`,
+- An actor is `human:<id>`, `process:<id>`, or `<host>/<model>` with host `claude-code`,
   `codex`, or `antigravity`. Unknown model: `<host>/unknown`.
 - `verified:` is optional: `{ by, at }` or a list of them, each with an
   optional `commit: <sha>` naming the code state that was confirmed; `at` is a
-  datetime like `generated.at`. It is always written on one line:
+  datetime like `generated.at`. Its `by` is never a `<host>/<model>` actor.
+  It is always written on one line:
   `verified: { by: human:<id>, at: <datetime>, commit: <sha> }`, or
   `verified: [{ … }, { … }]` for several entries; the validator rejects
   indented lists. Agents never write or edit it. Only the user's explicit confirmation of a page (actor `human:<id>`)
