@@ -10,7 +10,17 @@ r="$TMP_DIR/repo"
 mkdir -p "$r"
 
 # Copy the current tree (tracked + untracked, not ignored) into a scratch repo.
-git -C "$ROOT_DIR" ls-files -z -c -o --exclude-standard | (cd "$ROOT_DIR" && xargs -0 tar -cf - --ignore-failed-read 2>/dev/null) | tar -xf - -C "$r"
+git -C "$ROOT_DIR" ls-files -z -c -o --exclude-standard | python3 -c '
+import os, shutil, sys
+root, dest = sys.argv[1], sys.argv[2]
+for rel in sys.stdin.buffer.read().split(b"\0"):
+    rel = rel.decode()
+    src = os.path.join(root, rel)
+    if rel and os.path.isfile(src):
+        target = os.path.join(dest, rel)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        shutil.copy2(src, target, follow_symlinks=False)
+' "$ROOT_DIR" "$r"
 python3 "$r/scripts/generate-host-packages.py" >/dev/null
 git -C "$r" init -q
 git -C "$r" add -A

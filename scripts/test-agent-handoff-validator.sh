@@ -97,7 +97,7 @@ printf '## Core map\n\n| Role | Path |\n| --- | --- |\n| context | `00-project/c
 "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/adopted/docs"
 
 # v1 context headings are rejected.
-sed -i 's/## Verified Facts/## Old Facts/' "$TMP_DIR/adopted/docs/00-project/context.md"
+sed -i.bak 's/## Verified Facts/## Old Facts/' "$TMP_DIR/adopted/docs/00-project/context.md"
 if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/adopted/docs" >"$FAIL_OUT" 2>"$FAIL_ERR"; then
   echo "expected validator failure for missing Verified Facts" >&2
   exit 1
@@ -200,7 +200,7 @@ fi
 write_it_handoff '<!-- wiki:baton -->
 
 No open work.'
-sed -i '/<!-- wiki:read-first -->/d' "$TMP_DIR/it/agent/context.md"
+sed -i.bak '/<!-- wiki:read-first -->/d' "$TMP_DIR/it/agent/context.md"
 if "$ROOT_DIR/scripts/validate-agent-handoff.py" "$TMP_DIR/it" >"$FAIL_OUT" 2>"$FAIL_ERR"; then
   echo "expected validator failure for a translated context section without its marker" >&2
   exit 1
