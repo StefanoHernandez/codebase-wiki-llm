@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime
 import fnmatch
+import json
 import re
 import string
 import sys
@@ -160,6 +161,15 @@ def inline_destinations(line: str) -> list[str]:
 
 
 @dataclass
+class Note:
+    path: Path | None
+    line: int | None
+    message: str
+    code: str = ""
+    fix: str = ""  # upgrades only: "adopt" or "update-plugin"
+
+
+@dataclass
 class Page:
     path: Path
     lines: list[str]
@@ -173,24 +183,52 @@ class Validator:
         self.wiki = wiki.resolve()
         # Sources belong to the target repository, never the installed package.
         self.repo = next((p for p in self.wiki.parents if (p / ".git").exists()), self.wiki.parent)
-        self.findings: list[str] = []
-        self.infos: list[str] = []
+        self.findings: list[Note] = []
+        self.infos: list[Note] = []
         # What is still missing for the current format: reported, never a finding.
-        self.upgrades: list[str] = []
+        self.upgrades: list[Note] = []
         self.tracker_ids: set[str] | None = None
         self.pages: dict[Path, Page] = {}
 
     def error(self, path: Path, line: int, message: str):
-        self.findings.append(f"{path}:{line}: {message}")
+        self.findings.append(Note(path, line, message))
 
-    def upgrade(self, path: Path, line: int, message: str, fix: bool = True):
-        if fix:
-            try:
-                root = self.wiki.relative_to(self.repo)
-            except ValueError:
-                root = self.wiki
-            message += f"; run /wiki-init --adopt {root} with plugin {VERSION}"
-        self.upgrades.append(f"upgrade: {path}:{line}: {message}")
+    def upgrade(self, path: Path, line: int, code: str, message: str, fix: bool = True):
+        self.upgrades.append(Note(path, line, message, code, "adopt" if fix else "update-plugin"))
+
+    def info(self, code: str, message: str, path: Path | None = None, line: int | None = None):
+        self.infos.append(Note(path, line, message, code))
+
+    def root(self) -> str:
+        try:
+            return self.wiki.relative_to(self.repo).as_posix()
+        except ValueError:
+            return str(self.wiki)
+
+    def rel(self, path: Path | None) -> str | None:
+        if path is None:
+            return None
+        try:
+            return path.relative_to(self.wiki).as_posix()
+        except ValueError:
+            return str(path)
+
+    def report(self, code: int) -> dict:
+        def row(note: Note, *extra: str) -> dict:
+            out = {"path": self.rel(note.path), "line": note.line}
+            out.update({key: getattr(note, key) for key in extra})
+            out["message"] = note.message
+            return out
+        return {"validator": VERSION, "format": FORMAT_VERSION, "wiki": self.root(), "exit": code, "error": None,
+                "findings": [row(n) for n in self.findings],
+                "upgrades": [dict(row(n, "code"), fix=n.fix) for n in self.upgrades],
+                "infos": [row(n, "code") for n in self.infos]}
+
+    def load(self, path: Path):
+        try:
+            self.read_page(path)
+        except (OSError, UnicodeError):
+            self.error(path, 1, "cannot read page (unreadable or not UTF-8)")
 
     @staticmethod
     def marked(page: Page, marker: str) -> bool:
@@ -464,7 +502,7 @@ class Validator:
             if legacy:
                 columns = [c for c in columns if c != "Status"]
                 # Legacy rows stay valid; only a new ⚫ closure has nowhere to go.
-                self.upgrade(page.path, rows[0][0], "Done table has no Status column; ⚫ closures cannot be recorded")
+                self.upgrade(page.path, rows[0][0], "done-status-missing", "Done table has no Status column; ⚫ closures cannot be recorded")
             # Marked translated tables keep the documented column order.
             if all(c in header for c in columns):
                 positions = {c: header.index(c) for c in columns}
@@ -523,24 +561,24 @@ class Validator:
         declared = schema.fields.get("format_version")
         line = schema.locations.get("format_version", 1)
         if not isinstance(declared, str) or not declared:
-            self.upgrade(schema.path, 1, "format_version missing")
+            self.upgrade(schema.path, 1, "format-version-missing", "format_version missing")
         elif version_tuple(declared) is None:
-            self.upgrade(schema.path, line, "format_version must be X.Y.Z")
+            self.upgrade(schema.path, line, "format-version-invalid", "format_version must be X.Y.Z")
         elif version_tuple(declared) < version_tuple(FORMAT_VERSION):
-            self.upgrade(schema.path, line, f"format_version {declared} is older than {FORMAT_VERSION}")
+            self.upgrade(schema.path, line, "format-version-older", f"format_version {declared} is older than {FORMAT_VERSION}")
         elif version_tuple(declared) > version_tuple(FORMAT_VERSION):
-            self.upgrade(schema.path, line, f"format_version {declared} is newer than this plugin ({FORMAT_VERSION}); update the plugin", fix=False)
+            self.upgrade(schema.path, line, "format-version-newer", f"format_version {declared} is newer than this plugin ({FORMAT_VERSION}); update the plugin", fix=False)
             # An older plugin must not propose edits to a newer wiki.
             return
         if not has_core_map:
-            self.upgrade(schema.path, 1, "Core map missing (v1 wiki)")
+            self.upgrade(schema.path, 1, "core-map-missing", "Core map missing (v1 wiki)")
         for name in SCHEMA_SECTIONS:
             slug = name.lower().replace(" ", "-")
             if f"## {name}" not in (l.strip() for l in schema.lines) and not self.marked(schema, slug):
-                self.upgrade(schema.path, 1, f"SCHEMA section ## {name} (or <!-- wiki:{slug} -->) missing")
+                self.upgrade(schema.path, 1, "schema-section-missing", f"SCHEMA section ## {name} (or <!-- wiki:{slug} -->) missing")
         decisions = paths.get("decisions")
         if decisions is not None and decisions.is_file():
-            self.upgrade(schema.path, 1, "decisions must be a folder of NNNN-<slug>.md files")
+            self.upgrade(schema.path, 1, "decisions-not-folder", "decisions must be a folder of NNNN-<slug>.md files")
         elif decisions is not None:
             for path in sorted(decisions.glob("*.md")):
                 page = self.pages.get(path)
@@ -548,11 +586,11 @@ class Validator:
                     continue
                 status = page.fields.get("status")
                 if not isinstance(status, str) or not status:
-                    self.upgrade(path, 1, "decision status must be in frontmatter (status: proposed | accepted | rejected | superseded by NNNN)")
+                    self.upgrade(path, 1, "decision-status-missing", "decision status must be in frontmatter (status: proposed | accepted | rejected | superseded by NNNN)")
                 elif not DECISION_STATUS.fullmatch(status):
-                    self.upgrade(path, page.locations.get("status", 1), "decision status must be proposed, accepted, rejected or superseded by NNNN")
+                    self.upgrade(path, page.locations.get("status", 1), "decision-status-invalid", "decision status must be proposed, accepted, rejected or superseded by NNNN")
                 if "## Approval" not in (l.strip() for l in page.lines) and not self.marked(page, "approval"):
-                    self.upgrade(path, 1, "decision has no ## Approval section (or <!-- wiki:approval -->)")
+                    self.upgrade(path, 1, "decision-approval-missing", "decision has no ## Approval section (or <!-- wiki:approval -->)")
 
     def cited_ids(self, page: Page, number: int, text: str, what: str):
         if self.tracker_ids is None:
@@ -640,7 +678,10 @@ class Validator:
                     self.error(page.path, number, f"baton task missing {name}")
 
     def run(self):
-        schema = self.read_page(self.wiki / "SCHEMA.md")
+        try:
+            schema = self.read_page(self.wiki / "SCHEMA.md")
+        except (OSError, UnicodeError) as exc:
+            raise ValueError(f"cannot read SCHEMA.md ({type(exc).__name__})") from exc
         paths = self.core_map(schema)
         exclusions = self.excluded(schema, paths)
         self.page_types(schema)
@@ -649,7 +690,7 @@ class Validator:
         # still needs its role-specific validation even when reached via one.
         for path in paths.values():
             if path.is_file() and path not in self.pages:
-                self.read_page(path)
+                self.load(path)
         for path in sorted(self.wiki.rglob("*.md")):
             # Never read symlink targets outside the wiki or confidential term files.
             if private_terms_path(path):
@@ -661,9 +702,9 @@ class Validator:
                 skipped += 1
                 continue
             if path not in self.pages:
-                self.read_page(path)
+                self.load(path)
         if skipped:
-            self.infos.append(f"info: {skipped} paths excluded by SCHEMA")
+            self.info("paths-excluded", f"{skipped} paths excluded by SCHEMA")
         for page in self.pages.values():
             self.frontmatter(page)
             self.links(page)
@@ -691,29 +732,43 @@ def main(argv: list[str]) -> int:
     if argv[1:] == ["--version"]:
         print(f"validate-wiki {VERSION} (format {FORMAT_VERSION})")
         return 0
+    args = argv[1:]
+    as_json = "--json" in args
+    args = [a for a in args if a != "--json"]
+
+    def stop(message: str) -> int:
+        if as_json:
+            print(json.dumps({"validator": VERSION, "format": FORMAT_VERSION, "wiki": None, "exit": 2,
+                              "error": message, "findings": [], "upgrades": [], "infos": []}, ensure_ascii=False))
+        print(message, file=sys.stderr)
+        return 2
+
     if sys.version_info < (3, 10):
-        print("validate-wiki.py requires Python 3.10+; deterministic validation not run", file=sys.stderr)
-        return 2
-    if len(argv) != 2:
-        print("usage: python3 <maintainer>/scripts/validate-wiki.py <wiki-root>", file=sys.stderr)
-        return 2
-    wiki = Path(argv[1])
+        return stop("validate-wiki.py requires Python 3.10+; deterministic validation not run")
+    if len(args) != 1 or args[0].startswith("-"):
+        return stop("usage: python3 <maintainer>/scripts/validate-wiki.py [--json] <wiki-root>")
+    wiki = Path(args[0])
     if not wiki.is_dir() or not (wiki / "SCHEMA.md").is_file() or private_terms_path(wiki / "SCHEMA.md") or not (wiki / "SCHEMA.md").resolve().is_relative_to(wiki.resolve()):
-        print("configuration error: wiki-root needs a readable SCHEMA.md inside it", file=sys.stderr)
-        return 2
+        return stop("configuration error: wiki-root needs a readable SCHEMA.md inside it")
     try:
         validator = Validator(wiki)
-        findings = validator.run()
-    except (OSError, UnicodeError, ValueError) as exc:
-        print(f"configuration error: cannot read documented wiki format ({type(exc).__name__})", file=sys.stderr)
-        return 2
-    for info in validator.infos:
-        print(info)
+        validator.run()
+    except ValueError as exc:
+        return stop(f"configuration error: {exc}")
+    except (OSError, UnicodeError) as exc:
+        return stop(f"configuration error: cannot read documented wiki format ({type(exc).__name__})")
+    code = 1 if validator.findings else 0
+    if as_json:
+        print(json.dumps(validator.report(code), ensure_ascii=False))
+        return code
+    for note in validator.infos:
+        print("info: " + (f"{note.path}:{note.line}: " if note.path else "") + note.message)
     # `upgrade:` lines name what the current format still needs; they never change the exit code.
-    for line in validator.upgrades:
-        print(line)
-    if findings:
-        print("\n".join(findings), file=sys.stderr)
+    for note in validator.upgrades:
+        fix = f"; run /wiki-init --adopt {validator.root()} with plugin {VERSION}" if note.fix == "adopt" else ""
+        print(f"upgrade: {note.path}:{note.line}: {note.message}{fix}")
+    if code:
+        print("\n".join(f"{n.path}:{n.line}: {n.message}" for n in validator.findings), file=sys.stderr)
         return 1
     print("wiki structural validation passed (semantic claims not checked)")
     return 0

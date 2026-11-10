@@ -92,7 +92,13 @@ taken and why. Everything else is an optional topic.
 
 The maintainer ships `scripts/validate-wiki.py` in every distribution. `/wiki-lint`
 runs `python3 <maintainer skill>/scripts/validate-wiki.py <wiki-root>` before
-semantic review. Python 3.10+ is optional and uses only the standard library;
+semantic review.
+`scripts/validate-wiki.py --json <wiki-root>` prints the same result as one
+JSON document on stdout (`validator`, `format`, `wiki`, `exit`, `error`,
+`findings`, `upgrades`, `infos`), with wiki-relative paths; tools read this
+form. `code` on upgrades and infos is stable; finding messages are not.
+`--version` prints the release and the format.
+Python 3.10+ is optional and uses only the standard library;
 missing or older Python explicitly skips deterministic validation and the
 agent continues read-only. Never install it implicitly or report a skipped
 check as passing. The script returns 0 for valid structure, 1 for file/line

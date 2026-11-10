@@ -2,6 +2,7 @@
 """Behavioral fixtures for the installed, read-only wiki validator."""
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -368,6 +369,102 @@ def translated_budgets(w, r):
     schema.write_text(schema.read_text() + "\n## Limiti\n<!-- wiki:budgets -->\n\nTesto.\n")
 
 
+UPGRADE_CODES = {
+    "format-version-missing", "format-version-invalid", "format-version-older", "format-version-newer",
+    "core-map-missing", "schema-section-missing", "decisions-not-folder", "decision-status-missing",
+    "decision-status-invalid", "decision-approval-missing", "done-status-missing",
+}
+
+
+def run_json(repo, wiki, extra=()):
+    result = subprocess.run([sys.executable, "-I", str(VALIDATOR), str(wiki), *extra, "--json"],
+                            cwd=repo, capture_output=True, text=True)
+    return result.returncode, json.loads(result.stdout), result.stderr
+
+
+def json_cases():
+    failures = 0
+    keys = {"validator", "format", "wiki", "exit", "error", "findings", "upgrades", "infos"}
+
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki)
+        code, report, err = run_json(repo, wiki)
+        ok = (code == 0 and set(report) == keys and report["validator"] == CURRENT_VERSION
+              and report["format"] == FORMAT_VERSION and report["wiki"] == "wiki"
+              and report["exit"] == 0 and report["error"] is None
+              and not report["findings"] and not report["upgrades"] and not report["infos"] and not err)
+        print(("PASS " if ok else "FAIL ") + "json healthy")
+        failures += not ok
+
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki, version=None)
+        (wiki / roles["index"]).write_text((wiki / roles["index"]).read_text().replace("src/main.py", "src/missing.py"))
+        code, report, _ = run_json(repo, wiki)
+        ok = (code == 1 and report["upgrades"][0] == {
+            "path": "SCHEMA.md", "line": 1, "code": "format-version-missing",
+            "message": "format_version missing", "fix": "adopt"}
+              and report["findings"][0]["path"] == "index.md"
+              and isinstance(report["findings"][0]["line"], int)
+              and "source" in report["findings"][0]["message"])
+        print(("PASS " if ok else "FAIL ") + "json upgrade and finding")
+        failures += not ok
+
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        newer = ".".join(str(int(p) + 1) if i == 0 else p for i, p in enumerate(FORMAT_VERSION.split(".")))
+        current_schema(wiki, version=newer)
+        code, report, _ = run_json(repo, wiki)
+        ok = code == 0 and [u["code"] for u in report["upgrades"]] == ["format-version-newer"] and report["upgrades"][0]["fix"] == "update-plugin"
+        print(("PASS " if ok else "FAIL ") + "json newer format")
+        failures += not ok
+
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        empty = Path(temp) / "empty"
+        empty.mkdir()
+        code, report, _ = run_json(repo, empty)
+        ok = code == 2 and report["exit"] == 2 and report["error"] and report["wiki"] is None
+        print(("PASS " if ok else "FAIL ") + "json configuration error")
+        failures += not ok
+
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki)
+        (wiki / "bad.md").write_bytes(b"\xff\xfe\x00")
+        code, report, _ = run_json(repo, wiki)
+        ok = (code == 1 and len(report["findings"]) == 1 and report["findings"][0]["path"] == "bad.md"
+              and "cannot read page" in report["findings"][0]["message"])
+        print(("PASS " if ok else "FAIL ") + "unreadable page is a finding")
+        failures += not ok
+
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki)
+        (wiki / "SCHEMA.md").write_bytes(b"\xff\xfe\x00")
+        code, report, _ = run_json(repo, wiki)
+        ok = code == 2 and report["error"] and "SCHEMA.md" in report["error"]
+        print(("PASS " if ok else "FAIL ") + "unreadable SCHEMA is exit 2")
+        failures += not ok
+
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, _ = fixture(repo)
+        current_schema(wiki)
+        result = subprocess.run([sys.executable, "-I", str(VALIDATOR), str(wiki), "--json"],
+                                cwd=repo, capture_output=True, text=True)
+        ok = result.returncode == 0 and isinstance(json.loads(result.stdout), dict)
+        print(("PASS " if ok else "FAIL ") + "flag order free")
+        failures += not ok
+    return failures
+
+
 def version_cases():
     """The release and the format are two numbers; the shipped schema names the format."""
     release = re.search(r'^VERSION = "([^"]+)"', SOURCE, re.M)
@@ -431,6 +528,8 @@ def upgrade_cases():
             # Tools parse the fix: real wiki path, never the placeholder.
             ok = ok and all("<wiki-root>" not in u for u in upgrades)
             ok = ok and all(u.endswith("update the plugin") or u.endswith(f"run /wiki-init --adopt {wiki.relative_to(repo)} with plugin {CURRENT_VERSION}") for u in upgrades)
+            _, report, _ = run_json(repo, wiki)
+            ok = ok and len(report["upgrades"]) == len(upgrades) and all(u["code"] in UPGRADE_CODES for u in report["upgrades"])
             print(("PASS " if ok else "FAIL ") + name)
             if not ok:
                 failures += 1
@@ -738,6 +837,7 @@ def run():
     failures += adoption_cases()
     failures += schema_section_cases()
     failures += version_cases()
+    failures += json_cases()
     failures += upgrade_cases()
     failures += marker_cases()
     failures += versal_scenario()
