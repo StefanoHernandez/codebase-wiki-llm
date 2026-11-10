@@ -77,6 +77,8 @@ Rules:
   status here. Git state and verified steps remain in the handoff.
 - Resolve source placeholders to concrete repository-relative paths before
   writing; use the confirmed wiki root and Core map paths.
+- A literal `|` inside a cell is written `\|`, also inside backticks; an
+  unescaped one splits the cell, as in every Markdown renderer.
 - Every task in `Baton For Next Coding Agent` needs start files, done criteria,
   and a verification command. If verification is impossible, write
   `Not verified - <reason>`.

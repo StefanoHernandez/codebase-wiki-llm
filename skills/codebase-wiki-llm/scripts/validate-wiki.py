@@ -39,6 +39,10 @@ BATON_COLUMNS = ["Order", "Task", "Start files", "Done when", "Verification comm
 OPEN_COLUMNS = ["ID", "Status", "Goal", "Done when", "Owner", "Next verification", "Evidence"]
 DONE_COLUMNS = ["ID", "Status", "Goal", "Closed", "Criteria met", "Evidence"]
 UNRESOLVED = {"", "unknown", "pending", "todo", "tbd", "n/a", "na", "none"}
+HTML_TAGS = "br|sub|sup|kbd|code|em|strong|b|i|u|s|del|ins|mark|span|details|summary"
+# A placeholder is <text> that is not glued to a word (Vec<u8>), not an autolink and not inline HTML.
+PLACEHOLDER = re.compile(
+    rf"(?<!\w)<(?!/?(?:{HTML_TAGS})\b)(?![A-Za-z][A-Za-z0-9+.-]{{1,31}}:[^\s<>]*>)(?![^\s<>@]+@[^\s<>]+>)[^<>]+>")
 # The validator is installed on its own, so it carries both numbers.
 # VERSION is the plugin release; it equals canonical/codebase/VERSION.
 VERSION = "0.13.0"
@@ -64,7 +68,7 @@ def columns_match(header: list[str], expected: list[str]) -> bool:
 
 def unresolved(value: str) -> bool:
     value = value.strip().strip("`").strip()
-    return value.lower() in UNRESOLVED or bool(re.search(r"<[^>]+>", value))
+    return value.lower() in UNRESOLVED or bool(PLACEHOLDER.search(value))
 
 
 def iso_date(value: str) -> bool:
@@ -366,7 +370,7 @@ class Validator:
         section = self.section(schema, "core-map", "Core map", required=False)
         if not section:
             # A present but empty map must not masquerade as a v1 wiki.
-            if "## Core map" in schema.lines or "<!-- wiki:core-map -->" in schema.lines:
+            if any(l.strip() in ("## Core map", "<!-- wiki:core-map -->") for l in schema.lines):
                 self.error(schema.path, 1, "Core map is empty")
                 return {}
             mapping = DEFAULTS.copy()
@@ -460,7 +464,7 @@ class Validator:
             line = re.sub(r"(`+).*?\1", "", line)
             links = inline_destinations(line)
             # Standard reference definitions are checked too; no arbitrary Markdown extensions.
-            reference = re.match(r"^ {0,3}\[[^\]]+\]:\s*(<[^>]+>|\S+)", line)
+            reference = re.match(r"^ {0,3}\[(?!\^)[^\]]+\]:\s*(<[^>]+>|\S+)", line)
             if reference:
                 links.append(reference[1].strip("<>"))
             for link in links:
@@ -494,7 +498,7 @@ class Validator:
             header = rows[0][1]
             if kind == "proposals":
                 for number, cells in rows[1:]:
-                    if any(re.search(r"\bT\d+\b|[🟢⚫🟡⚪🔴]", cell) for cell in cells):
+                    if re.fullmatch(r"T[1-9]\d*", cells[0]) or any(cell in ("🟢", "⚫", "🟡", "⚪", "🔴") for cell in cells):
                         self.error(page.path, number, "proposal must not define an activity ID or status icon")
                 continue
             columns = OPEN_COLUMNS if kind == "open" else DONE_COLUMNS
@@ -506,7 +510,7 @@ class Validator:
             # Marked translated tables keep the documented column order.
             if all(c in header for c in columns):
                 positions = {c: header.index(c) for c in columns}
-            elif len(header) == len(columns) and any(line.strip() == f"<!-- wiki:{kind} -->" for line in page.lines):
+            elif len(header) >= len(columns) and any(line.strip() == f"<!-- wiki:{kind} -->" for line in page.lines):
                 positions = {c: i for i, c in enumerate(columns)}
             else:
                 self.error(page.path, rows[0][0], f"unsupported {kind} tracker columns")
@@ -516,7 +520,10 @@ class Validator:
                 continue
             for number, cells in rows[1:]:
                 if len(cells) != len(header):
-                    self.error(page.path, number, f"{kind} tracker row does not match its header")
+                    msg = f"{kind} tracker row does not match its header"
+                    if len(cells) > len(header):
+                        msg += r" (a literal | inside a cell is written \|)"
+                    self.error(page.path, number, msg)
                     if kind == "open":
                         open_readable = False
                     ids_readable = False
@@ -547,7 +554,7 @@ class Validator:
                 if status == "🟢" and any(explicit_unproven(row[column]) for column in ("Criteria met", "Evidence")):
                     self.error(page.path, number, "green row contains an explicit unproven claim in criteria or evidence")
                 if status == "⚫":
-                    closure = re.fullmatch(r"closed by (.+?) (\d{4}-\d{2}-\d{2}); not proven: (.+)", row["Criteria met"])
+                    closure = re.fullmatch(r"closed by (.+?) (\d{4}-\d{2}-\d{2}); not proven: (.+)", row["Criteria met"], re.I)
                     if not closure or unresolved(closure[1]) or unresolved(closure[3]) or closure[1].lower() in ("agent", "coding agent", "ai"):
                         self.error(page.path, number, "black row needs 'closed by <person> YYYY-MM-DD; not proven: <what>' and human closure evidence")
                     elif not iso_date(closure[2]):
@@ -593,6 +600,7 @@ class Validator:
                     self.upgrade(path, 1, "decision-approval-missing", "decision has no ## Approval section (or <!-- wiki:approval -->)")
 
     def cited_ids(self, page: Page, number: int, text: str, what: str):
+        text = re.sub(r"(`+).*?\1", "", text)
         if self.tracker_ids is None:
             if re.search(r"\bT[1-9]\d*\b", text):
                 self.error(page.path, number, f"{what} tracker references not checked: tracker IDs are unavailable")
@@ -668,7 +676,10 @@ class Validator:
             self.error(page.path, rows[0][0], "baton table has no task rows")
         for number, cells in rows[1:]:
             if len(cells) != 6:
-                self.error(page.path, number, "baton task needs six cells")
+                msg = "baton task needs six cells"
+                if len(cells) > 6:
+                    msg += r" (a literal | inside a cell is written \|)"
+                self.error(page.path, number, msg)
                 continue
             order, task, start, done, verification, _notes = cells
             activity = re.match(r"^(T[1-9]\d*)\s*-\s*\S", task)
@@ -731,7 +742,7 @@ class Validator:
             page = self.pages.get(paths.get(role))
             if page:
                 check(page)
-        has_core_map = "## Core map" in schema.lines or "<!-- wiki:core-map -->" in schema.lines
+        has_core_map = any(l.strip() in ("## Core map", "<!-- wiki:core-map -->") for l in schema.lines)
         self.format_upgrades(schema, paths, has_core_map)
         return self.findings
 

@@ -78,7 +78,7 @@ empty archive directory is not required at init or adoption.
 - Language: headings and prose use the Project profile language. Fixed tokens
   never change: section markers `<!-- wiki:<id> -->`, Core map role names,
   frontmatter keys, `⚠️ NOT VERIFIED`, `⚠️ TO RE-VERIFY`,
-  `Not verified - <reason>`, `No open work.`, status icons, ID prefixes,
+  `Not verified - <reason>`, `No open work.`, `closed by … ; not proven:`, status icons, ID prefixes,
   risk severities (`critical`, `high`, `medium`, `low`).
 - Risk IDs: prefix `R`, stable, never reused; the register lives in the
   `risks` page (`<!-- wiki:risk-register -->`).

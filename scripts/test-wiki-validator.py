@@ -79,6 +79,7 @@ TRACKER = """## Open
 """
 GREEN = "| T2 | 🟢 | Fix docs | 2026-10-01 | Review passed | recorded review |\n"
 BLACK = "| T2 | ⚫ | Old feature | 2026-10-01 | closed by Stefano 2026-10-01; not proven: cancelled | conversation 2026-10-01 |\n"
+PROP = "| Proposal | By | Date | Why |\n| --- | --- | --- | --- |\n"
 
 
 def frontmatter(title="Page", sources="  - src/main.py\n"):
@@ -513,6 +514,8 @@ def upgrade_cases():
         ("newer format proposes nothing else", lambda w, r: current_schema(w, version=newer, drop=("Budgets",)), False,
          ["update the plugin", "!Budgets", "!run /wiki-init"]),
         ("decision outside NNNN- naming skipped", lambda w, r: (current_schema(w), (w / r["decisions"] / "README.md").write_text(DECISION.format(status="", approval=""))), False, []),
+        ("Core map heading with trailing space", lambda w, r: (current_schema(w), (w / "SCHEMA.md").write_text(
+            (w / "SCHEMA.md").read_text().replace("## Core map\n", "## Core map \n"))), False, []),
     ]
     for name, setup, legacy, required in cases:
         with tempfile.TemporaryDirectory() as temp:
@@ -534,6 +537,43 @@ def upgrade_cases():
             if not ok:
                 failures += 1
                 print(f"  expected exit 0, upgrades {required}; got {code}: {(out + err).strip()}")
+    return failures
+
+
+def translated_extra_column():
+    """Translated Open tables may carry extra columns after the documented ones."""
+    failures = 0
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo, localized=True)
+        current_schema(wiki)
+        tracker = wiki / roles["tracker"]
+        lines = tracker.read_text().splitlines()
+        open_at = next(i for i, ln in enumerate(lines) if ln.strip() == "<!-- wiki:open -->")
+        for idx, suffix in ((open_at + 1, " Fase |"), (open_at + 2, " --- |"), (open_at + 3, " WP1 |")):
+            lines[idx] = lines[idx].rstrip() + suffix
+        tracker.write_text("\n".join(lines) + "\n")
+        code, out, err = validate(repo, wiki)
+        ok = code == 0 and "unsupported open tracker" not in err
+        print(("PASS " if ok else "FAIL ") + "translated extra column accepted")
+        if not ok:
+            failures += 1
+            print(f"  got {code}: {(out + err).strip()}")
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki)
+        tracker = wiki / roles["tracker"]
+        lines = tracker.read_text().splitlines()
+        open_at = next(i for i, ln in enumerate(lines) if ln.strip() == "<!-- wiki:open -->")
+        for idx, suffix in ((open_at + 1, " Fase |"), (open_at + 2, " --- |"), (open_at + 3, " WP1 |")):
+            lines[idx] = lines[idx].rstrip() + suffix
+        lines = [ln for ln in lines if ln.strip() != "<!-- wiki:open -->"]
+        tracker.write_text("\n".join(lines) + "\n")
+        code, out, err = validate(repo, wiki)
+        ok = code == 1 and "unsupported open tracker columns" in err
+        print(("PASS " if ok else "FAIL ") + "translated extra column needs marker")
+        failures += not ok
     return failures
 
 
@@ -629,6 +669,7 @@ def marker_cases():
         ("owners table wrong header", append_to("index", bad_header), 1, "owners table"),
         ("owners row without link", append_to("index", OWNERS + "| Dates | schedule |\n"), 1, "owner page link"),
         ("next steps cite existing ID", next_steps("T1"), 0, ""),
+        ("next steps ignore IDs in code spans", next_steps("T1, hardware `T4`"), 0, ""),
         ("next steps cite unknown ID", next_steps("T99"), 1, "Next steps cites unknown tracker ID T99"),
         ("risk register valid", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="high", ids="T1"))), 0, ""),
         ("risk register duplicate ID", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="high", ids="T1") * 2)), 1, "duplicate risk ID R1"),
@@ -685,6 +726,18 @@ def run():
         ("adopted decisions file frontmatter checked", ("SCHEMA", "`project/decisions/`", "`project/decisions.md`"), 1, "updated"),
         ("missing Core role", ("SCHEMA", "| index | `index.md` |", ""), 1, "Core map"),
         ("duplicate Core role", ("SCHEMA", "| index | `index.md` |", "| index | `index.md` |\n| index | `log.md` |"), 1, "Core map"),
+        ("autolink is not a placeholder", ("tracker", "reproduced locally", "see <https://example.org/pr/1>"), 0, ""),
+        ("email autolink is not a placeholder", ("tracker", "reproduced locally", "ask <dev@example.org>"), 0, ""),
+        ("generic type is not a placeholder", ("tracker", "reproduced locally", "returns Vec<u8> and `Map<string, Page>`"), 0, ""),
+        ("html break is not a placeholder", ("tracker", "reproduced locally", "first<br>second"), 0, ""),
+        ("template placeholder still rejected", ("tracker", "reproduced locally", "<link>"), 1, "open row needs evidence"),
+        ("backticked placeholder still rejected", ("tracker", "`python3 -m unittest` | reproduced", "`<command>` | reproduced"), 1, "open row needs next verification"),
+        ("footnote definition is not a link", ("index", "# Page", "# Page\n\nSee the note.[^1]\n\n[^1]: See the parser notes."), 0, ""),
+        ("unescaped pipe names the escape", ("tracker", "`python3 -m unittest`", "`printf x | cat`"), 1, r"written \|"),
+        ("proposal may mention an ID", ("tracker", PROP, PROP + "| Follow up after T1 on the T4 GPU | Stefano | 2026-10-01 | faster |\n"), 0, ""),
+        ("proposal row with its own ID rejected", ("tracker", PROP, PROP + "| T9 | Stefano | 2026-10-01 | faster |\n"), 1, "proposal must not define"),
+        ("proposal row with a status icon rejected", ("tracker", PROP, PROP + "| Idea | 🟡 | 2026-10-01 | faster |\n"), 1, "proposal must not define"),
+        ("capitalised closure accepted", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by", "Closed by")), 0, ""),
         ("duplicate tracker ID", ("tracker", TRACKER, TRACKER + GREEN.replace("T2", "T1")), 1, "duplicate"),
         ("IDs elsewhere are references", ("index", "# Page", "T1, T1; see T1"), 0, ""),
         ("translated heading without marker", ("context", "## Read First\n<!-- wiki:read-first -->", "## Leggi prima"), 1, "wiki:read-first"),
@@ -842,6 +895,7 @@ def run():
     failures += json_cases()
     failures += upgrade_cases()
     failures += marker_cases()
+    failures += translated_extra_column()
     failures += versal_scenario()
     failures += upgrade_with_findings()
     return int(failures > 0)

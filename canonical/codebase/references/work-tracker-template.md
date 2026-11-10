@@ -62,7 +62,12 @@ Rules:
   when there is no open work.
 
 - Add `Phase` (when the SCHEMA project division is not `none`), `Priority` or
-  `Depends on` columns only when they help.
+  `Depends on` columns only when they help. In a table with translated headers
+  the documented columns come first, in order; extra columns follow.
+- A literal `|` inside a cell is written `\|`, also inside backticks; an
+  unescaped one splits the cell, as in every Markdown renderer.
+- A proposal row has no ID cell and no cell made only of a status icon; its
+  text may mention existing IDs.
 - A person opens a task by moving a proposal to Open or by asking for the
   work in the conversation; the agent then writes the Open row with the next
   free ID and who asked. Agents never open a task on their own.
