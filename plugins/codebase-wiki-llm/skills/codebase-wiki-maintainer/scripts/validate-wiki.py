@@ -38,7 +38,11 @@ BATON_COLUMNS = ["Order", "Task", "Start files", "Done when", "Verification comm
 OPEN_COLUMNS = ["ID", "Status", "Goal", "Done when", "Owner", "Next verification", "Evidence"]
 DONE_COLUMNS = ["ID", "Status", "Goal", "Closed", "Criteria met", "Evidence"]
 UNRESOLVED = {"", "unknown", "pending", "todo", "tbd", "n/a", "na", "none"}
-# The validator is installed on its own, so it carries the plugin VERSION it checks against.
+# The validator is installed on its own, so it carries both numbers.
+# VERSION is the plugin release; it equals canonical/codebase/VERSION.
+VERSION = "0.13.0"
+# FORMAT_VERSION is the wiki format this validator checks. Raise it only when a
+# release adds an `upgrade:` check or changes a structure tools read.
 FORMAT_VERSION = "0.12.0"
 SCHEMA_SECTIONS = ["Project profile", "Conventions", "Evidence", "Confidentiality", "Budgets",
                    "Log format", "Topics", "Page frontmatter"]
@@ -185,7 +189,7 @@ class Validator:
                 root = self.wiki.relative_to(self.repo)
             except ValueError:
                 root = self.wiki
-            message += f"; run /wiki-init --adopt {root} with plugin {FORMAT_VERSION}"
+            message += f"; run /wiki-init --adopt {root} with plugin {VERSION}"
         self.upgrades.append(f"upgrade: {path}:{line}: {message}")
 
     @staticmethod
@@ -684,6 +688,9 @@ class Validator:
 
 
 def main(argv: list[str]) -> int:
+    if argv[1:] == ["--version"]:
+        print(f"validate-wiki {VERSION} (format {FORMAT_VERSION})")
+        return 0
     if sys.version_info < (3, 10):
         print("validate-wiki.py requires Python 3.10+; deterministic validation not run", file=sys.stderr)
         return 2

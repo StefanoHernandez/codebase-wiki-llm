@@ -185,8 +185,8 @@ Keep output short:
 - or `wiki-sync: updated <pages> based on <files>. <follow-up>`
 
 List the proposals made and any log archive (file, entry count, date range).
-If SCHEMA `format_version` is missing or older than this plugin's version, add
-one line: `wiki format <value> is older than plugin <version>: run
+If SCHEMA `format_version` is missing or older than this plugin's format, add
+one line: `wiki format <value> is older than format <version>: run
 /wiki-init --adopt <wiki-root>`. Sync never performs the format upgrade.
 
 ## Guardrails

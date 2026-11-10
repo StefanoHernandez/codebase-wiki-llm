@@ -56,10 +56,9 @@ taken and why. Everything else is an optional topic.
   `references/risks-template.md`. One topic, one page: the index
   `<!-- wiki:owners -->` table names the owner page of each topic; other pages
   link to it in one line instead of describing it again.
-- SCHEMA frontmatter `format_version` is the plugin version the wiki was last
-  brought up to. The validator prints
+- SCHEMA frontmatter `format_version` is the wiki format the structure follows (several plugin releases share one format; `scripts/validate-wiki.py --version` prints it). The validator prints
   `upgrade: <path>:<line>: <what>; run /wiki-init --adopt <wiki-root> with plugin <version>`
-  lines (stdout) when the wiki is older than this plugin or misses a structure
+  lines (stdout) when the wiki format is older than this plugin's format or misses a structure
   this version expects; they never change its exit code. Fix them with
   `/wiki-init --adopt <wiki-root>`, and raise `format_version` only when every `upgrade:` line left is about `format_version` itself.
 

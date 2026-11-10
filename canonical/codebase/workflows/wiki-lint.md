@@ -44,8 +44,7 @@ checks still run. An unreadable Open tracker produces a single explicit
 `references not checked` finding for dependent handoff IDs; check the baton
 fields independently. Deferred adoption gaps keep exit 1 and are never a pass.
 
-Lines starting with `upgrade:` say the wiki format is older than this plugin
-(SCHEMA `format_version` missing or lower, or a structure this version expects
+Lines starting with `upgrade:` say the wiki format is older than this plugin's format (SCHEMA `format_version` missing or lower, or a structure this version expects
 is absent). They never change the exit code. Report them under `Format` and
 suggest `/wiki-init --adopt <wiki-root>`; do not fix them during lint.
 

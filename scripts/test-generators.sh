@@ -41,7 +41,7 @@ v = {p["name"]: p["version"] for p in m["plugins"]}
 assert v == {"codebase-wiki-llm": sys.argv[1], "secondbrain-wiki-llm": sys.argv[2]}, v
 EOF
 if grep -rq "@VERSION@" plugins .claude-plugin; then fail "unreplaced @VERSION@ token"; fi
-grep -qx "FORMAT_VERSION = \"$cv\"" canonical/codebase/scripts/validate-wiki.py || fail "validate-wiki.py FORMAT_VERSION differs from VERSION $cv"
+grep -qx "VERSION = \"$cv\"" canonical/codebase/scripts/validate-wiki.py || fail "validate-wiki.py VERSION differs from VERSION $cv"
 
 for package in \
   plugins/codebase-wiki-llm/skills/codebase-wiki-maintainer \

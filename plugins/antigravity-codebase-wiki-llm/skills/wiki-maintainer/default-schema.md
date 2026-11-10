@@ -1,7 +1,7 @@
 ---
 type: Schema
 title: Wiki Schema
-format_version: <plugin VERSION>
+format_version: 0.12.0
 description: Repo-specific conventions that wiki workflows must follow.
 generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 confidence: high
@@ -82,10 +82,7 @@ empty archive directory is not required at init or adoption.
   risk severities (`critical`, `high`, `medium`, `low`).
 - Risk IDs: prefix `R`, stable, never reused; the register lives in the
   `risks` page (`<!-- wiki:risk-register -->`).
-- Format version: `format_version` in this file's frontmatter is the plugin
-  version that last wrote or upgraded the wiki structure. `/wiki-init` writes
-  it; adopt mode raises it only when every `upgrade:` line left is about `format_version` itself.
-  Content edits never change it.
+- Format version: `format_version` in this file's frontmatter is the wiki format the structure follows; `validate-wiki.py --version` prints the format a plugin writes. Several plugin releases share one format. `/wiki-init` writes it; adopt mode raises it only when every `upgrade:` line left is about `format_version` itself, and never lowers it. Content edits never change it.
 - Section markers: sections that tools check carry their marker on the line
   right under the heading: the context, handoff and tracker templates, the
   index `owners`, tracker `next`, risks `risk-register` and decision

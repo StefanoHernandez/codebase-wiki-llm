@@ -320,11 +320,13 @@ def schema_section_cases():
 
 
 CURRENT_VERSION = (ROOT / "canonical/codebase/VERSION").read_text().strip()
+SOURCE = VALIDATOR.read_text(encoding="utf-8")
+FORMAT_VERSION = re.search(r'^FORMAT_VERSION = "([^"]+)"', SOURCE, re.M)[1]
 SCHEMA_SECTIONS = ["Project profile", "Conventions", "Evidence", "Confidentiality", "Budgets",
                    "Log format", "Topics", "Page frontmatter"]
 
 
-def current_schema(wiki, version=CURRENT_VERSION, drop=()):
+def current_schema(wiki, version=FORMAT_VERSION, drop=()):
     """Bring the fixture SCHEMA to the current format: version plus every v2 section."""
     schema = wiki / "SCHEMA.md"
     text = schema.read_text()
@@ -366,17 +368,35 @@ def translated_budgets(w, r):
     schema.write_text(schema.read_text() + "\n## Limiti\n<!-- wiki:budgets -->\n\nTesto.\n")
 
 
+def version_cases():
+    """The release and the format are two numbers; the shipped schema names the format."""
+    release = re.search(r'^VERSION = "([^"]+)"', SOURCE, re.M)
+    schema = (ROOT / "canonical/codebase/default-schema.md").read_text()
+    shown = subprocess.run([sys.executable, "-I", str(VALIDATOR), "--version"], capture_output=True, text=True)
+    checks = [
+        ("validator VERSION equals canonical VERSION", bool(release) and release[1] == CURRENT_VERSION),
+        ("format is not newer than the release",
+         tuple(map(int, FORMAT_VERSION.split("."))) <= tuple(map(int, CURRENT_VERSION.split(".")))),
+        ("default schema declares the format", f"\nformat_version: {FORMAT_VERSION}\n" in schema),
+        ("--version prints release and format",
+         shown.returncode == 0 and shown.stdout.strip() == f"validate-wiki {CURRENT_VERSION} (format {FORMAT_VERSION})"),
+    ]
+    for name, ok in checks:
+        print(("PASS " if ok else "FAIL ") + name)
+    return sum(not ok for _, ok in checks)
+
+
 def upgrade_cases():
     """Format version and the `upgrade:` lines: stdout only, exit code unchanged."""
     failures = 0
-    newer = ".".join(str(int(p) + 1) if i == 0 else p for i, p in enumerate(CURRENT_VERSION.split(".")))
+    newer = ".".join(str(int(p) + 1) if i == 0 else p for i, p in enumerate(FORMAT_VERSION.split(".")))
     approval = "\n## Approval\naccepted: Stefano, meeting, 2026-10-01\n"
     translated = "\n## Approvazione\n<!-- wiki:approval -->\nproposta da Stefano, 2026-10-01\n"
     # name, setup(wiki, roles), legacy fixture, required upgrade texts (empty = no upgrade lines)
     cases = [
         ("current format has no upgrade lines", lambda w, r: current_schema(w), False, []),
         ("format_version missing", lambda w, r: current_schema(w, version=None), False, ["format_version missing"]),
-        ("format_version older", lambda w, r: current_schema(w, version="0.11.0"), False, ["is older than " + CURRENT_VERSION]),
+        ("format_version older", lambda w, r: current_schema(w, version="0.11.0"), False, ["is older than " + FORMAT_VERSION]),
         ("format_version compared numerically", lambda w, r: current_schema(w, version="0.9.2"), False, ["is older than"]),
         ("format_version newer", lambda w, r: current_schema(w, version=newer), False, ["update the plugin"]),
         ("schema section missing", lambda w, r: current_schema(w, drop=("Page frontmatter",)), False, ["Page frontmatter"]),
@@ -449,7 +469,7 @@ def versal_scenario():
             lines[i] = "|".join(cells[:2] + [" 🟢 "] + cells[2:])
         tracker.write_text("\n".join(lines))
         decision.write_text(decision.read_text().replace("confidence: high\n", "confidence: high\nstatus: accepted\n", 1) + "\n## Approval\nApproval not recorded.\n")
-        schema.write_text(schema.read_text().replace("title: Schema\n", f"title: Schema\nformat_version: {CURRENT_VERSION}\n", 1) + "\n## Page frontmatter\n\nText.\n")
+        schema.write_text(schema.read_text().replace("title: Schema\n", f"title: Schema\nformat_version: {FORMAT_VERSION}\n", 1) + "\n## Page frontmatter\n\nText.\n")
         code_after, out_after, err_after = validate(repo, wiki)
         ok = ok and code_after == 0 and "upgrade:" not in out_after
         print(("PASS " if ok else "FAIL ") + "Versal-shaped wiki upgraded to zero upgrade lines")
@@ -717,6 +737,7 @@ def run():
                 failures += 1
     failures += adoption_cases()
     failures += schema_section_cases()
+    failures += version_cases()
     failures += upgrade_cases()
     failures += marker_cases()
     failures += versal_scenario()

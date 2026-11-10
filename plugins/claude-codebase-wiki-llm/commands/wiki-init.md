@@ -57,7 +57,7 @@ exist is not an error: propose that name in Step 3.
 - If Step 0 resolved a wiki whose `SCHEMA.md` has no `## Core map`, it is a v1
   wiki: continue in adopt mode on that folder (Step 4).
 - A wiki with a Core map whose SCHEMA `format_version` is missing or older than
-  this plugin's version needs a format upgrade: in the Step 1 question,
+  this plugin's format (`validate-wiki.py --version`) needs a format upgrade: in the Step 1 question,
   propose `--adopt` first and say which `upgrade:` lines the validator prints.
 - If the current directory does not look like a code repo or software project,
   ask for confirmation before proceeding.
@@ -216,16 +216,14 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   - add the `wiki:owners` table to the index, `## Next steps` /
     `<!-- wiki:next -->` to the tracker and the `wiki:risk-register` table to
     the risks page, from their templates, filled only from existing content.
-  - rerun the validator. Set SCHEMA `format_version` to this plugin's version
-    only when every `upgrade:` line left is about `format_version` itself; otherwise leave it and report the remaining
-    lines.
+  - rerun the validator. Set SCHEMA `format_version` to this plugin's format (the value after `format` in `validate-wiki.py --version`) only when every `upgrade:` line left is about `format_version` itself; otherwise leave it and report the remaining lines. Never lower it: when a line says `newer than this plugin`, change nothing and tell the person to update the plugin.
 
 ## Step 5 - New wiki
 
 Write `SCHEMA.md` from the default schema (replacing each `<wiki-root>`
 placeholder with the folder name) and fill `## Project profile` and
 `## Topics` from the answers confirmed in Step 3, as in Step 4. Set the
-frontmatter `format_version` to this plugin's version. Create the
+frontmatter `format_version` the default schema carries. Create the
 core pages at the default Core map paths and the confirmed topics.
 Populate only what the survey supports; everything else is an explicit stub.
 `context` follows `references/agent-context-template.md`; `handoff` follows
