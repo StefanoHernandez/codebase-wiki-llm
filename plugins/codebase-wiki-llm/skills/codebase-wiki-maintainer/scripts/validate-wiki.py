@@ -650,7 +650,10 @@ class Validator:
         rows = self.table(page, baton)
         no_work = any(line.strip() == "No open work." for _, line in baton)
         if no_work and open_ids:
-            self.error(page.path, 1, "No open work. contradicts open tracker rows")
+            line = next(number for number, text in baton if text.strip() == "No open work.")
+            self.info("handoff-no-open-work-stale",
+                      "handoff says No open work. but the tracker has open rows; refresh the handoff with /wiki-sync",
+                      page.path, line)
         if no_work and len(rows) > 1:
             self.error(page.path, 1, "No open work. contradicts baton task rows")
         if not rows:
@@ -669,7 +672,12 @@ class Validator:
                 continue
             order, task, start, done, verification, _notes = cells
             activity = re.match(r"^(T[1-9]\d*)\s*-\s*\S", task)
-            if not activity or (open_ids is not None and activity[1] not in open_ids):
+            if activity and open_ids is not None and activity[1] not in open_ids \
+                    and self.tracker_ids is not None and activity[1] in self.tracker_ids:
+                self.info("handoff-baton-id-closed",
+                          f"baton task {activity[1]} is closed in the tracker; refresh the handoff with /wiki-sync",
+                          page.path, number)
+            elif not activity or (open_ids is not None and activity[1] not in open_ids):
                 self.error(page.path, number, "baton task must start with an open tracker ID (T1 - task)")
             if not re.fullmatch(r"[1-9]\d*", order):
                 self.error(page.path, number, "baton order must be a positive integer")

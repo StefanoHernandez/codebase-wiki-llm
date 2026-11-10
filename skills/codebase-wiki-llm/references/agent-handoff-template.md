@@ -86,6 +86,10 @@ Rules:
   may point to the tracker (`see T12`) instead of repeating the criteria.
 - When no work is left, write the line `No open work.` under the baton heading
   instead of the table; never invent tasks.
+- A person may open or close work in the tracker without touching this page.
+  The validator then prints an `info:` line (handoff says `No open work.`
+  while rows are open, or a baton task whose ID is closed); `/wiki-sync`
+  refreshes the handoff. It is not a validation failure.
 - Write headings in the SCHEMA language; keep each `<!-- wiki:... -->` marker
   on the line under its heading.
 - Include git state when git is available. If unavailable, write `unknown`.

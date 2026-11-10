@@ -73,6 +73,10 @@ Lines starting with `upgrade:` say the wiki format is older than this plugin's f
 is absent). They never change the exit code. Report them under `Format` and
 suggest `/wiki-init --adopt <wiki-root>`; do not fix them during lint.
 
+Lines starting with `info:` never change the exit code. Report the two
+handoff ones (`No open work.` with open rows, baton task closed in the
+tracker) under `Handoff` and suggest `/wiki-sync`.
+
 ## Step 2 - Gather facts
 
 Read:
