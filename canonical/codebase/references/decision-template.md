@@ -31,11 +31,17 @@ confidence: high | medium | low
 <what this makes easier, harder, or forbidden; related IDs>
 
 ## Approval
+<!-- wiki:approval -->
 <accepted: who approved it, where (message, PR review, meeting note) and when.
 proposed: who proposed it and when.>
 ````
 
 Rules:
+
+- `status:` lives in the frontmatter and the `## Approval` section exists in
+  every decision file; the validator reports a missing one as an `upgrade:`
+  line. Keep the `<!-- wiki:approval -->` marker under the heading when the
+  heading is translated. Append approval lines; never rewrite earlier ones.
 
 - Record an already approved decision directly as `accepted` with who
   approved it, where and when under `## Approval`; no repeat permission is

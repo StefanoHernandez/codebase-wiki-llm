@@ -38,6 +38,19 @@ BATON_COLUMNS = ["Order", "Task", "Start files", "Done when", "Verification comm
 OPEN_COLUMNS = ["ID", "Status", "Goal", "Done when", "Owner", "Next verification", "Evidence"]
 DONE_COLUMNS = ["ID", "Status", "Goal", "Closed", "Criteria met", "Evidence"]
 UNRESOLVED = {"", "unknown", "pending", "todo", "tbd", "n/a", "na", "none"}
+# The validator is installed on its own, so it carries the plugin VERSION it checks against.
+FORMAT_VERSION = "0.12.0"
+SCHEMA_SECTIONS = ["Project profile", "Conventions", "Evidence", "Confidentiality", "Budgets",
+                   "Log format", "Topics", "Page frontmatter"]
+DECISION_STATUS = re.compile(r"(proposed|accepted|rejected|superseded by \d{4})")
+OWNERS_COLUMNS = ["Topic", "Owner page"]
+RISK_COLUMNS = ["ID", "Risk", "Severity", "Trigger", "Mitigation", "Owner", "IDs"]
+RISK_SEVERITY = {"critical", "high", "medium", "low"}
+UPGRADE = "run /wiki-init --adopt <wiki-root> with plugin " + FORMAT_VERSION
+
+
+def version_tuple(value: str) -> tuple[int, ...] | None:
+    return tuple(int(p) for p in value.split(".")) if re.fullmatch(r"\d+(?:\.\d+){2}", value) else None
 
 
 def unresolved(value: str) -> bool:
@@ -154,10 +167,20 @@ class Validator:
         self.repo = next((p for p in self.wiki.parents if (p / ".git").exists()), self.wiki.parent)
         self.findings: list[str] = []
         self.infos: list[str] = []
+        # What is still missing for the current format: reported, never a finding.
+        self.upgrades: list[str] = []
+        self.tracker_ids: set[str] | None = None
         self.pages: dict[Path, Page] = {}
 
     def error(self, path: Path, line: int, message: str):
         self.findings.append(f"{path}:{line}: {message}")
+
+    def upgrade(self, path: Path, line: int, message: str):
+        self.upgrades.append(f"upgrade: {path}:{line}: {message}")
+
+    @staticmethod
+    def marked(page: Page, marker: str) -> bool:
+        return any(line.strip() == f"<!-- wiki:{marker} -->" for line in page.lines)
 
     def read_page(self, path: Path) -> Page:
         lines = path.read_text(encoding="utf-8-sig").splitlines()
@@ -423,6 +446,8 @@ class Validator:
             legacy = kind == "done" and "Status" not in header and len(header) == 5
             if legacy:
                 columns = [c for c in columns if c != "Status"]
+                # Legacy rows stay valid; only a new ⚫ closure has nowhere to go.
+                self.upgrade(page.path, rows[0][0], "Done table has no Status column; ⚫ closures cannot be recorded; " + UPGRADE)
             # Marked translated tables keep the documented column order.
             if all(c in header for c in columns):
                 positions = {c: header.index(c) for c in columns}
@@ -469,7 +494,91 @@ class Validator:
                         self.error(page.path, number, "black row needs 'closed by <person> YYYY-MM-DD; not proven: <what>' and human closure evidence")
                     elif not iso_date(closure[2]):
                         self.error(page.path, number, "black row has invalid closure date")
+        if open_readable:
+            self.tracker_ids = ids
         return open_ids if open_readable else None
+
+    def format_upgrades(self, schema: Page, paths: dict[str, Path], has_core_map: bool):
+        """Report what a wiki still needs for the current format, without failing it."""
+        declared = schema.fields.get("format_version")
+        line = schema.locations.get("format_version", 1)
+        if not isinstance(declared, str) or not declared:
+            self.upgrade(schema.path, 1, "format_version missing; " + UPGRADE)
+        elif version_tuple(declared) is None:
+            self.upgrade(schema.path, line, "format_version must be X.Y.Z; " + UPGRADE)
+        elif version_tuple(declared) < version_tuple(FORMAT_VERSION):
+            self.upgrade(schema.path, line, f"format_version {declared} is older than {FORMAT_VERSION}; " + UPGRADE)
+        elif version_tuple(declared) > version_tuple(FORMAT_VERSION):
+            self.upgrade(schema.path, line, f"format_version {declared} is newer than this plugin ({FORMAT_VERSION}); update the plugin")
+        if not has_core_map:
+            self.upgrade(schema.path, 1, "Core map missing (v1 wiki); " + UPGRADE)
+        for name in SCHEMA_SECTIONS:
+            slug = name.lower().replace(" ", "-")
+            if f"## {name}" not in (l.strip() for l in schema.lines) and not self.marked(schema, slug):
+                self.upgrade(schema.path, 1, f"SCHEMA section ## {name} (or <!-- wiki:{slug} -->) missing; " + UPGRADE)
+        decisions = paths.get("decisions")
+        if decisions is not None and decisions.is_file():
+            self.upgrade(schema.path, 1, "decisions must be a folder of NNNN-<slug>.md files; " + UPGRADE)
+        elif decisions is not None:
+            for path in sorted(decisions.glob("*.md")):
+                page = self.pages.get(path)
+                if not page or not re.fullmatch(r"\d{4}-.+\.md", path.name):
+                    continue
+                status = page.fields.get("status")
+                if not isinstance(status, str) or not status:
+                    self.upgrade(path, 1, "decision status must be in frontmatter (status: proposed | accepted | rejected | superseded by NNNN); " + UPGRADE)
+                elif not DECISION_STATUS.fullmatch(status):
+                    self.upgrade(path, page.locations.get("status", 1), "decision status must be proposed, accepted, rejected or superseded by NNNN")
+                if "## Approval" not in (l.strip() for l in page.lines) and not self.marked(page, "approval"):
+                    self.upgrade(path, 1, "decision has no ## Approval section (or <!-- wiki:approval -->); " + UPGRADE)
+
+    def cited_ids(self, page: Page, number: int, text: str, what: str):
+        if self.tracker_ids is None:
+            return
+        for activity in re.findall(r"\bT[1-9]\d*\b", text):
+            if activity not in self.tracker_ids:
+                self.error(page.path, number, f"{what} cites unknown tracker ID {activity}")
+
+    def owners(self, page: Page):
+        if not self.marked(page, "owners"):
+            return
+        rows = self.table(page, self.section(page, "owners", "How this wiki is organised"))
+        if not rows or len(rows[0][1]) != len(OWNERS_COLUMNS):
+            self.error(page.path, rows[0][0] if rows else 1, "unsupported owners table; expected Topic and Owner page columns")
+            return
+        for number, cells in rows[1:]:
+            if len(cells) != 2 or unresolved(cells[0]) or "](" not in cells[1]:
+                self.error(page.path, number, "owners row needs a topic and an owner page link")
+
+    def next_steps(self, page: Page):
+        if self.marked(page, "next"):
+            for number, line in self.section(page, "next", "Next steps"):
+                self.cited_ids(page, number, line, "Next steps")
+
+    def risk_register(self, page: Page):
+        if not self.marked(page, "risk-register"):
+            return
+        rows = self.table(page, self.section(page, "risk-register", "Register"))
+        if not rows or len(rows[0][1]) != len(RISK_COLUMNS):
+            self.error(page.path, rows[0][0] if rows else 1, "unsupported risk register table; expected " + " | ".join(RISK_COLUMNS))
+            return
+        seen = set()
+        for number, cells in rows[1:]:
+            if len(cells) != len(RISK_COLUMNS):
+                self.error(page.path, number, "risk register row does not match its header")
+                continue
+            risk = dict(zip(RISK_COLUMNS, cells))
+            if not re.fullmatch(r"R[1-9]\d*", risk["ID"]):
+                self.error(page.path, number, "risk ID must be R followed by a positive integer")
+            elif risk["ID"] in seen:
+                self.error(page.path, number, f"duplicate risk ID {risk['ID']}")
+            seen.add(risk["ID"])
+            if risk["Severity"].strip("`").lower() not in RISK_SEVERITY:
+                self.error(page.path, number, "risk severity must be critical, high, medium or low")
+            for column in ("Risk", "Trigger", "Mitigation"):
+                if unresolved(risk[column]):
+                    self.error(page.path, number, f"risk row needs {column.lower()}")
+            self.cited_ids(page, number, risk["IDs"], "risk")
 
     def handoff(self, page: Page, open_ids: set[str] | None):
         if open_ids is None:
@@ -543,6 +652,14 @@ class Validator:
         handoff = self.pages.get(paths.get("handoff"))
         if handoff:
             self.handoff(handoff, open_ids)
+        if tracker:
+            self.next_steps(tracker)
+        for role, check in (("index", self.owners), ("risks", self.risk_register)):
+            page = self.pages.get(paths.get(role))
+            if page:
+                check(page)
+        has_core_map = "## Core map" in schema.lines or "<!-- wiki:core-map -->" in schema.lines
+        self.format_upgrades(schema, paths, has_core_map)
         return self.findings
 
 
@@ -565,6 +682,9 @@ def main(argv: list[str]) -> int:
         return 2
     for info in validator.infos:
         print(info)
+    # `upgrade:` lines name what the current format still needs; they never change the exit code.
+    for line in validator.upgrades:
+        print(line)
     if findings:
         print("\n".join(findings), file=sys.stderr)
         return 1

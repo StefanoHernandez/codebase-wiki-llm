@@ -2,6 +2,7 @@
 """Behavioral fixtures for the installed, read-only wiki validator."""
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 import tempfile
@@ -318,6 +319,144 @@ def schema_section_cases():
     return failures
 
 
+CURRENT_VERSION = (ROOT / "canonical/codebase/VERSION").read_text().strip()
+SCHEMA_SECTIONS = ["Project profile", "Conventions", "Evidence", "Confidentiality", "Budgets",
+                   "Log format", "Topics", "Page frontmatter"]
+
+
+def current_schema(wiki, version=CURRENT_VERSION, drop=()):
+    """Bring the fixture SCHEMA to the current format: version plus every v2 section."""
+    schema = wiki / "SCHEMA.md"
+    text = schema.read_text()
+    if version is not None:
+        text = text.replace("title: Schema\n", f"title: Schema\nformat_version: {version}\n", 1)
+    text += "".join(f"\n## {name}\n\nText.\n" for name in SCHEMA_SECTIONS if name not in drop)
+    schema.write_text(text)
+
+
+DECISION = "---\ntitle: 0001 - Use X\nupdated: 2026-10-01\nsources:\n  - src/main.py\nsource_commit: abc123\nconfidence: high\n{status}---\n\n# 0001 - Use X\n\n## Decision\nUse X.\n{approval}"
+
+
+def validate(repo, wiki):
+    result = subprocess.run([sys.executable, "-I", str(VALIDATOR), str(wiki)], cwd=repo, capture_output=True, text=True)
+    return result.returncode, result.stdout, result.stderr
+
+
+def write_decision(status, approval, body_status=False):
+    def setup(w, r):
+        current_schema(w)
+        text = DECISION.format(status=status, approval=approval)
+        if body_status:
+            text = text.replace("## Decision", "- **Status**: accepted\n\n## Decision")
+        (w / r["decisions"] / "0001-use-x.md").write_text(text)
+    return setup
+
+
+def legacy_done(w, r):
+    current_schema(w)
+    tracker = w / r["tracker"]
+    tracker.write_text(tracker.read_text().replace(
+        "| ID | Status | Goal | Closed | Criteria met | Evidence |\n| --- | --- | --- | --- | --- | --- |",
+        "| ID | Goal | Closed | Criteria met | Evidence |\n| --- | --- | --- | --- | --- |"))
+
+
+def translated_budgets(w, r):
+    current_schema(w, drop=("Budgets",))
+    schema = w / "SCHEMA.md"
+    schema.write_text(schema.read_text() + "\n## Limiti\n<!-- wiki:budgets -->\n\nTesto.\n")
+
+
+def upgrade_cases():
+    """Format version and the `upgrade:` lines: stdout only, exit code unchanged."""
+    failures = 0
+    newer = ".".join(str(int(p) + 1) if i == 0 else p for i, p in enumerate(CURRENT_VERSION.split(".")))
+    approval = "\n## Approval\naccepted: Stefano, meeting, 2026-10-01\n"
+    translated = "\n## Approvazione\n<!-- wiki:approval -->\nproposta da Stefano, 2026-10-01\n"
+    # name, setup(wiki, roles), legacy fixture, required upgrade texts (empty = no upgrade lines)
+    cases = [
+        ("current format has no upgrade lines", lambda w, r: current_schema(w), False, []),
+        ("format_version missing", lambda w, r: current_schema(w, version=None), False, ["format_version missing"]),
+        ("format_version older", lambda w, r: current_schema(w, version="0.11.0"), False, ["is older than " + CURRENT_VERSION]),
+        ("format_version compared numerically", lambda w, r: current_schema(w, version="0.9.2"), False, ["is older than"]),
+        ("format_version newer", lambda w, r: current_schema(w, version=newer), False, ["update the plugin"]),
+        ("schema section missing", lambda w, r: current_schema(w, drop=("Page frontmatter",)), False, ["Page frontmatter"]),
+        ("translated schema section by marker", translated_budgets, False, []),
+        ("decision status in body only", write_decision("", approval, body_status=True), False, ["status must be in frontmatter"]),
+        ("decision status out of format", write_decision("status: Accepted\n", approval), False, ["decision status must be"]),
+        ("decision without approval", write_decision("status: accepted\n", ""), False, ["no ## Approval section"]),
+        ("decision complete", write_decision("status: superseded by 0002\n", approval), False, []),
+        ("translated approval by marker", write_decision("status: proposed\n", translated), False, []),
+        ("legacy Done table without Status", legacy_done, False, ["Done table has no Status column"]),
+        ("v1 wiki without Core map", lambda w, r: current_schema(w), True, ["Core map missing", "decisions must be a folder"]),
+    ]
+    for name, setup, legacy, required in cases:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            wiki, roles = fixture(repo, legacy=legacy)
+            setup(wiki, roles)
+            code, out, err = validate(repo, wiki)
+            upgrades = [line for line in out.splitlines() if line.startswith("upgrade:")]
+            ok = code == 0 and all(any(t in u for u in upgrades) for t in required) and (bool(required) or not upgrades)
+            ok = ok and all(re.match(r"upgrade: .+\.md:\d+: ", u) for u in upgrades)
+            print(("PASS " if ok else "FAIL ") + name)
+            if not ok:
+                failures += 1
+                print(f"  expected exit 0, upgrades {required}; got {code}: {(out + err).strip()}")
+    return failures
+
+
+OWNERS = "\n## How this wiki is organised\n<!-- wiki:owners -->\n\n| Topic | Owner page |\n| --- | --- |\n| Status | [tracker](project/work-tracker.md) |\n"
+NEXT = "## Next steps\n<!-- wiki:next -->\n\n**In one line:** parser fix in progress.\n\n1. Fix the parser ({id})\n\n"
+RISKS = "\n## Register\n<!-- wiki:risk-register -->\n\n| ID | Risk | Severity | Trigger | Mitigation | Owner | IDs |\n| --- | --- | --- | --- | --- | --- | --- |\n{rows}"
+RISK = "| {id} | Parser breaks | {sev} | new input format | fixtures | Stefano | {ids} |\n"
+
+
+def append_to(role, text):
+    def setup(w, r):
+        page = w / r[role]
+        page.write_text(page.read_text() + text)
+    return setup
+
+
+def next_steps(ident):
+    def setup(w, r):
+        tracker = w / r["tracker"]
+        tracker.write_text(tracker.read_text().replace("## Open\n", NEXT.format(id=ident) + "## Open\n", 1))
+    return setup
+
+
+def marker_cases():
+    """Optional sections: owners table, next steps, risk register."""
+    failures = 0
+    bad_header = OWNERS.replace("| Topic | Owner page |\n| --- | --- |", "| A | B | C |\n| --- | --- | --- |")
+    # name, setup, expected exit, required finding text
+    cases = [
+        ("owners table valid", append_to("index", OWNERS), 0, ""),
+        ("owners table wrong header", append_to("index", bad_header), 1, "owners table"),
+        ("owners row without link", append_to("index", OWNERS + "| Dates | schedule |\n"), 1, "owner page link"),
+        ("next steps cite existing ID", next_steps("T1"), 0, ""),
+        ("next steps cite unknown ID", next_steps("T99"), 1, "Next steps cites unknown tracker ID T99"),
+        ("risk register valid", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="high", ids="T1"))), 0, ""),
+        ("risk register duplicate ID", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="high", ids="T1") * 2)), 1, "duplicate risk ID R1"),
+        ("risk register bad ID", append_to("risks", RISKS.format(rows=RISK.format(id="X1", sev="high", ids="T1"))), 1, "risk ID must be R"),
+        ("risk register unknown severity", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="huge", ids="T1"))), 1, "risk severity must be"),
+        ("risk register unknown tracker ID", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="low", ids="T99"))), 1, "risk cites unknown tracker ID T99"),
+    ]
+    for name, setup, expected, required in cases:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            wiki, roles = fixture(repo)
+            current_schema(wiki)
+            setup(wiki, roles)
+            code, out, err = validate(repo, wiki)
+            ok = code == expected and required in err and "upgrade:" not in out
+            print(("PASS " if ok else "FAIL ") + name)
+            if not ok:
+                failures += 1
+                print(f"  expected exit {expected}, {required!r}; got {code}: {(out + err).strip()}")
+    return failures
+
+
 def run():
     if not VALIDATOR.is_file():
         print(f"FAIL installed structural validation absent: {VALIDATOR}", file=sys.stderr)
@@ -499,6 +638,8 @@ def run():
                 failures += 1
     failures += adoption_cases()
     failures += schema_section_cases()
+    failures += upgrade_cases()
+    failures += marker_cases()
     return int(failures > 0)
 
 

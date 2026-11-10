@@ -78,6 +78,16 @@ taken and why. Everything else is an optional topic.
 - Context, handoff and tracker follow `references/agent-context-template.md`,
   `references/agent-handoff-template.md` and
   `references/work-tracker-template.md`.
+- Index and risks follow `references/index-template.md` and
+  `references/risks-template.md`. One topic, one page: the index
+  `<!-- wiki:owners -->` table names the owner page of each topic; other pages
+  link to it in one line instead of describing it again.
+- SCHEMA frontmatter `format_version` is the plugin version the wiki was last
+  brought up to. The validator prints `upgrade: <what> - <fix>` lines when the
+  wiki is older than this plugin or misses a structure this version expects;
+  they never change its exit code. Fix them with
+  `/wiki-init --adopt <wiki-root>`, and raise `format_version` only when no
+  `upgrade:` line remains.
 
 ## Page conventions
 
@@ -139,7 +149,10 @@ Rules:
   `codex`, or `antigravity`. Unknown model: `<host>/unknown`.
 - `verified:` is optional: `{ by, at }` or a list of them, each with an
   optional `commit: <sha>` naming the code state that was confirmed; `at` is a
-  datetime like `generated.at`. Agents never write or edit it. Only the user's explicit confirmation of a page (actor `human:<id>`)
+  datetime like `generated.at`. It is always written on one line:
+  `verified: { by: human:<id>, at: <datetime>, commit: <sha> }`, or
+  `verified: [{ … }, { … }]` for several entries; the validator rejects
+  indented lists. Agents never write or edit it. Only the user's explicit confirmation of a page (actor `human:<id>`)
   or a declared automated process (`process:<id>`) may set it.
 - Trust is derived, never stored: no `verified` is unverified; only non-human
   actors is machine-confirmed; any `human:` actor is human-reviewed. Lint

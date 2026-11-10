@@ -25,6 +25,13 @@ Only source of status. IDs (`T1`, `T2`, …) are stable and never reused. Other
 pages cite IDs without repeating their status. Status icons: see SCHEMA.md
 `## Conventions`. External issues and PRs are linked, never copied as status.
 
+## Next steps
+<!-- wiki:next -->
+
+**In one line:** <current state in one sentence, with its date>
+
+1. <next step> (T1)
+
 ## Open
 <!-- wiki:open -->
 
@@ -48,6 +55,12 @@ Ideas and suggested work nobody approved yet: no ID, no status icon.
 ```
 
 Rules:
+
+- `## Next steps` is optional and comes first: one line on the current state
+  with its date, then at most 5 numbered steps, each citing at least one
+  tracker ID (or naming a proposal). No status here: status stays in the
+  tables. Agents keep it current in `/wiki-sync` when open work changes; the
+  order is a proposal, priorities remain human decisions.
 
 - Add `Phase` (when the SCHEMA project division is not `none`), `Priority` or
   `Depends on` columns only when they help.

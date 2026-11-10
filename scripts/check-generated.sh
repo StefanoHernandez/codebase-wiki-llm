@@ -78,6 +78,12 @@ require "Core map" canonical/codebase/workflows/wiki-sync.md canonical/codebase/
 require "log-archive" canonical/codebase/workflows/wiki-sync.md
 require "propose" canonical/codebase/workflows/wiki-sync.md
 require "check-private-terms.sh --all" canonical/codebase/workflows/wiki-lint.md
+require "format_version" canonical/codebase/default-schema.md canonical/codebase/maintainer.md canonical/codebase/workflows/wiki-init.md
+require "upgrade:" canonical/codebase/maintainer.md canonical/codebase/workflows/wiki-init.md canonical/codebase/workflows/wiki-lint.md
+require "<!-- wiki:owners -->" canonical/codebase/references/index-template.md
+require "<!-- wiki:next -->" canonical/codebase/references/work-tracker-template.md
+require "<!-- wiki:risk-register -->" canonical/codebase/references/risks-template.md
+require "<!-- wiki:approval -->" canonical/codebase/references/decision-template.md
 require "### Budget" canonical/codebase/workflows/wiki-lint.md
 require "### Evidence" canonical/codebase/workflows/wiki-lint.md
 require "### Single status" canonical/codebase/workflows/wiki-lint.md

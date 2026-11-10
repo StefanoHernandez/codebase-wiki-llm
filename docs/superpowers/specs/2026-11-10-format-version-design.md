@@ -50,7 +50,7 @@ format_version: 0.12.0
 ---
 ```
 
-- Valore: la versione del plugin (`canonical/codebase/VERSION`) che ha scritto o aggiornato la
+- Valore: la versione del plugin (`canonical/codebase/VERSION`, copiata come costante `FORMAT_VERSION` nel validator, che si installa da solo; un test ne verifica l'uguaglianza) che ha scritto o aggiornato la
   **struttura** della wiki per l'ultima volta. Non cambia a ogni modifica di contenuto.
 - La scrive `/wiki-init` (nuova wiki) e `/wiki-init --adopt` (alla fine dell'aggiornamento, solo
   se il validator non stampa più righe `upgrade:`). `/wiki-sync` non la cambia; se la trova più
@@ -75,9 +75,12 @@ ci sono righe `upgrade:`. Righe prodotte in 0.12.0:
 | `format_version` assente | `SCHEMA.md:1: format_version missing; run /wiki-init --adopt <wiki-root> with plugin 0.12.0` |
 | `format_version` < VERSION | `SCHEMA.md:<n>: format_version 0.11.0 is older than 0.12.0; run /wiki-init --adopt <wiki-root>` |
 | `format_version` > VERSION | `SCHEMA.md:<n>: format_version 0.13.0 is newer than this plugin (0.12.0); update the plugin` |
-| sezioni v2 mancanti nello SCHEMA (`## Project profile`, `## Core map`, `## Conventions`, `## Evidence`, `## Budgets`, `## Log format`, `## Topics`, `## Page frontmatter`) | una riga per sezione |
+| sezioni v2 mancanti nello SCHEMA (`## Project profile`, `## Conventions`, `## Evidence`, `## Confidentiality`, `## Budgets`, `## Log format`, `## Topics`, `## Page frontmatter`; titolo inglese o marker `<!-- wiki:<slug> -->` se tradotto) | una riga per sezione |
 | file nella cartella `decisions` (`NNNN-*.md`) senza `status:` nel frontmatter | `<file>:1: decision status must be in frontmatter (status: proposed \| accepted \| rejected \| superseded by NNNN)` |
-| file decisione senza `## Approval` | `<file>:<n>: decision has no ## Approval section` |
+| file decisione senza `## Approval` (o marker `<!-- wiki:approval -->` nelle wiki tradotte) | `<file>:1: decision has no ## Approval section` |
+| `status:` della decisione con un valore fuori formato | `<file>:<n>: decision status must be proposed, accepted, rejected or superseded by NNNN` |
+| ruolo `decisions` che punta a un file unico (v1) | `SCHEMA.md:1: decisions must be a folder of NNNN-<slug>.md files` |
+| SCHEMA senza `## Core map` (v1) | `SCHEMA.md:1: Core map missing (v1 wiki)` |
 | tabella Done del tracker senza colonna `Status` (header legacy a 5 colonne) | `<tracker>:<n>: Done table has no Status column; ⚫ closures cannot be recorded` |
 
 Note:
@@ -181,7 +184,7 @@ Nuovo `references/risks-template.md` per il ruolo `risks` (oggi senza template):
 Severity uses words, not status icons.
 
 ## Register
-<!-- wiki:risks -->
+<!-- wiki:risk-register -->
 
 | ID | Risk | Severity | Trigger | Mitigation | Owner | IDs |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -193,8 +196,9 @@ Severity uses words, not status icons.
 ```
 
 - `R<n>` stabili e mai riusati, come `T<n>`. Severità: `critical`, `high`, `medium`, `low`.
-- Il marker `wiki:risks` sulla pagina dei rischi non è lo stesso del marker `wiki:risks` della
-  handoff: il validator li distingue per pagina (ruolo Core map).
+- Marker `wiki:risk-register`, distinto dal `wiki:risks` già usato nella handoff.
+- La severità è un token fisso (come le icone di stato): `critical`, `high`, `medium`, `low`,
+  anche nelle wiki in altre lingue.
 - Validator: se il marker c'è, ID unici e nel formato `R<n>`, severità tra le quattro, `IDs`
   citati esistenti nel tracker. Opzionale per le wiki esistenti.
 - Evidence in `default-schema.md` (riga Risk: "the stated assumption and what would trigger
@@ -234,8 +238,8 @@ quattro distribuzioni byte-identiche, come oggi):
 5. Tracker con Done legacy a 5 colonne → upgrade, righe ancora valide; con `Status` → niente.
 6. `wiki:owners` con link rotto → finding; senza marker → niente.
 7. `wiki:next` con `T99` inesistente → finding.
-8. `wiki:risks` sulla pagina rischi con ID duplicato o severità sconosciuta → finding; il
-   marker `wiki:risks` della handoff resta controllato come oggi.
+8. `wiki:risk-register` con ID duplicato, severità sconosciuta o `T<n>` inesistente → finding;
+   il `wiki:risks` della handoff resta controllato come oggi.
 9. Scenario di applicazione: copia della forma Versal (layout numerato, ADR con stato nel
    testo, Done legacy, SCHEMA senza Page frontmatter) → prima: righe upgrade attese; dopo i
    passi P6 applicati a mano sulla fixture: zero righe upgrade, codice 0, layout invariato.

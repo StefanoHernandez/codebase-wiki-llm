@@ -113,6 +113,8 @@ records (Step 7). If another new page is needed, report the gap and recommend
 ## Step 5 - Update index only if necessary
 
 Touch `index` only when summaries, titles, or page availability changed.
+When a new page becomes the owner of a topic, or an owner page is renamed or
+moved, update its row in the `<!-- wiki:owners -->` table.
 
 ## Step 6 - Log, tracker, handoff
 
@@ -140,6 +142,9 @@ Touch `index` only when summaries, titles, or page availability changed.
    table with tracker IDs), what not to redo, commands already run and Git
    state. Activity status remains in the tracker. Baton cells never read
    `unknown`: write the value or `Not verified - <reason>`.
+   When the tracker has `<!-- wiki:next -->`, rewrite its `## Next steps`:
+   one line on where the work stands and at most 5 steps, each citing open
+   tracker IDs; drop steps whose IDs moved to Done.
 4. Archive the log without asking when the SCHEMA `## Log format` rule
    applies. When a phase of the project division closed, move the entries
    dated up to its closing date that are still in `log` to `<phase>.md`. When
@@ -179,6 +184,9 @@ Keep output short:
 - or `wiki-sync: updated <pages> based on <files>. <follow-up>`
 
 List the proposals made and any log archive (file, entry count, date range).
+If SCHEMA `format_version` is missing or older than this plugin's version, add
+one line: `wiki format <value> is older than plugin <version>: run
+/wiki-init --adopt <wiki-root>`. Sync never performs the format upgrade.
 
 ## Guardrails
 

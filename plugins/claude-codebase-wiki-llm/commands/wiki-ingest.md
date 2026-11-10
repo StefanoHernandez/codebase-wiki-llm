@@ -127,6 +127,9 @@ status remains in the tracker.
 ## Step 6 - Update index and log
 
 Update `index` for any page added, removed, renamed, or materially retitled.
+When the ingest creates the owner page of a topic, add its row to the
+`<!-- wiki:owners -->` table; if the topic already has an owner page, update
+that page instead of describing the topic again.
 
 Append one entry to `log` in SCHEMA `## Log format`, author `agent`, recording
 the target, pages created and updated, notable changes, and follow-up.

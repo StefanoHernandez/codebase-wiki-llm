@@ -134,6 +134,8 @@ REFERENCES = (
     "references/work-tracker-template.md",
     "references/decision-template.md",
     "references/troubleshooting-template.md",
+    "references/index-template.md",
+    "references/risks-template.md",
 )
 
 

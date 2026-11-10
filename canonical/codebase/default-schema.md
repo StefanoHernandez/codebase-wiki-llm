@@ -1,6 +1,7 @@
 ---
 type: Schema
 title: Wiki Schema
+format_version: <plugin VERSION>
 description: Repo-specific conventions that wiki workflows must follow.
 generated: { by: <host>/<model>, at: <ISO 8601 UTC> }
 confidence: high
@@ -75,7 +76,14 @@ empty archive directory is not required at init or adoption.
 - Language: headings and prose use the Project profile language. Fixed tokens
   never change: section markers `<!-- wiki:<id> -->`, Core map role names,
   frontmatter keys, `⚠️ NOT VERIFIED`, `⚠️ TO RE-VERIFY`,
-  `Not verified - <reason>`, `No open work.`, status icons, ID prefixes.
+  `Not verified - <reason>`, `No open work.`, status icons, ID prefixes,
+  risk severities (`critical`, `high`, `medium`, `low`).
+- Risk IDs: prefix `R`, stable, never reused; the register lives in the
+  `risks` page (`<!-- wiki:risk-register -->`).
+- Format version: `format_version` in this file's frontmatter is the plugin
+  version that last wrote or upgraded the wiki structure. `/wiki-init` writes
+  it; adopt mode raises it only when the validator prints no `upgrade:` line.
+  Content edits never change it.
 - Section markers: sections that tools check carry their marker on the line
   right under the heading (context, handoff and tracker templates). Translate
   the heading, keep the marker.
@@ -173,6 +181,9 @@ archive in the log, and reports the move.
 
 - One page per coherent topic or code area; split a page that nears its budget.
 - Keep the tracker the only place where status lives; other pages cite IDs.
+- One topic, one page: the `index` page's `<!-- wiki:owners -->` table names
+  the owner page of each topic; other pages link to it in one line and do not
+  describe it again.
 - Keep `context` and `handoff` short and useful for the next session.
 
 ## Page frontmatter
@@ -224,7 +235,10 @@ example `type: Report`) when conformance matters.
 Actors in `generated.by` and `verified.by`: `human:<id>`, `process:<id>`, or
 `<host>/<model>` with host `claude-code`, `codex`, or `antigravity` (unknown
 model: `<host>/unknown`). Timestamps are ISO 8601 datetimes with `Z`.
-Agents never write `verified`; an entry may carry `commit: <sha>`. Trust is
+Agents never write `verified`; an entry may carry `commit: <sha>`. `verified`
+stays on one line: `verified: { by: human:<id>, at: <datetime>, commit: <sha> }`
+for one entry, `verified: [{ … }, { … }]` for several; indented lists are not
+supported. Trust is
 derived from it: none is unverified, non-human only is machine-confirmed, any
 `human:` is human-reviewed. A confirmation whose sources changed afterwards is
 reported as stale verified without changing the tier. `generated` changes only

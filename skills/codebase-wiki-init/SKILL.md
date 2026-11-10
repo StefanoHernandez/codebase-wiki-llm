@@ -57,6 +57,9 @@ exist is not an error: propose that name in Step 3.
   deleted, only proposed for replacement one by one.
 - If Step 0 resolved a wiki whose `SCHEMA.md` has no `## Core map`, it is a v1
   wiki: continue in adopt mode on that folder (Step 4).
+- A wiki with a Core map whose SCHEMA `format_version` is missing or older than
+  this plugin's version needs a format upgrade: in the Step 1 question,
+  propose `--adopt` first and say which `upgrade:` lines the validator prints.
 - If the current directory does not look like a code repo or software project,
   ask for confirmation before proceeding.
 
@@ -70,7 +73,9 @@ Do not read every source file.
 For adoption, inventory missing page frontmatter, the actual tracker columns,
 and explicit project rules in existing docs (especially the log). Counting
 metadata gaps does not verify the old content. Keep these findings for the
-scope proposal; a numbered layout is not a compatibility problem.
+scope proposal; a numbered layout is not a compatibility problem. If Python
+3.10+ is available, run the validator (as in `/wiki-lint`) and keep its
+`upgrade:` lines: they are the format upgrade plan.
 
 ## Step 3 - One message with numbered proposals
 
@@ -107,7 +112,8 @@ shown; do not treat adoption as approval to verify or rewrite all old pages.
 When the adopted folders differ from the default layout, propose a SCHEMA
 `## Page types` table; when the survey finds generated Markdown that is not a
 page (reports committed with data), propose `## Excluded paths` globs. Write
-them only if confirmed.
+them only if confirmed. List the `upgrade:` lines from Step 2 with the edit
+Step 4 makes for each.
 
 Show conventions and budgets as defaults from SCHEMA; do not ask about them.
 Also state whether git will track the folder: run `git check-ignore -q
@@ -191,17 +197,37 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   file outside `<wiki-root>/`.
   Skipped moves stay mapped where they are; structural adoption requires no
   moves. It does not mean old pages or unresolved tracker rows are validated.
+- Format upgrade, for the `upgrade:` lines confirmed in Step 3:
+  - decision status written in the body moves to frontmatter `status:`
+    (`proposed`, `accepted`, `rejected`, `superseded by NNNN`); keep the body
+    line. An unclear status is asked, never guessed.
+  - a decision without `## Approval` gets one, under `<!-- wiki:approval -->`:
+    the recorded authority (who, where, when) when the record states it,
+    otherwise `Approval not recorded.`
+  - a Done table without `Status` gets the column; legacy rows get 🟢 unless
+    the row records a human closure (⚫). Report the rows filled this way.
+  - missing SCHEMA sections are added from the default schema; existing local
+    rules (log order, extra columns) are kept, not overwritten.
+  - add the `wiki:owners` table to the index, `## Next steps` /
+    `<!-- wiki:next -->` to the tracker and the `wiki:risk-register` table to
+    the risks page, from their templates, filled only from existing content.
+  - rerun the validator. Set SCHEMA `format_version` to this plugin's version
+    only when no `upgrade:` line remains; otherwise leave it and report the
+    remaining lines.
 
 ## Step 5 - New wiki
 
 Write `SCHEMA.md` from the default schema (replacing each `<wiki-root>`
 placeholder with the folder name) and fill `## Project profile` and
-`## Topics` from the answers confirmed in Step 3, as in Step 4. Create the
+`## Topics` from the answers confirmed in Step 3, as in Step 4. Set the
+frontmatter `format_version` to this plugin's version. Create the
 core pages at the default Core map paths and the confirmed topics.
 Populate only what the survey supports; everything else is an explicit stub.
 `context` follows `references/agent-context-template.md`; `handoff` follows
 `references/agent-handoff-template.md`; `tracker` follows
-`references/work-tracker-template.md`.
+`references/work-tracker-template.md`; `index` follows
+`references/index-template.md` (one owners row per core role and confirmed
+topic); `risks` follows `references/risks-template.md`.
 
 Before writing any new or adopted content page from a template (including a
 decision record), resolve `sources:` placeholders: `<wiki-root>` is the
@@ -256,8 +282,9 @@ fields and local conventions retained. Distinguish `structure adopted` from
 `structural validation passed`; deferred recovery is never a validator pass.
 If Python 3.10+ is available, run the installed maintainer's
 `scripts/validate-wiki.py` using the same invocation as `/wiki-lint` and report
-its actual exit status. Otherwise state that validation was not run. Do not
-fix deferred pages implicitly to obtain a green result.
+its actual exit status and any `upgrade:` lines left. Otherwise state that
+validation was not run. Do not fix deferred pages implicitly to obtain a green
+result.
 
 ## Guardrails
 

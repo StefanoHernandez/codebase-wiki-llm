@@ -1,5 +1,26 @@
 # Release checklist
 
+## 0.12.0 format version
+
+Spec: `docs/superpowers/specs/2026-11-10-format-version-design.md`. Derived
+from the Versal wiki (the most complete wiki made with 0.11.0) and from the
+desktop control panel, which reads wikis only at the declared format.
+
+- [x] `bash scripts/test-wiki-validator.sh`: 139 validator fixtures (24 new:
+  14 upgrade, 10 marker) on the canonical script and the four byte-identical
+  distributions. `check-generated`, generators (now also `FORMAT_VERSION` ==
+  `VERSION`), resolve-wiki-root, private-terms, reminder and hook checks pass.
+- [ ] `test-check-generated.sh` and `test-agent-handoff-validator.sh` fail on
+  macOS on main too (GNU-only `tar --ignore-failed-read` and `sed -i`); run
+  them on Linux before the tag.
+- [x] Application scenario on a copy of the Versal wiki: 7 `upgrade:` lines
+  before; after the Step 4 format upgrade (ADR status to frontmatter,
+  `## Approval`, Done `Status` with legacy rows 🟢, `## Page frontmatter`,
+  `format_version: 0.12.0`) none remain and the other findings are unchanged.
+- [ ] Whole-branch review.
+- [ ] Main fast-forward, `v0.12.0` tag and push (on explicit go-ahead).
+- [ ] Real-host trial: `/wiki-init --adopt` on the Versal wiki itself.
+
 ## 0.11.0 field feedback
 
 Addresses the field report on 0.10.0 (okf-lite) applied to an adopted

@@ -29,6 +29,19 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.12.0
+
+- SCHEMA declares `format_version`. The validator prints `upgrade:` lines
+  when a wiki is older than the plugin (missing version, legacy Done table,
+  decision status in the body, no `## Approval`, missing SCHEMA sections);
+  they never change the exit code. `/wiki-init --adopt <wiki-root>` applies
+  the upgrade and raises `format_version` only when no line remains.
+- New default structures, each behind a marker that tools can read: the index
+  `wiki:owners` table (one topic, one page), tracker `## Next steps`
+  (`wiki:next`), the risks register (`wiki:risk-register`, IDs `R<n>`, fixed
+  severities) and decision `## Approval` (`wiki:approval`).
+- `verified` is written on one line.
+
 ### Changes in 0.9.2
 
 - Adoption inventories missing metadata, incompatible tracker tables and
