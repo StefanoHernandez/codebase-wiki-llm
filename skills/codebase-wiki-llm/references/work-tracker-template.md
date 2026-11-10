@@ -60,7 +60,8 @@ Rules:
   with its date, then at most 5 numbered steps, each citing at least one
   tracker ID (or naming a proposal). No status here: status stays in the
   tables. Agents keep it current in `/wiki-sync` when open work changes; the
-  order is a proposal, priorities remain human decisions.
+  order is a proposal, priorities remain human decisions. Omit the section
+  when there is no open work.
 
 - Add `Phase` (when the SCHEMA project division is not `none`), `Priority` or
   `Depends on` columns only when they help.

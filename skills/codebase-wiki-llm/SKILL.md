@@ -83,11 +83,11 @@ taken and why. Everything else is an optional topic.
   `<!-- wiki:owners -->` table names the owner page of each topic; other pages
   link to it in one line instead of describing it again.
 - SCHEMA frontmatter `format_version` is the plugin version the wiki was last
-  brought up to. The validator prints `upgrade: <what> - <fix>` lines when the
-  wiki is older than this plugin or misses a structure this version expects;
-  they never change its exit code. Fix them with
-  `/wiki-init --adopt <wiki-root>`, and raise `format_version` only when no
-  `upgrade:` line remains.
+  brought up to. The validator prints
+  `upgrade: <path>:<line>: <what>; run /wiki-init --adopt <wiki-root> with plugin <version>`
+  lines (stdout) when the wiki is older than this plugin or misses a structure
+  this version expects; they never change its exit code. Fix them with
+  `/wiki-init --adopt <wiki-root>`, and raise `format_version` only when every `upgrade:` line left is about `format_version` itself.
 
 ## Page conventions
 
@@ -137,6 +137,9 @@ Rules:
 - `description:` is one line. Use it for the page's entry in `index.md`.
 - `status:` is `draft`, `stable`, or `deprecated`; absent means `stable`.
   Deprecated pages stay for links and history; never delete them silently.
+  Decision records (`type: Decision`, files under the `decisions` path) use
+  their own values instead: `proposed`, `accepted`, `rejected`,
+  `superseded by NNNN`.
 - `generated:` is `{ by, at }`: `by` is the actor, `at` is an ISO 8601 UTC
   datetime (with `Z`; OKF ignores date-only values) of the last meaningful
   change. It replaces the legacy `updated`. Meaningful means the page's claims

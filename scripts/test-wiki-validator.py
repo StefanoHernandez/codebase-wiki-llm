@@ -389,6 +389,14 @@ def upgrade_cases():
         ("legacy Done table without Status", legacy_done, False, ["Done table has no Status column"]),
         ("v1 wiki without Core map", lambda w, r: current_schema(w), True, ["Core map missing", "decisions must be a folder"]),
     ]
+    cases += [
+        ("format_version not X.Y.Z", lambda w, r: current_schema(w, version="0.12"), False, ["must be X.Y.Z"]),
+        ("format_version prerelease", lambda w, r: current_schema(w, version="1.0.0-rc"), False, ["must be X.Y.Z"]),
+        # A newer wiki must not get adopt suggestions from an older plugin.
+        ("newer format proposes nothing else", lambda w, r: current_schema(w, version=newer, drop=("Budgets",)), False,
+         ["update the plugin", "!Budgets", "!run /wiki-init"]),
+        ("decision outside NNNN- naming skipped", lambda w, r: (current_schema(w), (w / r["decisions"] / "README.md").write_text(DECISION.format(status="", approval=""))), False, []),
+    ]
     for name, setup, legacy, required in cases:
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
@@ -396,13 +404,74 @@ def upgrade_cases():
             setup(wiki, roles)
             code, out, err = validate(repo, wiki)
             upgrades = [line for line in out.splitlines() if line.startswith("upgrade:")]
-            ok = code == 0 and all(any(t in u for u in upgrades) for t in required) and (bool(required) or not upgrades)
+            wanted = [t for t in required if not t.startswith("!")]
+            ok = code == 0 and all(any(t in u for u in upgrades) for t in wanted) and (bool(wanted) or not upgrades)
+            ok = ok and not any(t[1:] in u for t in required if t.startswith("!") for u in upgrades)
             ok = ok and all(re.match(r"upgrade: .+\.md:\d+: ", u) for u in upgrades)
+            # Tools parse the fix: real wiki path, never the placeholder.
+            ok = ok and all("<wiki-root>" not in u for u in upgrades)
+            ok = ok and all(u.endswith("update the plugin") or u.endswith(f"run /wiki-init --adopt {wiki.relative_to(repo)} with plugin {CURRENT_VERSION}") for u in upgrades)
             print(("PASS " if ok else "FAIL ") + name)
             if not ok:
                 failures += 1
                 print(f"  expected exit 0, upgrades {required}; got {code}: {(out + err).strip()}")
     return failures
+
+
+def versal_scenario():
+    """Spec test 9: a 0.11.0 wiki shaped like Versal reaches zero upgrade lines after the adopt edits."""
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki, version=None, drop=("Page frontmatter",))
+        tracker = wiki / roles["tracker"]
+        tracker.write_text(tracker.read_text().replace(
+            "| ID | Status | Goal | Closed | Criteria met | Evidence |\n| --- | --- | --- | --- | --- | --- |",
+            "| ID | Goal | Closed | Criteria met | Evidence |\n| --- | --- | --- | --- | --- |"))
+        schema = wiki / "SCHEMA.md"
+        decision = wiki / roles["decisions"] / "0001-use-x.md"
+        decision.write_text(DECISION.format(status="", approval="").replace("## Decision", "- **Status**: accepted\n\n## Decision"))
+        code, out, _ = validate(repo, wiki)
+        before = [u for u in out.splitlines() if u.startswith("upgrade:")]
+        texts = ["format_version missing", "Page frontmatter", "Done table has no Status", "status must be in frontmatter", "no ## Approval"]
+        ok = code == 0 and len(before) == len(texts) and all(any(t in u for u in before) for t in texts)
+        # The adopt edits of wiki-init Step 4, layout unchanged.
+        tracker = wiki / roles["tracker"]
+        tracker.write_text(tracker.read_text().replace(
+            "| ID | Goal | Closed | Criteria met | Evidence |\n| --- | --- | --- | --- | --- |",
+            "| ID | Status | Goal | Closed | Criteria met | Evidence |\n| --- | --- | --- | --- | --- | --- |"))
+        lines = tracker.read_text().split("\n")
+        done = lines.index("| ID | Status | Goal | Closed | Criteria met | Evidence |")
+        for i in range(done + 2, len(lines)):
+            if not lines[i].startswith("| "):
+                break
+            cells = lines[i].split("|")
+            lines[i] = "|".join(cells[:2] + [" 🟢 "] + cells[2:])
+        tracker.write_text("\n".join(lines))
+        decision.write_text(decision.read_text().replace("confidence: high\n", "confidence: high\nstatus: accepted\n", 1) + "\n## Approval\nApproval not recorded.\n")
+        schema.write_text(schema.read_text().replace("title: Schema\n", f"title: Schema\nformat_version: {CURRENT_VERSION}\n", 1) + "\n## Page frontmatter\n\nText.\n")
+        code_after, out_after, err_after = validate(repo, wiki)
+        ok = ok and code_after == 0 and "upgrade:" not in out_after
+        print(("PASS " if ok else "FAIL ") + "Versal-shaped wiki upgraded to zero upgrade lines")
+        if not ok:
+            print(f"  before {code}: {before}\n  after {code_after}: {(out_after + err_after).strip()}")
+        return 0 if ok else 1
+
+
+def upgrade_with_findings():
+    """Upgrade lines go to stdout beside findings; the exit code comes from the findings."""
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki, version=None)
+        index = wiki / roles["index"]
+        index.write_text(index.read_text().replace("src/main.py", "src/missing.py"))
+        code, out, err = validate(repo, wiki)
+        ok = code == 1 and "format_version missing" in out and "source" in err
+        print(("PASS " if ok else "FAIL ") + "upgrade lines with findings exit 1")
+        if not ok:
+            print(f"  got {code}: {(out + err).strip()}")
+        return 0 if ok else 1
 
 
 OWNERS = "\n## How this wiki is organised\n<!-- wiki:owners -->\n\n| Topic | Owner page |\n| --- | --- |\n| Status | [tracker](project/work-tracker.md) |\n"
@@ -425,6 +494,12 @@ def next_steps(ident):
     return setup
 
 
+def done_row(w, r):
+    tracker = w / r["tracker"]
+    header = "| ID | Status | Goal | Closed | Criteria met | Evidence |\n| --- | --- | --- | --- | --- | --- |\n"
+    tracker.write_text(tracker.read_text().replace(header, header + "| T7 | 🟢 | short |\n", 1))
+
+
 def marker_cases():
     """Optional sections: owners table, next steps, risk register."""
     failures = 0
@@ -440,6 +515,10 @@ def marker_cases():
         ("risk register duplicate ID", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="high", ids="T1") * 2)), 1, "duplicate risk ID R1"),
         ("risk register bad ID", append_to("risks", RISKS.format(rows=RISK.format(id="X1", sev="high", ids="T1"))), 1, "risk ID must be R"),
         ("risk register unknown severity", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="huge", ids="T1"))), 1, "risk severity must be"),
+        ("risk register reordered English header", append_to("risks", RISKS.replace("| ID | Risk | Severity |", "| ID | Severity | Risk |").format(rows=RISK.format(id="R1", sev="high", ids="T1"))), 1, "unsupported risk register"),
+        ("risk severity is a fixed lowercase token", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="High", ids="T1"))), 1, "risk severity must be"),
+        ("owners partial English header", append_to("index", OWNERS.replace("| Topic | Owner page |", "| Topic | Page |")), 1, "owners table"),
+        ("unreadable Done row stops ID checks", lambda w, r: (done_row(w, r), append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="low", ids="T7")))(w, r)), 1, "risk tracker references not checked"),
         ("risk register unknown tracker ID", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="low", ids="T99"))), 1, "risk cites unknown tracker ID T99"),
     ]
     for name, setup, expected, required in cases:
@@ -640,6 +719,8 @@ def run():
     failures += schema_section_cases()
     failures += upgrade_cases()
     failures += marker_cases()
+    failures += versal_scenario()
+    failures += upgrade_with_findings()
     return int(failures > 0)
 
 

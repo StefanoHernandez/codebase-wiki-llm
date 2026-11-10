@@ -169,8 +169,9 @@ moved, update its row in the `<!-- wiki:owners -->` table.
    state. Activity status remains in the tracker. Baton cells never read
    `unknown`: write the value or `Not verified - <reason>`.
    When the tracker has `<!-- wiki:next -->`, rewrite its `## Next steps`:
-   one line on where the work stands and at most 5 steps, each citing open
-   tracker IDs; drop steps whose IDs moved to Done.
+   one line on where the work stands and at most 5 steps, each citing a
+   tracker ID or naming a proposal; drop steps whose IDs moved to Done, and
+   the section when no open work is left.
 4. Archive the log without asking when the SCHEMA `## Log format` rule
    applies. When a phase of the project division closed, move the entries
    dated up to its closing date that are still in `log` to `<phase>.md`. When

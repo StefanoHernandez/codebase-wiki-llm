@@ -200,20 +200,26 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
 - Format upgrade, for the `upgrade:` lines confirmed in Step 3:
   - decision status written in the body moves to frontmatter `status:`
     (`proposed`, `accepted`, `rejected`, `superseded by NNNN`); keep the body
-    line. An unclear status is asked, never guessed.
+    line. A status that cannot be read is left as it is and listed in the
+    report for the person, never guessed.
   - a decision without `## Approval` gets one, under `<!-- wiki:approval -->`:
-    the recorded authority (who, where, when) when the record states it,
-    otherwise `Approval not recorded.`
-  - a Done table without `Status` gets the column; legacy rows get 🟢 unless
-    the row records a human closure (⚫). Report the rows filled this way.
+    `accepted: <who>, <where>, <date>` when the record already states that
+    authority, otherwise `Approval not recorded.` Never infer an approval.
+  - a Done table without `Status` gets the column and every legacy row gets
+    🟢, the meaning the format already gives them. Never infer ⚫: list rows
+    whose text records a human closure without proof for the person to
+    convert.
   - missing SCHEMA sections are added from the default schema; existing local
-    rules (log order, extra columns) are kept, not overwritten.
+    rules (log order, extra columns) are kept, not overwritten. When the
+    section exists under a translated heading, add its marker
+    (`<!-- wiki:<slug> -->`, slugs in SCHEMA `## Conventions`) on the line under
+    that heading instead of adding a second section.
   - add the `wiki:owners` table to the index, `## Next steps` /
     `<!-- wiki:next -->` to the tracker and the `wiki:risk-register` table to
     the risks page, from their templates, filled only from existing content.
   - rerun the validator. Set SCHEMA `format_version` to this plugin's version
-    only when no `upgrade:` line remains; otherwise leave it and report the
-    remaining lines.
+    only when every `upgrade:` line left is about `format_version` itself; otherwise leave it and report the remaining
+    lines.
 
 ## Step 5 - New wiki
 

@@ -82,11 +82,14 @@ empty archive directory is not required at init or adoption.
   `risks` page (`<!-- wiki:risk-register -->`).
 - Format version: `format_version` in this file's frontmatter is the plugin
   version that last wrote or upgraded the wiki structure. `/wiki-init` writes
-  it; adopt mode raises it only when the validator prints no `upgrade:` line.
+  it; adopt mode raises it only when every `upgrade:` line left is about `format_version` itself.
   Content edits never change it.
 - Section markers: sections that tools check carry their marker on the line
-  right under the heading (context, handoff and tracker templates). Translate
-  the heading, keep the marker.
+  right under the heading: the context, handoff and tracker templates, the
+  index `owners`, tracker `next`, risks `risk-register` and decision
+  `approval`, and in this file `project-profile`, `conventions`, `evidence`,
+  `confidentiality`, `budgets`, `log-format`, `topics`, `page-frontmatter`.
+  Translate the heading, keep the marker.
 - Page metadata: new and substantively updated pages require frontmatter
   with `title`, `updated`, actual supporting `sources`, `source_commit`, and
   `confidence`. During gradual adoption, untouched legacy pages and

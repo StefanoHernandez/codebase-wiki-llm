@@ -110,8 +110,10 @@ risolve ogni riga `upgrade:` senza cambiare il layout scelto:
 - **Tracker**: aggiunge la colonna `Status` alla tabella Done; le righe legacy ricevono 🟢, che
   è il significato che il formato già attribuisce loro ("Legacy Done rows without Status remain
   valid for proven completion"). Nessun ⚫ inferito.
-- Rilancia il validator: zero righe `upgrade:` → scrive `format_version`; altrimenti elenca le
-  righe rimaste e non scrive la versione.
+- Rilancia il validator: se le sole righe `upgrade:` rimaste riguardano `format_version` → scrive
+  `format_version`; altrimenti elenca le righe rimaste e non scrive la versione.
+- Sezione SCHEMA presente con titolo tradotto: aggiunge il marker `<!-- wiki:<slug> -->` sotto il
+  titolo invece di una seconda sezione.
 - Si comporta come oggi per spostamenti di file: nessuno senza conferma; se lo SCHEMA registra
   che gli spostamenti sono stati rifiutati, non li ripropone.
 - `/wiki-init` su una cartella che ha già SCHEMA con `## Core map` ma è indietro di versione

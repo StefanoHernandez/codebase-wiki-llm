@@ -307,7 +307,7 @@ Flag frontmatter issues:
 - missing `type` or `description`: warning for new pages, `info` for legacy pages that predate OKF-lite schema;
 - `type` differing from SCHEMA `## Page types` or the folder default: `info`
   (an explicit per-page override is legal);
-- invalid `status`: error if present and not one of `draft`, `stable`, `deprecated`;
+- invalid `status`: error if present and not one of `draft`, `stable`, `deprecated`; decision records use `proposed`, `accepted`, `rejected`, `superseded by NNNN` instead;
 - invalid `generated.by`: warning if not in actor format (`<host>/<model>`, `human:<id>`, or `process:<id>`);
 - deprecated link target: warning if a `deprecated` page is linked by an active `stable` page;
 - general hygiene: missing mandatory fields (`title`, `sources`, `confidence`), invalid timestamps, invalid confidence level (`low|medium|high`), or missing source files.

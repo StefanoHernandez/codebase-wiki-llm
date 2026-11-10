@@ -6,8 +6,9 @@ Spec: `docs/superpowers/specs/2026-11-10-format-version-design.md`. Derived
 from the Versal wiki (the most complete wiki made with 0.11.0) and from the
 desktop control panel, which reads wikis only at the declared format.
 
-- [x] `bash scripts/test-wiki-validator.sh`: 139 validator fixtures (24 new:
-  14 upgrade, 10 marker) on the canonical script and the four byte-identical
+- [x] `bash scripts/test-wiki-validator.sh`: 149 validator fixtures (34 new:
+  18 upgrade, 14 marker, a Versal-shaped before/after scenario and upgrade
+  lines beside findings) on the canonical script and the four byte-identical
   distributions. `check-generated`, generators (now also `FORMAT_VERSION` ==
   `VERSION`), resolve-wiki-root, private-terms, reminder and hook checks pass.
 - [ ] `test-check-generated.sh` and `test-agent-handoff-validator.sh` fail on
@@ -17,7 +18,14 @@ desktop control panel, which reads wikis only at the declared format.
   before; after the Step 4 format upgrade (ADR status to frontmatter,
   `## Approval`, Done `Status` with legacy rows 🟢, `## Page frontmatter`,
   `format_version: 0.12.0`) none remain and the other findings are unchanged.
-- [ ] Whole-branch review.
+- [x] Whole-branch review (independent reviewer): no Critical. Fixed: the
+  `format_version` rule could never be satisfied (now raised when the only
+  lines left are about `format_version`); decision `status` values exempt
+  from the page-status lint rule; documented `upgrade:` line shape; translated
+  SCHEMA sections get a marker, not a second section; upgrade suffix names
+  the real wiki path; a newer wiki gets only "update the plugin"; tracker ID
+  checks skipped with a finding when Done is unreadable; exact English column
+  order for owners and risks; severity tokens case-sensitive; no inferred ⚫.
 - [ ] Main fast-forward, `v0.12.0` tag and push (on explicit go-ahead).
 - [ ] Real-host trial: `/wiki-init --adopt` on the Versal wiki itself.
 

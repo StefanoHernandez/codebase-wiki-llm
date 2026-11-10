@@ -46,11 +46,15 @@ DECISION_STATUS = re.compile(r"(proposed|accepted|rejected|superseded by \d{4})"
 OWNERS_COLUMNS = ["Topic", "Owner page"]
 RISK_COLUMNS = ["ID", "Risk", "Severity", "Trigger", "Mitigation", "Owner", "IDs"]
 RISK_SEVERITY = {"critical", "high", "medium", "low"}
-UPGRADE = "run /wiki-init --adopt <wiki-root> with plugin " + FORMAT_VERSION
 
 
 def version_tuple(value: str) -> tuple[int, ...] | None:
     return tuple(int(p) for p in value.split(".")) if re.fullmatch(r"\d+(?:\.\d+){2}", value) else None
+
+
+def columns_match(header: list[str], expected: list[str]) -> bool:
+    """English column names must be exact and in order; a translated header only keeps the count."""
+    return header == expected if set(header) & set(expected) else len(header) == len(expected)
 
 
 def unresolved(value: str) -> bool:
@@ -175,7 +179,13 @@ class Validator:
     def error(self, path: Path, line: int, message: str):
         self.findings.append(f"{path}:{line}: {message}")
 
-    def upgrade(self, path: Path, line: int, message: str):
+    def upgrade(self, path: Path, line: int, message: str, fix: bool = True):
+        if fix:
+            try:
+                root = self.wiki.relative_to(self.repo)
+            except ValueError:
+                root = self.wiki
+            message += f"; run /wiki-init --adopt {root} with plugin {FORMAT_VERSION}"
         self.upgrades.append(f"upgrade: {path}:{line}: {message}")
 
     @staticmethod
@@ -424,6 +434,7 @@ class Validator:
         ids = set()
         open_ids = set()
         open_readable = True
+        ids_readable = True
         for kind, heading in TRACKER.items():
             before = len(self.findings)
             section = self.section(page, kind, heading)
@@ -435,6 +446,8 @@ class Validator:
                     self.error(page.path, 1, f"missing {kind} tracker table")
                 if kind == "open":
                     open_readable = False
+                if kind == "done":
+                    ids_readable = False
                 continue
             header = rows[0][1]
             if kind == "proposals":
@@ -447,7 +460,7 @@ class Validator:
             if legacy:
                 columns = [c for c in columns if c != "Status"]
                 # Legacy rows stay valid; only a new ⚫ closure has nowhere to go.
-                self.upgrade(page.path, rows[0][0], "Done table has no Status column; ⚫ closures cannot be recorded; " + UPGRADE)
+                self.upgrade(page.path, rows[0][0], "Done table has no Status column; ⚫ closures cannot be recorded")
             # Marked translated tables keep the documented column order.
             if all(c in header for c in columns):
                 positions = {c: header.index(c) for c in columns}
@@ -457,12 +470,14 @@ class Validator:
                 self.error(page.path, rows[0][0], f"unsupported {kind} tracker columns")
                 if kind == "open":
                     open_readable = False
+                ids_readable = False
                 continue
             for number, cells in rows[1:]:
                 if len(cells) != len(header):
                     self.error(page.path, number, f"{kind} tracker row does not match its header")
                     if kind == "open":
                         open_readable = False
+                    ids_readable = False
                     continue
                 row = {c: cells[i] for c, i in positions.items()}
                 activity = row["ID"]
@@ -470,6 +485,7 @@ class Validator:
                     self.error(page.path, number, "tracker ID must be T followed by a positive integer")
                     if kind == "open":
                         open_readable = False
+                    ids_readable = False
                 if activity in ids:
                     self.error(page.path, number, f"duplicate tracker ID {activity}")
                 ids.add(activity)
@@ -494,7 +510,7 @@ class Validator:
                         self.error(page.path, number, "black row needs 'closed by <person> YYYY-MM-DD; not proven: <what>' and human closure evidence")
                     elif not iso_date(closure[2]):
                         self.error(page.path, number, "black row has invalid closure date")
-        if open_readable:
+        if open_readable and ids_readable:
             self.tracker_ids = ids
         return open_ids if open_readable else None
 
@@ -503,22 +519,24 @@ class Validator:
         declared = schema.fields.get("format_version")
         line = schema.locations.get("format_version", 1)
         if not isinstance(declared, str) or not declared:
-            self.upgrade(schema.path, 1, "format_version missing; " + UPGRADE)
+            self.upgrade(schema.path, 1, "format_version missing")
         elif version_tuple(declared) is None:
-            self.upgrade(schema.path, line, "format_version must be X.Y.Z; " + UPGRADE)
+            self.upgrade(schema.path, line, "format_version must be X.Y.Z")
         elif version_tuple(declared) < version_tuple(FORMAT_VERSION):
-            self.upgrade(schema.path, line, f"format_version {declared} is older than {FORMAT_VERSION}; " + UPGRADE)
+            self.upgrade(schema.path, line, f"format_version {declared} is older than {FORMAT_VERSION}")
         elif version_tuple(declared) > version_tuple(FORMAT_VERSION):
-            self.upgrade(schema.path, line, f"format_version {declared} is newer than this plugin ({FORMAT_VERSION}); update the plugin")
+            self.upgrade(schema.path, line, f"format_version {declared} is newer than this plugin ({FORMAT_VERSION}); update the plugin", fix=False)
+            # An older plugin must not propose edits to a newer wiki.
+            return
         if not has_core_map:
-            self.upgrade(schema.path, 1, "Core map missing (v1 wiki); " + UPGRADE)
+            self.upgrade(schema.path, 1, "Core map missing (v1 wiki)")
         for name in SCHEMA_SECTIONS:
             slug = name.lower().replace(" ", "-")
             if f"## {name}" not in (l.strip() for l in schema.lines) and not self.marked(schema, slug):
-                self.upgrade(schema.path, 1, f"SCHEMA section ## {name} (or <!-- wiki:{slug} -->) missing; " + UPGRADE)
+                self.upgrade(schema.path, 1, f"SCHEMA section ## {name} (or <!-- wiki:{slug} -->) missing")
         decisions = paths.get("decisions")
         if decisions is not None and decisions.is_file():
-            self.upgrade(schema.path, 1, "decisions must be a folder of NNNN-<slug>.md files; " + UPGRADE)
+            self.upgrade(schema.path, 1, "decisions must be a folder of NNNN-<slug>.md files")
         elif decisions is not None:
             for path in sorted(decisions.glob("*.md")):
                 page = self.pages.get(path)
@@ -526,14 +544,16 @@ class Validator:
                     continue
                 status = page.fields.get("status")
                 if not isinstance(status, str) or not status:
-                    self.upgrade(path, 1, "decision status must be in frontmatter (status: proposed | accepted | rejected | superseded by NNNN); " + UPGRADE)
+                    self.upgrade(path, 1, "decision status must be in frontmatter (status: proposed | accepted | rejected | superseded by NNNN)")
                 elif not DECISION_STATUS.fullmatch(status):
                     self.upgrade(path, page.locations.get("status", 1), "decision status must be proposed, accepted, rejected or superseded by NNNN")
                 if "## Approval" not in (l.strip() for l in page.lines) and not self.marked(page, "approval"):
-                    self.upgrade(path, 1, "decision has no ## Approval section (or <!-- wiki:approval -->); " + UPGRADE)
+                    self.upgrade(path, 1, "decision has no ## Approval section (or <!-- wiki:approval -->)")
 
     def cited_ids(self, page: Page, number: int, text: str, what: str):
         if self.tracker_ids is None:
+            if re.search(r"\bT[1-9]\d*\b", text):
+                self.error(page.path, number, f"{what} tracker references not checked: tracker IDs are unavailable")
             return
         for activity in re.findall(r"\bT[1-9]\d*\b", text):
             if activity not in self.tracker_ids:
@@ -543,7 +563,7 @@ class Validator:
         if not self.marked(page, "owners"):
             return
         rows = self.table(page, self.section(page, "owners", "How this wiki is organised"))
-        if not rows or len(rows[0][1]) != len(OWNERS_COLUMNS):
+        if not rows or not columns_match(rows[0][1], OWNERS_COLUMNS):
             self.error(page.path, rows[0][0] if rows else 1, "unsupported owners table; expected Topic and Owner page columns")
             return
         for number, cells in rows[1:]:
@@ -559,7 +579,7 @@ class Validator:
         if not self.marked(page, "risk-register"):
             return
         rows = self.table(page, self.section(page, "risk-register", "Register"))
-        if not rows or len(rows[0][1]) != len(RISK_COLUMNS):
+        if not rows or not columns_match(rows[0][1], RISK_COLUMNS):
             self.error(page.path, rows[0][0] if rows else 1, "unsupported risk register table; expected " + " | ".join(RISK_COLUMNS))
             return
         seen = set()
@@ -573,7 +593,7 @@ class Validator:
             elif risk["ID"] in seen:
                 self.error(page.path, number, f"duplicate risk ID {risk['ID']}")
             seen.add(risk["ID"])
-            if risk["Severity"].strip("`").lower() not in RISK_SEVERITY:
+            if risk["Severity"].strip("`") not in RISK_SEVERITY:
                 self.error(page.path, number, "risk severity must be critical, high, medium or low")
             for column in ("Risk", "Trigger", "Mitigation"):
                 if unresolved(risk[column]):
