@@ -9,7 +9,7 @@ Plan: `docs/superpowers/plans/2026-11-11-review-fixes-0.13.0.md`. Branch
   `scripts/test-wiki-validator.py`, including JSON, template-wiki and encoding
   cases; CI matrix ubuntu + macOS, Python 3.10 and 3.x).
 - [x] CI green on all four matrix jobs:
-  https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/42932963704
+  https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/42933448743
 - [ ] macOS locally: run the suite with a Python ≥3.10 `python3` first on PATH
   (`PATH="$PWD/.venv/bin:$PATH" bash scripts/run-tests.sh`).
 - [ ] Versal wiki comparison (reviewer, Stefano's Mac): 0.12.0 vs 0.13.0
@@ -31,7 +31,7 @@ desktop control panel, which reads wikis only at the declared format.
 - [x] `test-check-generated.sh` and `test-agent-handoff-validator.sh` fail on
   macOS on main too (GNU-only `tar --ignore-failed-read` and `sed -i`); closed
   by 0.13.0 (CI matrix:
-  https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/42932963704).
+  https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/42933448743).
 - [x] Application scenario on a copy of the Versal wiki: 7 `upgrade:` lines
   before; after the Step 4 format upgrade (ADR status to frontmatter,
   `## Approval`, Done `Status` with legacy rows 🟢, `## Page frontmatter`,
