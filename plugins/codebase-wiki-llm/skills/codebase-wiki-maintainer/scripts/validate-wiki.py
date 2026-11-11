@@ -265,6 +265,8 @@ class Validator:
 
     def read_page(self, path: Path) -> Page:
         lines = path.read_text(encoding="utf-8-sig").splitlines()
+        if lines and lines[0].startswith("\ufeff"):
+            lines[0] = lines[0].lstrip("\ufeff")
         fields: dict[str, str | list[str]] = {}
         locations: dict[str, int] = {}
         end = 0

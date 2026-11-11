@@ -719,6 +719,144 @@ def marker_cases():
     return failures
 
 
+TEMPLATE_PLACEHOLDERS = {
+    "<host>/<model>": "codex/unknown",
+    "<ISO 8601 UTC>": "2026-11-11T00:00:00Z",
+    "<short-sha-or-unknown>": "abc1234",
+    "high | medium | low": "high",
+    "proposed | accepted | rejected | superseded by NNNN": "proposed",
+    "<wiki-root>": "wiki",
+    "<Core map log path>": "log.md",
+    "<log path>": "log.md",
+    "<Core map tracker path>": "project/work-tracker.md",
+    "<tracker path>": "project/work-tracker.md",
+    "<Core map handoff path>": "agent/handoff.md",
+    "<handoff path>": "agent/handoff.md",
+    "<Core map index path>": "index.md",
+    "<decisions path>": "project/decisions/",
+    "<risks path>": "project/risks.md",
+    "<context path>": "agent/context.md",
+    "<troubleshooting path>": "troubleshooting.md",
+    "<glossary path>": "glossary.md",
+    "<path>": "glossary.md",
+    "<source-path>": "src/main.py",
+    "<clean | dirty | unknown>": "clean",
+    "NNNN": "0001",
+    "<Project>": "Test",
+    "<decision>": "Use X",
+    "<one line>": "Test decision",
+    "<the problem and the constraints, with links to evidence>": "Problem.",
+    "<what we chose, in one or two sentences>": "Use X.",
+    "<alternative>": "Y",
+    "<why not>": "Rejected.",
+    "<what this makes easier, harder, or forbidden; related IDs>": "Easier.",
+    "<who>": "Stefano",
+    "<YYYY-MM-DD>": "2026-11-11",
+    "<where: message, PR review, meeting note>": "meeting",
+    "<what was done>": "Work",
+    "<essential output>": "ok",
+    "<command>": "true",
+    "<reason>": "n/a",
+    "<description from the page>": "Overview",
+    "<description>": "Overview",
+    "<Topic group>": "Engineering",
+    "<Page title>": "Architecture",
+    "<one paragraph: what this repository is and who works on it>": "Test project.",
+    "<symptom as the user sees it>": "Build fails",
+    "<root cause, or `unknown`>": "unknown",
+    "<what removes the cause; command or file change, or `none yet`>": "none yet",
+    "<what avoids the symptom without removing the cause, or `none`>": "none",
+    "<where the fix or workaround does not apply, or `none known`>": "none known",
+    "<IDs, decisions, pages>": "T1",
+}
+
+
+def template_fence(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    for fence in ("````markdown\n", "```markdown\n"):
+        if fence in text:
+            start = text.index(fence) + len(fence)
+            end = text.find("\n````" if fence.startswith("````") else "\n```", start)
+            return text[start:end] if end != -1 else text[start:]
+    raise ValueError(f"no markdown fence in {path}")
+
+
+def fill_placeholders(body: str) -> str:
+    while True:
+        before = body
+        for key, value in TEMPLATE_PLACEHOLDERS.items():
+            body = body.replace(key, value)
+        body = re.sub(r"<[^>]+>", "text", body)
+        if body == before:
+            break
+    return body
+
+
+def template_wiki_case():
+    failures = 0
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        shutil = __import__("shutil")
+        schema_body = fill_placeholders((ROOT / "canonical/codebase/default-schema.md").read_text(encoding="utf-8"))
+        (wiki / "SCHEMA.md").write_text(schema_body, encoding="utf-8")
+        templates = {
+            "agent-context": roles["context"],
+            "agent-handoff": roles["handoff"],
+            "work-tracker": roles["tracker"],
+            "index": roles["index"],
+            "risks": roles["risks"],
+            "troubleshooting": roles["troubleshooting"],
+            "decision": "project/decisions/0001-text.md",
+        }
+        for name, dest in templates.items():
+            body = fill_placeholders(template_fence(ROOT / f"canonical/codebase/references/{name}-template.md"))
+            if name == "troubleshooting":
+                body = frontmatter("Troubleshooting") + "# Troubleshooting\n\n" + body
+            path = wiki / dest
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+        log_stub = (
+            "---\ntitle: Log\ngenerated: { by: codex/unknown, at: 2026-11-11T00:00:00Z }\n"
+            "sources:\n  - src/main.py\nsource_commit: abc1234\nconfidence: high\n---\n\n# Log\n"
+        )
+        (wiki / roles["log"]).write_text(log_stub, encoding="utf-8")
+        (wiki / roles["glossary"]).write_text(
+            log_stub.replace("title: Log", "title: Glossary").replace("# Log", "# Glossary"), encoding="utf-8")
+        code, out, err = validate(repo, wiki)
+        ok = code == 0 and "upgrade:" not in out and not any(line.startswith("info:") for line in out.splitlines())
+        print(("PASS " if ok else "FAIL ") + "shipped templates form a valid current wiki")
+        if not ok:
+            failures += 1
+            print(f"  got {code}: {(out + err).strip()}")
+    return failures
+
+
+def encoding_cases():
+    failures = 0
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki)
+        for path in repo.rglob("*.md"):
+            path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+        code, out, err = validate(repo, wiki)
+        ok = code == 0
+        print(("PASS " if ok else "FAIL ") + "CRLF wiki")
+        failures += not ok
+    with tempfile.TemporaryDirectory() as temp:
+        repo = Path(temp)
+        wiki, roles = fixture(repo)
+        current_schema(wiki)
+        index = wiki / roles["index"]
+        index.write_bytes("\ufeff".encode() + index.read_bytes())
+        code, out, err = validate(repo, wiki)
+        ok = code == 0
+        print(("PASS " if ok else "FAIL ") + "BOM page")
+        failures += not ok
+    return failures
+
+
 def run():
     if not VALIDATOR.is_file():
         print(f"FAIL installed structural validation absent: {VALIDATOR}", file=sys.stderr)
@@ -934,6 +1072,8 @@ def run():
     failures += marker_cases()
     failures += translated_extra_column()
     failures += versal_scenario()
+    failures += template_wiki_case()
+    failures += encoding_cases()
     failures += upgrade_with_findings()
     return int(failures > 0)
 
