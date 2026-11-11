@@ -29,6 +29,21 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.13.0
+
+- The wiki format has its own number. This release keeps format `0.12.0`: a
+  wiki already at `format_version: 0.12.0` has nothing to upgrade.
+  `validate-wiki.py --version` prints the release and the format.
+- `validate-wiki.py --json <wiki-root>` prints one JSON document for tools.
+- A handoff that lags behind a tracker change made by a person is reported as
+  `info:`, not as a finding.
+- Fewer false positives (autolinks, generics, footnotes, proposals that
+  mention an ID, translated tables with extra columns); a page that cannot be
+  read is one finding with its path.
+- New checks: shape of `generated` and `verified`, agent names in a ⚫
+  closure, duplicate decision numbers, the optional `Log order` setting.
+- The rules reserved to people are in the always-loaded rule.
+
 ### Changes in 0.12.0
 
 - SCHEMA declares `format_version`. The validator prints `upgrade:` lines
@@ -471,6 +486,10 @@ Generated files include a `Generated from ...` marker and should not be edited d
 - To release, edit `canonical/<plugin>/VERSION`, then run
   `python3 scripts/generate-host-packages.py`; it rewrites every manifest,
   including `.claude-plugin/marketplace.json`.
+- A release changes `canonical/codebase/VERSION` and `VERSION` in
+  `canonical/codebase/scripts/validate-wiki.py`. Change `FORMAT_VERSION` (and
+  `format_version` in `default-schema.md`) only when the release adds an
+  `upgrade:` check or changes a structure tools read.
 - Run `scripts/install-dev-hooks.sh` once per clone to install the pre-commit
   drift guard (blocks commits when generated files are stale).
 - Run `bash scripts/run-tests.sh` for the full test suite.

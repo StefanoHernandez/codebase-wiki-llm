@@ -1,5 +1,18 @@
 # Release checklist
 
+## 0.13.0 review fixes
+
+Plan: `docs/superpowers/plans/2026-11-11-review-fixes-0.13.0.md`. Branch
+`fix/review-0.13`.
+
+- [x] `bash scripts/run-tests.sh` exit 0 on macOS (199 `PASS` lines from
+  `scripts/test-wiki-validator.py`, including JSON, template-wiki and encoding
+  cases; CI matrix ubuntu + macOS, Python 3.10 and 3.x).
+- [ ] Versal wiki comparison (reviewer, Stefano's Mac): 0.12.0 vs 0.13.0
+  stdout/stderr on a copy.
+- [ ] Whole-branch review on `fix/review-0.13`.
+- [ ] Merge to `main`, tag `v0.13.0` and push (on explicit go-ahead).
+
 ## 0.12.0 format version
 
 Spec: `docs/superpowers/specs/2026-11-10-format-version-design.md`. Derived
@@ -11,9 +24,9 @@ desktop control panel, which reads wikis only at the declared format.
   lines beside findings) on the canonical script and the four byte-identical
   distributions. `check-generated`, generators (now also `FORMAT_VERSION` ==
   `VERSION`), resolve-wiki-root, private-terms, reminder and hook checks pass.
-- [ ] `test-check-generated.sh` and `test-agent-handoff-validator.sh` fail on
-  macOS on main too (GNU-only `tar --ignore-failed-read` and `sed -i`); run
-  them on Linux before the tag.
+- [x] `test-check-generated.sh` and `test-agent-handoff-validator.sh` fail on
+  macOS on main too (GNU-only `tar --ignore-failed-read` and `sed -i`); closed
+  by 0.13.0 Task 1 (CI on ubuntu-latest and macos-latest).
 - [x] Application scenario on a copy of the Versal wiki: 7 `upgrade:` lines
   before; after the Step 4 format upgrade (ADR status to frontmatter,
   `## Approval`, Done `Status` with legacy rows 🟢, `## Page frontmatter`,
@@ -26,7 +39,8 @@ desktop control panel, which reads wikis only at the declared format.
   the real wiki path; a newer wiki gets only "update the plugin"; tracker ID
   checks skipped with a finding when Done is unreadable; exact English column
   order for owners and risks; severity tokens case-sensitive; no inferred ⚫.
-- [ ] Main fast-forward, `v0.12.0` tag and push (on explicit go-ahead).
+- [x] Main fast-forward, `v0.12.0` tag and push: `main`, `dev` and peeled
+  `v0.12.0` at `a5f0a6d`.
 - [ ] Real-host trial: `/wiki-init --adopt` on the Versal wiki itself.
 
 ## 0.11.0 field feedback
