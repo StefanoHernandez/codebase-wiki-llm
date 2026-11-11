@@ -40,9 +40,14 @@ OPEN_COLUMNS = ["ID", "Status", "Goal", "Done when", "Owner", "Next verification
 DONE_COLUMNS = ["ID", "Status", "Goal", "Closed", "Criteria met", "Evidence"]
 UNRESOLVED = {"", "unknown", "pending", "todo", "tbd", "n/a", "na", "none"}
 HTML_TAGS = "br|sub|sup|kbd|code|em|strong|b|i|u|s|del|ins|mark|span|details|summary"
-# A placeholder is <text> that is not glued to a word (Vec<u8>), not an autolink and not inline HTML.
+# A placeholder is <text> that is not an autolink and not an HTML element (self-closing or with attributes).
 PLACEHOLDER = re.compile(
-    rf"(?<!\w)<(?!/?(?:{HTML_TAGS})\b)(?![A-Za-z][A-Za-z0-9+.-]{{1,31}}:[^\s<>]*>)(?![^\s<>@]+@[^\s<>]+>)[^<>]+>")
+    rf"(?<!\w)<(?!/?(?:{HTML_TAGS})\b(?:\s+[\w-]+=|\s*/?>))"
+    rf"(?![A-Za-z][A-Za-z0-9+.-]{{1,31}}:[^\s<>]*>)(?![^\s<>@]+@[^\s<>]+>)[^<>]+>")
+PRODUCT_CLOSER = re.compile(
+    r"^(claude|gpt|gemini|codex|copilot|cursor|composer|antigravity)"
+    r"(?:[-\s]?(?:code|opus|sonnet|haiku|fable|pro|flash|agent|\d[\w.]*))?$",
+    re.I)
 # The validator is installed on its own, so it carries both numbers.
 # VERSION is the plugin release; it equals canonical/codebase/VERSION.
 VERSION = "0.13.0"
@@ -71,6 +76,17 @@ def version_tuple(value: str) -> tuple[int, ...] | None:
 def columns_match(header: list[str], expected: list[str]) -> bool:
     """English column names must be exact and in order; a translated header only keeps the count."""
     return header == expected if set(header) & set(expected) else len(header) == len(expected)
+
+
+def invalid_black_closer(name: str) -> bool:
+    lower = name.strip().lower()
+    if lower.startswith("process:"):
+        return True
+    if lower in ("ai agent", "claude-code"):
+        return True
+    if PRODUCT_CLOSER.fullmatch(lower):
+        return True
+    return lower in AGENT_NAMES or "/" in lower
 
 
 def unresolved(value: str) -> bool:
@@ -312,7 +328,12 @@ class Validator:
         if key not in page.fields:
             return
         verified = key == "verified"
-        maps = flow_maps(str(page.fields[key]))
+        raw = str(page.fields[key]).strip()
+        maps = flow_maps(raw)
+        if not verified and maps is not None:
+            shape = re.sub(r"\{[^{}]*\}", "{}", raw).replace(" ", "")
+            if shape != "{}":
+                maps = None
         by = VERIFIED_BY if verified else GENERATED_BY
         allowed = {"by", "at", "commit"} if verified else {"by", "at"}
 
@@ -330,8 +351,16 @@ class Validator:
 
     def profile(self, schema: Page):
         for number, line in self.section(schema, "project-profile", "Project profile", required=False):
-            row = re.fullmatch(r"\|\s*Log order\s*\|\s*`?([^|`]*?)`?\s*\|", line.strip())
-            if row and row[1] not in ("oldest first", "newest first"):
+            if not line.strip().startswith("|"):
+                continue
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) < 2:
+                continue
+            setting = cells[0].strip("*").strip("`").strip().lower()
+            if setting != "log order":
+                continue
+            value = cells[1].strip("`").strip()
+            if value not in ("oldest first", "newest first"):
                 self.error(schema.path, number, "Log order must be `oldest first` or `newest first`")
 
     def frontmatter(self, page: Page):
@@ -611,7 +640,7 @@ class Validator:
                 if status == "⚫":
                     closure = re.fullmatch(r"closed by (.+?) (\d{4}-\d{2}-\d{2}); not proven: (.+)", row["Criteria met"], re.I)
                     if not closure or unresolved(closure[1]) or unresolved(closure[3]) \
-                            or closure[1].lower() in AGENT_NAMES or "/" in closure[1]:
+                            or invalid_black_closer(closure[1]):
                         self.error(page.path, number, "black row needs 'closed by <person> YYYY-MM-DD; not proven: <what>' and human closure evidence")
                     elif not iso_date(closure[2]):
                         self.error(page.path, number, "black row has invalid closure date")

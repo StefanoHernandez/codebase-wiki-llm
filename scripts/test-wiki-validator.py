@@ -378,6 +378,27 @@ UPGRADE_CODES = {
     "decision-status-invalid", "decision-approval-missing", "done-status-missing",
 }
 
+UPGRADE_CODE_PREFIXES = (
+    ("format_version missing", "format-version-missing"),
+    ("format_version must be X.Y.Z", "format-version-invalid"),
+    ("is older than", "format-version-older"),
+    ("is newer than this plugin", "format-version-newer"),
+    ("Core map missing", "core-map-missing"),
+    ("SCHEMA section ##", "schema-section-missing"),
+    ("decisions must be a folder", "decisions-not-folder"),
+    ("decision status must be in frontmatter", "decision-status-missing"),
+    ("decision status must be proposed", "decision-status-invalid"),
+    ("decision has no ## Approval", "decision-approval-missing"),
+    ("Done table has no Status", "done-status-missing"),
+)
+
+
+def upgrade_code_for_message(message: str) -> str:
+    for prefix, code in UPGRADE_CODE_PREFIXES:
+        if message.startswith(prefix) or prefix in message:
+            return code
+    raise ValueError(f"no upgrade code for message: {message!r}")
+
 
 def run_json(repo, wiki, extra=()):
     result = subprocess.run([sys.executable, "-I", str(VALIDATOR), str(wiki), *extra, "--json"],
@@ -431,7 +452,9 @@ def json_cases():
         empty = Path(temp) / "empty"
         empty.mkdir()
         code, report, _ = run_json(repo, empty)
-        ok = code == 2 and report["exit"] == 2 and report["error"] and report["wiki"] is None
+        ok = (code == 2 and set(report) == keys and report["exit"] == 2 and report["error"]
+              and report["wiki"] is None and report["findings"] == [] and report["upgrades"] == []
+              and report["infos"] == [])
         print(("PASS " if ok else "FAIL ") + "json configuration error")
         failures += not ok
 
@@ -534,7 +557,8 @@ def upgrade_cases():
             ok = ok and all("<wiki-root>" not in u for u in upgrades)
             ok = ok and all(u.endswith("update the plugin") or u.endswith(f"run /wiki-init --adopt {wiki.relative_to(repo)} with plugin {CURRENT_VERSION}") for u in upgrades)
             _, report, _ = run_json(repo, wiki)
-            ok = ok and len(report["upgrades"]) == len(upgrades) and all(u["code"] in UPGRADE_CODES for u in report["upgrades"])
+            ok = ok and len(report["upgrades"]) == len(upgrades)
+            ok = ok and all(u["code"] == upgrade_code_for_message(u["message"]) for u in report["upgrades"])
             print(("PASS " if ok else "FAIL ") + name)
             if not ok:
                 failures += 1
@@ -672,6 +696,13 @@ def profile(value):
     return setup
 
 
+def profile_bold_newest(w, r):
+    schema = w / "SCHEMA.md"
+    schema.write_text(schema.read_text().replace(
+        "## Project profile\n\nText.\n",
+        "## Project profile\n\n| Setting | Value | note |\n| --- | --- | --- |\n| **Log order** | newest first | x |\n"))
+
+
 def twin_decisions(w, r):
     for name in ("0001-use-x.md", "0001-use-y.md"):
         (w / r["decisions"] / name).write_text(DECISION.format(
@@ -701,6 +732,7 @@ def marker_cases():
         ("risk register unknown tracker ID", append_to("risks", RISKS.format(rows=RISK.format(id="R1", sev="low", ids="T99"))), 1, "risk cites unknown tracker ID T99"),
         ("log order newest first", profile("newest first"), 0, ""),
         ("log order oldest first in backticks", profile("`oldest first`"), 0, ""),
+        ("log order bold newest first", profile_bold_newest, 0, ""),
         ("log order unknown value", profile("sideways"), 1, "Log order must be"),
         ("duplicate decision number", twin_decisions, 1, "duplicate decision number 0001"),
     ]
@@ -786,7 +818,7 @@ def fill_placeholders(body: str) -> str:
         before = body
         for key, value in TEMPLATE_PLACEHOLDERS.items():
             body = body.replace(key, value)
-        body = re.sub(r"<[^>]+>", "text", body)
+        body = re.sub(r"<(?!!--)[^<>\n]+>", "text", body)
         if body == before:
             break
     return body
@@ -891,6 +923,10 @@ def run():
         ("email autolink is not a placeholder", ("tracker", "reproduced locally", "ask <dev@example.org>"), 0, ""),
         ("generic type is not a placeholder", ("tracker", "reproduced locally", "returns Vec<u8> and `Map<string, Page>`"), 0, ""),
         ("html break is not a placeholder", ("tracker", "reproduced locally", "first<br>second"), 0, ""),
+        ("html br slash accepted", ("tracker", "reproduced locally", "line<br/>next"), 0, ""),
+        ("html span attribute accepted", ("tracker", "reproduced locally", "see <span class=\"x\">note</span>"), 0, ""),
+        ("summary placeholder rejected", ("tracker", "reproduced locally", "<summary of the change>"), 1, "open row needs evidence"),
+        ("code path placeholder rejected", ("tracker", "reproduced locally", "edit <code path>"), 1, "open row needs evidence"),
         ("template placeholder still rejected", ("tracker", "reproduced locally", "<link>"), 1, "open row needs evidence"),
         ("backticked placeholder still rejected", ("tracker", "`python3 -m unittest` | reproduced", "`<command>` | reproduced"), 1, "open row needs next verification"),
         ("footnote definition is not a link", ("index", "# Page", "# Page\n\nSee the note.[^1]\n\n[^1]: See the parser notes."), 0, ""),
@@ -964,6 +1000,7 @@ def run():
         ("generated bare name rejected", ("index", FM, f"generated: {{ by: Stefano, at: {AT} }}\n{FM}"), 1, "generated must be"),
         ("generated date only rejected", ("index", FM, f"generated: {{ by: human:stefano, at: 2026-10-14 }}\n{FM}"), 1, "generated must be"),
         ("generated impossible date rejected", ("index", FM, f"generated: {{ by: human:stefano, at: 2026-02-30T09:30:00Z }}\n{FM}"), 1, "generated must be"),
+        ("generated list shape rejected", ("index", FM, f"generated: [{{ by: human:stefano, at: {AT} }}]\n{FM}"), 1, "generated must be"),
         ("verified map valid", ("index", "confidence: high", f"confidence: high\nverified: {{ by: human:stefano, at: {AT}, commit: abc1234 }}"), 0, ""),
         ("verified list valid", ("index", "confidence: high", f"confidence: high\nverified: [{{ by: human:stefano, at: {AT} }}, {{ by: process:ci, at: {AT} }}]"), 0, ""),
         ("verified free text rejected", ("index", "confidence: high", "confidence: high\nverified: banana"), 1, "verified must be"),
@@ -972,6 +1009,11 @@ def run():
         ("agent product name cannot close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by Claude")), 1, "black row needs"),
         ("actor id cannot close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by codex/gpt-5")), 1, "black row needs"),
         ("person named like a product can close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by Claude Dupont")), 0, ""),
+        ("claude-code cannot close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by claude-code")), 1, "black row needs"),
+        ("GPT-5 cannot close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by GPT-5")), 1, "black row needs"),
+        ("Claude Opus cannot close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by Claude Opus")), 1, "black row needs"),
+        ("AI agent cannot close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by AI agent")), 1, "black row needs"),
+        ("process id cannot close", ("tracker", TRACKER, TRACKER + BLACK.replace("closed by Stefano", "closed by process:ci")), 1, "black row needs"),
         ("unsupported YAML", ("index", "sources:\n  - src/main.py", "sources: [src/main.py]"), 1, "sources"),
         ("unsupported block scalar", ("index", "title: index", "title: |"), 1, "unsupported"),
         ("unsupported flow mapping", ("index", "title: index", "title: {name: index}"), 1, "unsupported"),

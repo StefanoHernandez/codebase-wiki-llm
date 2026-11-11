@@ -226,8 +226,8 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
 
 Write `SCHEMA.md` from the default schema (replacing each `<wiki-root>`
 placeholder with the folder name) and fill `## Project profile` and
-`## Topics` from the answers confirmed in Step 3, as in Step 4. Set the
-frontmatter `format_version` the default schema carries. Create the
+`## Topics` from the answers confirmed in Step 3, as in Step 4. Keep the
+`format_version` the default schema carries. Create the
 core pages at the default Core map paths and the confirmed topics.
 Populate only what the survey supports; everything else is an explicit stub.
 `context` follows `references/agent-context-template.md`; `handoff` follows

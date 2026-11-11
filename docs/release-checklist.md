@@ -5,9 +5,12 @@
 Plan: `docs/superpowers/plans/2026-11-11-review-fixes-0.13.0.md`. Branch
 `fix/review-0.13`.
 
-- [x] `bash scripts/run-tests.sh` exit 0 on macOS (199 `PASS` lines from
+- [x] `bash scripts/run-tests.sh` exit 0 on macOS (210 `PASS` lines from
   `scripts/test-wiki-validator.py`, including JSON, template-wiki and encoding
   cases; CI matrix ubuntu + macOS, Python 3.10 and 3.x).
+- [ ] CI green on all four matrix jobs (link after round-2 push).
+- [ ] macOS locally: run the suite with a Python ≥3.10 `python3` first on PATH
+  (`PATH="$PWD/.venv/bin:$PATH" bash scripts/run-tests.sh`).
 - [ ] Versal wiki comparison (reviewer, Stefano's Mac): 0.12.0 vs 0.13.0
   stdout/stderr on a copy.
 - [ ] Whole-branch review on `fix/review-0.13`.
@@ -26,7 +29,7 @@ desktop control panel, which reads wikis only at the declared format.
   `VERSION`), resolve-wiki-root, private-terms, reminder and hook checks pass.
 - [x] `test-check-generated.sh` and `test-agent-handoff-validator.sh` fail on
   macOS on main too (GNU-only `tar --ignore-failed-read` and `sed -i`); closed
-  by 0.13.0 Task 1 (CI on ubuntu-latest and macos-latest).
+  by 0.13.0 (CI matrix) after round 2 installs GNU coreutils on macOS runners.
 - [x] Application scenario on a copy of the Versal wiki: 7 `upgrade:` lines
   before; after the Step 4 format upgrade (ADR status to frontmatter,
   `## Approval`, Done `Status` with legacy rows 🟢, `## Page frontmatter`,
