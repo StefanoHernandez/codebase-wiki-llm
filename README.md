@@ -29,6 +29,13 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.13.1
+
+- Optional local search: when the Codebase Wiki desktop app's `codebase-wiki`
+  MCP server is connected, agents use `search_wiki` and `search_code` to find
+  pages and code before grepping. Without it nothing changes. Format stays
+  `0.12.0`.
+
 ### Changes in 0.13.0
 
 - The wiki format has its own number. This release keeps format `0.12.0`: a
