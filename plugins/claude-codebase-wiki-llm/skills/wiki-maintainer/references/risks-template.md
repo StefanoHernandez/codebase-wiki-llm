@@ -47,8 +47,9 @@ Rules:
   assumption and what would trigger it.
 - `IDs` cites the tracker activities that mitigate or depend on the risk; the
   validator checks that they exist. Status stays in the tracker.
-- Owners and severity are human decisions; agents propose them and flag new
-  risks, they do not close them.
+- Owners and severity are human decisions. An agent that adds a risk writes a
+  proposed severity, says so in its report, and never changes a severity a
+  person set or closes a risk.
 - `## Details` is optional; one subsection per risk that needs more than a row.
 - Keep the `<!-- wiki:risk-register -->` marker on the line under the heading
   when the heading is translated. It is distinct from the handoff's

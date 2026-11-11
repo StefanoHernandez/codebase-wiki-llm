@@ -122,7 +122,7 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   page `source_commit` policy. If it already
   has one (v1 wikis included), keep it: add the missing v2 sections (`## Project
   profile`, `## Core map`, `## Conventions`, `## Budgets`, `## Topics`,
-  `## Evidence`, `## Confidentiality`, `## Log format`) and preserve existing
+  `## Evidence`, `## Confidentiality`, `## Log format`, `## Page frontmatter`) and preserve existing
   content. If an existing section conflicts with a v2 one, show both and ask.
   Never replace an existing `SCHEMA.md` wholesale.
 - Apply the compatibility edits confirmed in Step 3. If a newly discovered
@@ -179,10 +179,11 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
   - a decision without `## Approval` gets one, under `<!-- wiki:approval -->`:
     `accepted: <who>, <where>, <date>` when the record already states that
     authority, otherwise `Approval not recorded.` Never infer an approval.
-  - a Done table without `Status` gets the column and every legacy row gets
-    🟢, the meaning the format already gives them. Never infer ⚫: list rows
-    whose text records a human closure without proof for the person to
-    convert.
+  - a Done table without `Status` gets the column. A legacy row whose
+    `Criteria met` and `Evidence` record the proof gets 🟢, the meaning the
+    format already gives it. A row whose cells are empty, placeholders, or an
+    explicit unproven or human-closure text keeps an empty `Status` cell: it
+    stays a validation finding and is listed for the person. Never infer ⚫.
   - missing SCHEMA sections are added from the default schema; existing local
     rules (log order, extra columns) are kept, not overwritten. When the
     section exists under a translated heading, add its marker
@@ -190,7 +191,9 @@ Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
     that heading instead of adding a second section.
   - add the `wiki:owners` table to the index, `## Next steps` /
     `<!-- wiki:next -->` to the tracker and the `wiki:risk-register` table to
-    the risks page, from their templates, filled only from existing content.
+    the risks page only when the wiki already has content for them; they are
+    optional and never added empty. Add the `Log order` row to the Project
+    profile when the existing log is newest first.
   - rerun the validator. Set SCHEMA `format_version` to this plugin's format (the value after `format` in `validate-wiki.py --version`) only when every `upgrade:` line left is about `format_version` itself; otherwise leave it and report the remaining lines. Never lower it: when a line says `newer than this plugin`, change nothing and tell the person to update the plugin.
 
 ## Step 5 - New wiki
@@ -205,7 +208,10 @@ Populate only what the survey supports; everything else is an explicit stub.
 `references/agent-handoff-template.md`; `tracker` follows
 `references/work-tracker-template.md`; `index` follows
 `references/index-template.md` (one owners row per core role and confirmed
-topic); `risks` follows `references/risks-template.md`.
+topic); `risks` follows `references/risks-template.md`. The `log` and
+`glossary` pages have no template: frontmatter with `title`, `generated`,
+`sources`, `source_commit` and `confidence` (the log takes no `type`), one `#`
+heading, nothing else; log entries follow SCHEMA `## Log format`.
 
 Before writing any new or adopted content page from a template (including a
 decision record), resolve `sources:` placeholders: `<wiki-root>` is the

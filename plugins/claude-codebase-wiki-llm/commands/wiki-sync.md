@@ -163,7 +163,7 @@ moved, update its row in the `<!-- wiki:owners -->` table.
    preserve them, report missing proof/authority for human resolution, and
    keep the validation gap explicit. Adoption's column normalization alone
    never supplies that resolution.
-3. Rewrite `handoff`: `Tracker IDs`, last completed step, next tasks (baton
+3. Update `handoff` (the shared state lines and your own baton rows; other streams' rows stay as they are): `Tracker IDs`, last completed step, next tasks (baton
    table with tracker IDs), what not to redo, commands already run and Git
    state. Activity status remains in the tracker. Baton cells never read
    `unknown`: write the value or `Not verified - <reason>`.

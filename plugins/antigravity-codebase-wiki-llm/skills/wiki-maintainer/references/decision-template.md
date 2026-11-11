@@ -34,11 +34,14 @@ confidence: high | medium | low
 
 ## Approval
 <!-- wiki:approval -->
-<accepted: who approved it, where (message, PR review, meeting note) and when.
-proposed: who proposed it and when.>
+<one line per event, oldest first, appended and never rewritten:>
+proposed: <who>, <YYYY-MM-DD>
+accepted: <who>, <where: message, PR review, meeting note>, <YYYY-MM-DD>
 ````
 
 Rules:
+
+- Approval lines start with the fixed words `proposed:`, `accepted:` or `rejected:`, then who, where and the date; a `rejected:` line has the same shape as `accepted:`. Older free-text lines stay valid.
 
 - `status:` lives in the frontmatter and the `## Approval` section exists in
   every decision file; the validator reports a missing one as an `upgrade:`

@@ -32,7 +32,7 @@ A page must not contradict a higher level. When it does, fix the lower page.
 Level 1 tells what the system does now, not what it should do: code can hold a bug.
 
 ## Project profile
-
+<!-- wiki:project-profile -->
 | Setting | Value |
 | --- | --- |
 | Log order | oldest first |
@@ -42,7 +42,7 @@ Level 1 tells what the system does now, not what it should do: code can hold a b
 | Agent entry file | none (CLAUDE.md · AGENTS.md · none) |
 
 ## Core map
-
+<!-- wiki:core-map -->
 Every workflow finds the core pages through this table. Paths are relative to
 the wiki root. Change a path here to relocate a page.
 `log-archive` reserves a directory created on the first archive write; an
@@ -62,7 +62,12 @@ empty archive directory is not required at init or adoption.
 | glossary | `glossary.md` |
 
 ## Conventions
-
+<!-- wiki:conventions -->
+- Reserved to people: only a person opens a task (a new Open row, its owner,
+  priority, deadline and scope), closes unproven work (⚫), accepts or rejects
+  a decision, and confirms a page (`verified`). An agent writes the first
+  three only when a person says so in the conversation, recording who and
+  when; it never writes `verified`.
 - Activity IDs: prefix `T`, stable, never reused; status lives only in the
   tracker.
 - Status: 🟢 done and verified · ⚫ closed by a person without proven criteria
@@ -88,11 +93,11 @@ empty archive directory is not required at init or adoption.
 - Section markers: sections that tools check carry their marker on the line
   right under the heading: the context, handoff and tracker templates, the
   index `owners`, tracker `next`, risks `risk-register` and decision
-  `approval`, and in this file `project-profile`, `conventions`, `evidence`,
+  `approval`, and in this file `core-map`, `project-profile`, `conventions`, `evidence`,
   `confidentiality`, `budgets`, `log-format`, `topics`, `page-frontmatter`.
   Translate the heading, keep the marker.
 - Page metadata: new and substantively updated pages require frontmatter
-  with `title`, `updated`, actual supporting `sources`, `source_commit`, and
+  with `title`, `generated` (legacy pages keep `updated`), actual supporting `sources`, `source_commit`, and
   `confidence`. During gradual adoption, untouched legacy pages and
   marker-only edits retain explicit metadata gaps. Structural adoption does
   not certify them; validation stays incomplete until the gaps are resolved.
@@ -100,14 +105,14 @@ empty archive directory is not required at init or adoption.
   dates and current commits never establish verification of old prose.
 
 ## Evidence
-
+<!-- wiki:evidence -->
 Evidence is proportional to the claim:
 
 | Claim | Evidence |
 | --- | --- |
 | Verification (test, build, command result) | command, essential output, date, code state |
 | Description (files, structure, relations, behavior read from code) | the precise source: a file in `sources:` or inline, with symbol or line when useful |
-| Decision | accepted: who approved it, where (message, PR, meeting note) and when; proposed: who proposed it and when; reasons nobody recorded are written as unknown |
+| Decision | accepted: who approved it, where (message, PR, meeting note) and when; proposed: who proposed it and when; reasons nobody recorded are written `Reasons not recorded.` |
 | Risk | the stated assumption and what would trigger it |
 
 Code state is `@<short-sha>`, plus `+local` when uncommitted changes to the
@@ -124,7 +129,7 @@ rest of the work goes on. A check that could not run is neither a pass nor a
 failure. Never write invented output "by way of example" next to real output.
 
 ## Confidentiality
-
+<!-- wiki:confidentiality -->
 Off by default. When `Sensitive data` is `yes`:
 
 - forbidden terms are listed one per line in `<wiki-root>/.private-terms`,
@@ -145,7 +150,7 @@ Off by default. When `Sensitive data` is `yes`:
 | --- | --- |
 
 ## Budgets
-
+<!-- wiki:budgets -->
 | Budget | Default |
 | --- | --- |
 | Single page | 20 KB |
@@ -153,7 +158,7 @@ Off by default. When `Sensitive data` is `yes`:
 | log | 30 KB |
 
 ## Log format
-
+<!-- wiki:log-format -->
 These are defaults. New entries go at the end of the log; when the Project profile says `Log order | newest first`, they go above the first dated entry. Append-only means nobody rewrites or removes an earlier entry. Keep an explicit existing project log convention during
 adoption and record it here, including a ban on commit hashes when present.
 When hashes cannot be recorded, retain commands, essential output, dates and
@@ -176,7 +181,7 @@ the last 10 entries. It does this without asking, keeps one link line per
 archive in the log, and reports the move.
 
 ## Topics
-
+<!-- wiki:topics -->
 | Topic | Path | What belongs there |
 | --- | --- | --- |
 | architecture | `architecture.md` | components, boundaries, data/control flow, invariants |
@@ -191,7 +196,7 @@ archive in the log, and reports the move.
 - Keep `context` and `handoff` short and useful for the next session.
 
 ## Page frontmatter
-
+<!-- wiki:page-frontmatter -->
 Every concept page carries `type`, `title`, `description`, `status`,
 `generated`, `sources`, `source_commit`, and `confidence`, plus an optional
 `verified`. `index.md` and `log.md` are not concepts and take no `type`. The

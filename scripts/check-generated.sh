@@ -66,6 +66,9 @@ require() { # <marker> <file>...
     grep -qF -- "$marker" "$file" || { echo "missing '$marker' in $file" >&2; exit 1; }
   done
 }
+require "## Reserved to people" canonical/codebase/rules/wiki-context.md
+require "Log order" canonical/codebase/default-schema.md
+require "<!-- wiki:core-map -->" canonical/codebase/default-schema.md
 require "## Core map" canonical/codebase/default-schema.md
 require "⚠️ NOT VERIFIED" canonical/codebase/default-schema.md canonical/codebase/references/agent-context-template.md
 require ".private-terms" canonical/codebase/default-schema.md canonical/codebase/maintainer.md

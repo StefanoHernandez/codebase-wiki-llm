@@ -288,7 +288,7 @@ the current Open/🟢/⚫ rules with the recorded evidence and authority.
 
 Several people and agents can work at once:
 
-- the log is append-only: add your entries, never rewrite someone else's;
+- the log is append-only: add your entries where SCHEMA `Log order` says (at the end by default), never rewrite or remove someone else's;
 - in `tracker`, edit only the rows you work on; take a new ID only after
   re-reading the tracker (after `git pull` when the wiki is shared);
 - re-read a page right before editing it and change only the lines your work
