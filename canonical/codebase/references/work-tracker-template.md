@@ -66,7 +66,7 @@ Rules:
   the documented columns come first, in order; extra columns follow.
 - `Depends on` lists, comma-separated, the tracker IDs this task waits for
   (`T17`) and external conditions in free text (`distribution received`); an
-  empty cell or `—` means none. The header stays `Depends on` also in tables
+  empty cell, a dash (`—`, `–`, `-`) or `none` means none. The header stays `Depends on` also in tables
   with translated headers. An ID is satisfied when it is in Done (🟢 or ⚫); an
   external condition when whoever verified it removes it from the cell. A task
   is ready when every item is satisfied. Add a dependency only when the work
