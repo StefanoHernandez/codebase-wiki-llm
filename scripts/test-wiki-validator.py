@@ -889,6 +889,60 @@ def encoding_cases():
     return failures
 
 
+def dependency_cases():
+    """Depends on: IDs must exist, no self dependency, no cycle among open rows; text is external."""
+    failures = 0
+
+    def table(lines, marker, rows, dep_col):
+        at = next(i for i, ln in enumerate(lines) if ln.strip() == marker)
+        end = at + 3
+        while end < len(lines) and lines[end].startswith("|"):
+            end += 1
+        head, delim = lines[at + 1], lines[at + 2]
+        if dep_col:
+            head, delim = head.rstrip() + " Depends on |", delim.rstrip() + " --- |"
+        return lines[:at + 1] + [head, delim] + rows + lines[end:]
+
+    def open_row(ident, deps):
+        return f"| {ident} | 🟡 | Goal {ident} | Unit tests pass | Stefano | `python3 -m unittest` | reproduced locally | {deps} |"
+
+    # name, open rows [(id, deps)], done rows [(id, deps or None)], done dep column, localized, exit, required, forbidden
+    cases = [
+        ("deps external text accepted", [("T1", "distribution received")], [], False, False, 0, [], ["depends on"]),
+        ("deps empty and dash", [("T1", "—")], [], False, False, 0, [], ["depends on"]),
+        ("deps unknown ID", [("T1", "T99")], [], False, False, 1, ["depends on unknown tracker ID T99"], []),
+        ("deps self", [("T1", "T1")], [], False, False, 1, ["task depends on itself"], []),
+        ("deps two-task cycle", [("T1", "T2"), ("T2", "T1")], [], False, False, 1, ["dependency cycle: T1 → T2 → T1"], []),
+        ("deps three-task cycle once", [("T1", "T2"), ("T2", "T3"), ("T3", "T1")], [], False, False, 1,
+         ["dependency cycle: T1 → T2 → T3 → T1"], []),
+        ("deps on done ID", [("T1", "T2, TRR")], [("T2", None)], False, False, 0, [], ["depends on"]),
+        ("deps markdown ID is external", [("T1", "`T99`")], [], False, False, 0, [], ["unknown tracker ID"]),
+        ("deps column in Done", [("T1", "—")], [("T2", "T1")], True, False, 0, [], ["depends on"]),
+        ("deps translated tracker", [("T1", "T99")], [], False, True, 1, ["depends on unknown tracker ID T99"], []),
+    ]
+    for name, open_rows, done_rows, done_col, localized, exit_code, required, forbidden in cases:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            wiki, roles = fixture(repo, localized=localized)
+            current_schema(wiki)
+            tracker = wiki / roles["tracker"]
+            lines = tracker.read_text().splitlines()
+            lines = table(lines, "<!-- wiki:open -->", [open_row(i, d) for i, d in open_rows], True)
+            done = [GREEN.strip().replace("T2", i) + (f" {d} |" if done_col else "") for i, d in done_rows]
+            lines = table(lines, "<!-- wiki:done -->", done, done_col)
+            tracker.write_text("\n".join(lines) + "\n")
+            code, out, err = validate(repo, wiki)
+            text = out + err
+            ok = code == exit_code and all(r in text for r in required) and not any(f in text for f in forbidden)
+            if name == "deps three-task cycle once":
+                ok = ok and text.count("dependency cycle") == 1
+            print(("PASS " if ok else "FAIL ") + name)
+            if not ok:
+                failures += 1
+                print(f"  got {code}: {text.strip()}")
+    return failures
+
+
 def run():
     if not VALIDATOR.is_file():
         print(f"FAIL installed structural validation absent: {VALIDATOR}", file=sys.stderr)
@@ -1113,6 +1167,7 @@ def run():
     failures += upgrade_cases()
     failures += marker_cases()
     failures += translated_extra_column()
+    failures += dependency_cases()
     failures += versal_scenario()
     failures += template_wiki_case()
     failures += encoding_cases()
