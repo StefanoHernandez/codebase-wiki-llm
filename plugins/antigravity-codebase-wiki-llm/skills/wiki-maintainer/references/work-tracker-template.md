@@ -66,6 +66,13 @@ Rules:
 - Add `Phase` (when the SCHEMA project division is not `none`), `Priority` or
   `Depends on` columns only when they help. In a table with translated headers
   the documented columns come first, in order; extra columns follow.
+- `Depends on` lists, comma-separated, the tracker IDs this task waits for
+  (`T17`) and external conditions in free text (`distribution received`); an
+  empty cell or `—` means none. The header stays `Depends on` also in tables
+  with translated headers. An ID is satisfied when it is in Done (🟢 or ⚫); an
+  external condition when whoever verified it removes it from the cell. A task
+  is ready when every item is satisfied. Add a dependency only when the work
+  order matters; listed IDs must exist and must not form a cycle.
 - A literal `|` inside a cell is written `\|`, also inside backticks; an
   unescaped one splits the cell, as in every Markdown renderer.
 - A proposal row has no ID cell and no cell made only of a status icon; its

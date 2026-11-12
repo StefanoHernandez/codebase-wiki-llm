@@ -84,6 +84,8 @@ Rules:
   `Not verified - <reason>`.
 - Each baton task starts with its tracker ID (`T12 - <next step>`); `Done when`
   may point to the tracker (`see T12`) instead of repeating the criteria.
+- With a tracker `Depends on` column, baton rows put ready tasks first; a task
+  that is not ready says in `Notes / blockers` what it waits for.
 - When no work is left, write the line `No open work.` under the baton heading
   instead of the table; never invent tasks.
 - A person may open or close work in the tracker without touching this page.

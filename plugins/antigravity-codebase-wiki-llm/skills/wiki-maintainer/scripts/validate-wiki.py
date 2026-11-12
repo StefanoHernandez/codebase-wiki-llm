@@ -50,7 +50,7 @@ PRODUCT_CLOSER = re.compile(
     re.I)
 # The validator is installed on its own, so it carries both numbers.
 # VERSION is the plugin release; it equals canonical/codebase/VERSION.
-VERSION = "0.13.1"
+VERSION = "0.14.0"
 # FORMAT_VERSION is the wiki format this validator checks. Raise it only when a
 # release adds an `upgrade:` check or changes a structure tools read.
 FORMAT_VERSION = "0.12.0"
@@ -563,6 +563,7 @@ class Validator:
     def tracker(self, page: Page):
         ids = set()
         open_ids = set()
+        deps = []
         open_readable = True
         ids_readable = True
         for kind, heading in TRACKER.items():
@@ -602,6 +603,7 @@ class Validator:
                     open_readable = False
                 ids_readable = False
                 continue
+            dep_at = next((i for i, h in enumerate(header) if h.strip().lower() == "depends on"), None)
             for number, cells in rows[1:]:
                 if len(cells) != len(header):
                     msg = f"{kind} tracker row does not match its header"
@@ -622,6 +624,9 @@ class Validator:
                 if activity in ids:
                     self.error(page.path, number, f"duplicate tracker ID {activity}")
                 ids.add(activity)
+                if dep_at is not None:
+                    targets = [x.strip() for x in cells[dep_at].split(",") if re.fullmatch(r"T[1-9]\d*", x.strip())]
+                    deps.append((kind, number, activity, targets))
                 for column in ("Goal", "Evidence", "Done when", "Next verification") if kind == "open" else ("Goal", "Closed", "Criteria met", "Evidence"):
                     if unresolved(row[column]):
                         self.error(page.path, number, f"{kind} row needs {column.lower()}")
@@ -646,7 +651,39 @@ class Validator:
                         self.error(page.path, number, "black row has invalid closure date")
         if open_readable and ids_readable:
             self.tracker_ids = ids
+            self.dependencies(page, deps, ids)
         return open_ids if open_readable else None
+
+    def dependencies(self, page: Page, deps, ids):
+        """`Depends on`: listed IDs exist, an open task does not wait for itself or on a cycle."""
+        order, lines, edges = [], {}, {}
+        for kind, number, task, targets in deps:
+            for target in dict.fromkeys(targets):
+                if target not in ids:
+                    self.error(page.path, number, f"depends on unknown tracker ID {target}")
+                elif kind == "open" and target == task:
+                    self.error(page.path, number, "task depends on itself")
+            if kind == "open":
+                order.append(task)
+                lines[task] = number
+                edges[task] = [t for t in dict.fromkeys(targets) if t != task]
+        index = {task: i for i, task in enumerate(order)}
+        reported = set()
+        # Each cycle is reported once, from its first row in table order.
+        for start in order:
+            stack, seen, found = [(start, [start])], set(), None
+            while stack and not found:
+                node, path = stack.pop()
+                for nxt in reversed(edges.get(node, [])):
+                    if nxt == start:
+                        found = path + [start]
+                        break
+                    if nxt in index and index[nxt] > index[start] and nxt not in seen:
+                        seen.add(nxt)
+                        stack.append((nxt, path + [nxt]))
+            if found and frozenset(found) not in reported:
+                reported.add(frozenset(found))
+                self.error(page.path, lines[start], "dependency cycle: " + " → ".join(found))
 
     def format_upgrades(self, schema: Page, paths: dict[str, Path], has_core_map: bool):
         """Report what a wiki still needs for the current format, without failing it."""

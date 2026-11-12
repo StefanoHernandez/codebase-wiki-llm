@@ -1,5 +1,19 @@
 # Release checklist
 
+## 0.14.0 tracker dependencies
+
+Spec and plan in the app repo: `docs/superpowers/specs/2026-11-12-tracker-dipendenze-design.md`,
+`docs/superpowers/plans/2026-11-12-tracker-dipendenze.md`. Branch `feat/tracker-deps`.
+
+- [x] `bash scripts/run-tests.sh` exit 0 on macOS with `.venv` first on PATH (10 new
+  `deps` validator cases: unknown ID, self, two- and three-task cycle, external text,
+  ID in backticks, Done column, translated tracker).
+- [x] Versal wiki copy: output of 0.13.1 and 0.14.0 identical apart from the version
+  in the `upgrade:` hint; no dependency findings (T17, T18, T20–T23 exist; `TRR` and
+  `distribution received` are external).
+- [ ] CI green on the matrix.
+- [ ] Merge to `main`, tag `v0.14.0` and push (on explicit go-ahead).
+
 ## 0.13.0 review fixes
 
 Plan: `docs/superpowers/plans/2026-11-11-review-fixes-0.13.0.md`. Branch

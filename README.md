@@ -29,6 +29,14 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.14.0
+
+- The tracker's optional `Depends on` column has a defined meaning: tracker
+  IDs a task waits for and external conditions in free text. The validator
+  reports a dependency on an ID that does not exist, a task that depends on
+  itself and a cycle among open tasks. `/wiki-sync` puts ready tasks first in
+  `## Next steps` and the baton. Format stays `0.12.0`.
+
 ### Changes in 0.13.1
 
 - Optional local search: when the Codebase Wiki desktop app's `codebase-wiki`

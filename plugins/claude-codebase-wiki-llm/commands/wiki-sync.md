@@ -170,7 +170,10 @@ moved, update its row in the `<!-- wiki:owners -->` table.
    When the tracker has `<!-- wiki:next -->`, rewrite its `## Next steps`:
    one line on where the work stands and at most 5 steps, each citing a
    tracker ID or naming a proposal; drop steps whose IDs moved to Done, and
-   the section when no open work is left.
+   the section when no open work is left. When the tracker has a
+   `Depends on` column, ready tasks come first, and a step on a task that is
+   not ready says what it waits for (`T29 - waits for T17`); the same holds
+   for the baton.
 4. Archive the log without asking when the SCHEMA `## Log format` rule
    applies. When a phase of the project division closed, move the entries
    dated up to its closing date that are still in `log` to `<phase>.md`. When
