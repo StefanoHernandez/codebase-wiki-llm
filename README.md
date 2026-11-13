@@ -172,7 +172,8 @@ are generated from it and committed. See [docs/development.md](docs/development.
 layout, the generators and the release steps, and run `bash scripts/run-tests.sh` before a pull
 request. Release history: [CHANGELOG.md](CHANGELOG.md).
 
-Thanks to [Alessandro Cianfaglione](https://github.com/cianf4) for the configurable wiki folder
+Thanks to [Alessandro Cianfaglione](https://github.com/cianf4), a friend before a contributor,
+for listening, for the advice and ideas that shaped this project, for the configurable wiki folder
 (`.wikidir`) and for using the wiki from its first versions. All contributors are listed in
 [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
