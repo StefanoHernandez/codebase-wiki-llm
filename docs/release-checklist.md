@@ -11,8 +11,9 @@ Spec and plan in the app repo: `docs/superpowers/specs/2026-11-12-tracker-dipend
 - [x] Versal wiki copy: output of 0.13.1 and 0.14.0 identical apart from the version
   in the `upgrade:` hint; no dependency findings (T17, T18, T20–T23 exist; `TRR` and
   `distribution received` are external).
-- [ ] CI green on the matrix.
-- [ ] Merge to `main`, tag `v0.14.0` and push (on explicit go-ahead).
+- [x] CI green on all four matrix jobs (tag run):
+  https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/43395066612
+- [x] Merged to `main`, tagged `v0.14.0` and pushed on Stefano's go-ahead (2026-11-13).
 
 ## 0.13.0 review fixes
 
