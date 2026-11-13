@@ -59,11 +59,12 @@ source when accuracy matters, confidence is low, or a fact is marked
 If the wiki cannot answer, read source or project documents. If that reveals
 durable knowledge, mention the gap or run `/wiki-ingest` when asked.
 
-Optional local search: if the `codebase-wiki` MCP server is connected (from the
-Codebase Wiki desktop app), use `search_wiki` and `search_code` to find pages
-and code before grepping. They only locate: read the file before citing it,
-and treat a hit marked `stale` as possibly changed. Without the server, read
-and grep as above; nothing in the wiki depends on it.
+Optional code search: if the `codebase-wiki` MCP server is connected (from the
+Codebase Wiki desktop app), use `search_code` for where/how questions before
+grepping. It covers source code only: for status, decisions, risks and why,
+read the wiki from the index as above. It only locates: read the file before
+citing it, and treat a hit marked `stale` as possibly changed. Without the
+server, read and grep as above; nothing in the wiki depends on it.
 
 ## After completing a non-trivial task
 

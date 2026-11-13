@@ -1,5 +1,12 @@
 # Release checklist
 
+## 0.14.1 context rule without `search_wiki`
+
+- [x] `bash scripts/run-tests.sh` exit 0 on macOS with `.venv` first on PATH; generated
+  packages refreshed, `search_wiki` left only in the 0.13.1 changelog.
+- [ ] CI green on all four matrix jobs (tag run).
+- [x] Released on Stefano's request (2026-11-13), together with app 0.5.1.
+
 ## 0.14.0 tracker dependencies
 
 Spec and plan in the app repo: `docs/superpowers/specs/2026-11-12-tracker-dipendenze-design.md`,

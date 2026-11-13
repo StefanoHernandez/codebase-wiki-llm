@@ -29,6 +29,13 @@ The Codebase Wiki workflow is shipped for three hosts:
 - **Claude Code** — exposed as the `codebase-wiki-llm` plugin (slash commands + skills).
 - **Antigravity** — exposed as the `codebase-wiki-llm` plugin (rules + skills).
 
+### Changes in 0.14.1
+
+- The context rule no longer mentions `search_wiki`, which the Codebase Wiki
+  app's MCP server stopped offering: `search_code` is for where/how questions
+  in source code; status, decisions, risks and why still come from the wiki.
+  Format stays `0.12.0`.
+
 ### Changes in 0.14.0
 
 - The tracker's optional `Depends on` column has a defined meaning: tracker
