@@ -919,6 +919,13 @@ def dependency_cases():
         ("deps markdown ID is external", [("T1", "`T99`")], [], False, False, 0, [], ["unknown tracker ID"]),
         ("deps column in Done", [("T1", "—")], [("T2", "T1")], True, False, 0, [], ["depends on"]),
         ("deps translated tracker", [("T1", "T99")], [], False, True, 1, ["depends on unknown tracker ID T99"], []),
+        ("deps duplicate ID keeps cycle", [("T1", "T2"), ("T2", "T1"), ("T1", "—")], [], False, False, 1,
+         ["duplicate tracker ID T1", "dependency cycle: T1 → T2 → T1"], []),
+        ("deps malformed open row skips checks", [("T1", "T99 | extra")], [], False, False, 1,
+         ["open tracker row does not match its header"], ["unknown tracker ID"]),
+        ("deps overlapping cycles from one row", [("T1", "T2, T3"), ("T2", "T1"), ("T3", "T1")], [], False, False, 1,
+         ["dependency cycle: T1 → T2 → T1"], []),
+        ("deps non-ASCII digit is external", [("T1", "T1\u0663")], [], False, False, 0, [], ["depends on"]),
     ]
     for name, open_rows, done_rows, done_col, localized, exit_code, required, forbidden in cases:
         with tempfile.TemporaryDirectory() as temp:
@@ -934,7 +941,7 @@ def dependency_cases():
             code, out, err = validate(repo, wiki)
             text = out + err
             ok = code == exit_code and all(r in text for r in required) and not any(f in text for f in forbidden)
-            if name == "deps three-task cycle once":
+            if name in ("deps three-task cycle once", "deps overlapping cycles from one row", "deps duplicate ID keeps cycle"):
                 ok = ok and text.count("dependency cycle") == 1
             print(("PASS " if ok else "FAIL ") + name)
             if not ok:

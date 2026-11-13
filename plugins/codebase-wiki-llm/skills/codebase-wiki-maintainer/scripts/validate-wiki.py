@@ -625,7 +625,7 @@ class Validator:
                     self.error(page.path, number, f"duplicate tracker ID {activity}")
                 ids.add(activity)
                 if dep_at is not None:
-                    targets = [x.strip() for x in cells[dep_at].split(",") if re.fullmatch(r"T[1-9]\d*", x.strip())]
+                    targets = [x.strip() for x in cells[dep_at].split(",") if re.fullmatch(r"T[1-9][0-9]*", x.strip())]
                     deps.append((kind, number, activity, targets))
                 for column in ("Goal", "Evidence", "Done when", "Next verification") if kind == "open" else ("Goal", "Closed", "Criteria met", "Evidence"):
                     if unresolved(row[column]):
@@ -664,12 +664,14 @@ class Validator:
                 elif kind == "open" and target == task:
                     self.error(page.path, number, "task depends on itself")
             if kind == "open":
-                order.append(task)
-                lines[task] = number
-                edges[task] = [t for t in dict.fromkeys(targets) if t != task]
+                # A duplicate ID (reported elsewhere) keeps its first row and adds its edges.
+                if task not in lines:
+                    order.append(task)
+                    lines[task] = number
+                edges.setdefault(task, []).extend(t for t in dict.fromkeys(targets) if t != task)
         index = {task: i for i, task in enumerate(order)}
-        reported = set()
-        # Each cycle is reported once, from its first row in table order.
+        # Each cycle is reported once, from its first row in table order; a row on two cycles
+        # reports the first one found.
         for start in order:
             stack, seen, found = [(start, [start])], set(), None
             while stack and not found:
@@ -681,8 +683,7 @@ class Validator:
                     if nxt in index and index[nxt] > index[start] and nxt not in seen:
                         seen.add(nxt)
                         stack.append((nxt, path + [nxt]))
-            if found and frozenset(found) not in reported:
-                reported.add(frozenset(found))
+            if found:
                 self.error(page.path, lines[start], "dependency cycle: " + " → ".join(found))
 
     def format_upgrades(self, schema: Page, paths: dict[str, Path], has_core_map: bool):

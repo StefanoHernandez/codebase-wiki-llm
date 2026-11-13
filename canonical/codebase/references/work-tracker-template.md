@@ -70,7 +70,7 @@ Rules:
   with translated headers. An ID is satisfied when it is in Done (🟢 or ⚫); an
   external condition when whoever verified it removes it from the cell. A task
   is ready when every item is satisfied. Add a dependency only when the work
-  order matters; listed IDs must exist and must not form a cycle.
+  order matters, never invent one; listed IDs must exist and must not form a cycle.
 - A literal `|` inside a cell is written `\|`, also inside backticks; an
   unescaped one splits the cell, as in every Markdown renderer.
 - A proposal row has no ID cell and no cell made only of a status icon; its
