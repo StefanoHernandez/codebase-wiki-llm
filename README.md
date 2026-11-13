@@ -157,8 +157,8 @@ passed.
 | PreInvocation | — | — | ✓ | The same note, on the first model call of each turn; on the first call of a conversation, the handoff-age line. Antigravity's always-on rule resolves the wiki folder and asks for the core read. |
 | git pre-commit | optional | optional | optional | With sensitive data on, blocks commits containing a term from `.private-terms` (reports the file, never the term). |
 
-Claude Code and Antigravity hooks are verified in live sessions; Codex hooks follow its
-documentation and are not yet verified live. The note's state lives in `.git/codebase-wiki/` and is
+Hooks are verified in live sessions on all three hosts (Codex 0.169, after trusting them in
+`/hooks`). The note's state lives in `.git/codebase-wiki/` and is
 pruned after 30 days.
 
 ## Privacy and safety
