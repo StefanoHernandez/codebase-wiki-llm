@@ -4,7 +4,8 @@
 
 - [x] `bash scripts/run-tests.sh` exit 0 on macOS with `.venv` first on PATH; generated
   packages refreshed, `search_wiki` left only in the 0.13.1 changelog.
-- [ ] CI green on all four matrix jobs (tag run).
+- [x] CI green on all four matrix jobs (tag run):
+  https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/43415192161
 - [x] Released on Stefano's request (2026-11-13), together with app 0.5.1.
 
 ## 0.14.0 tracker dependencies
