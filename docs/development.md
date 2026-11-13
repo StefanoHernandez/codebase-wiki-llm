@@ -81,9 +81,9 @@ git add . && git commit -m "Update wiki workflow prompts" && git push
 ```
 
 After push, Codex and Claude Code marketplaces consume the updated generated
-package files from this repository. Antigravity users who installed via
-symlink see updates after `git pull`; users who copied the folder should rerun
-the copy from the Install section.
+package files from this repository. Antigravity users run `git pull` and
+`agy plugin install` again (see the README); the Codebase Wiki app does the same
+from Settings.
 
 
 ## Repository layout

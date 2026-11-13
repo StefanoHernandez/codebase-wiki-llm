@@ -52,13 +52,13 @@ then enable **Codebase Wiki LLM** in the Codex plugin UI.
 
 ```bash
 git clone https://github.com/StefanoHernandez/codebase-wiki-llm.git
-cd codebase-wiki-llm
-mkdir -p ~/.gemini/config/plugins
-ln -s "$PWD/plugins/antigravity-codebase-wiki-llm" ~/.gemini/config/plugins/codebase-wiki-llm
+agy plugin install codebase-wiki-llm/plugins/antigravity-codebase-wiki-llm
 ```
 
-With a symlink, `git pull` updates the plugin; use `cp -R` for a fixed copy. For one workspace
-only, place the plugin under `.agents/plugins/codebase-wiki-llm/` at the workspace root.
+To update, `git pull` in the clone and run the same `agy plugin install` again: it replaces the
+installed copy. Do not symlink the folder into `~/.gemini/config/plugins`: Antigravity skips linked
+plugins. For one workspace only, place the plugin under `.agents/plugins/codebase-wiki-llm/` at
+the workspace root.
 
 <details>
 <summary>Uninstall</summary>
@@ -66,7 +66,7 @@ only, place the plugin under `.agents/plugins/codebase-wiki-llm/` at the workspa
 - Claude Code: `/plugin uninstall codebase-wiki-llm@stefano-wiki`, optionally
   `/plugin marketplace remove stefano-wiki`.
 - Codex: `codex plugin marketplace remove codebase-wiki-llm`.
-- Antigravity: `rm ~/.gemini/config/plugins/codebase-wiki-llm` (`rm -rf` for a copy).
+- Antigravity: `agy plugin uninstall codebase-wiki-llm`.
 
 </details>
 
