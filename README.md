@@ -46,7 +46,9 @@ Update with `/plugin marketplace update stefano-wiki`, then install again.
 ### Codex
 
 Add a marketplace with the Git URL `https://github.com/StefanoHernandez/codebase-wiki-llm.git`,
-then enable **Codebase Wiki LLM** in the Codex plugin UI.
+then enable **Codebase Wiki LLM** in the Codex plugin UI. Codex runs a plugin's hooks only after you
+trust them: open `/hooks` in the Codex CLI once, and again after each plugin update that changes
+them.
 
 ### Antigravity
 
@@ -150,17 +152,18 @@ passed.
 
 | Hook | Claude Code | Codex | Antigravity | What it does |
 | --- | :---: | :---: | :---: | --- |
-| SessionStart | ✓ | ✓ | rule | Resolves the wiki folder, asks for one full core read at a new context, flags a handoff 5+ commits old. |
-| UserPromptSubmit | ✓ | ✓ | — | At your next message, a note (never a block) when changed code is not covered by the wiki. |
-| PreInvocation | — | — | ✓ | The same note, on the first model call of each turn. |
+| SessionStart | ✓ | ✓ (after `/hooks`) | — | Resolves the wiki folder, asks for one full core read at a new context, flags a handoff 5+ commits old. |
+| UserPromptSubmit | ✓ | ✓ (after `/hooks`) | — | At your next message, a note (never a block) when changed code is not covered by the wiki. |
+| PreInvocation | — | — | ✓ | The same note, on the first model call of each turn; on the first call of a conversation, the handoff-age line. Antigravity's always-on rule resolves the wiki folder and asks for the core read. |
 | git pre-commit | optional | optional | optional | With sensitive data on, blocks commits containing a term from `.private-terms` (reports the file, never the term). |
 
-Codex and Antigravity hooks follow their documentation and have not yet been verified in a live
-session. The note's state lives in `.git/codebase-wiki/` and is pruned after 30 days.
+Claude Code and Antigravity hooks are verified in live sessions; Codex hooks follow its
+documentation and are not yet verified live. The note's state lives in `.git/codebase-wiki/` and is
+pruned after 30 days.
 
 ## Privacy and safety
 
-The plugin is prompts, rules and local scripts: they it sends nothing anywhere. Wiki operations may
+The plugin is prompts, rules and local scripts: it sends nothing anywhere. Wiki operations may
 read source files but write only inside the wiki folder, plus what `/wiki-init` installs after you
 confirm (`.wikidir`, a thin `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the optional pre-commit
 hook). They never modify source code unless you ask for that outside the wiki workflow.
