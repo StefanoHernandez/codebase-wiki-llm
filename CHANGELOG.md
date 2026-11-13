@@ -3,6 +3,13 @@
 Changes to **Codebase Wiki LLM**. The wiki format has its own number (`format_version` in
 `SCHEMA.md`); `validate-wiki.py --version` prints both.
 
+## 0.15.0
+
+- SecondBrain Wiki LLM is no longer part of this repository: its packages, skills and
+  marketplace entries are removed. The last version is in tag `v0.14.1` (SecondBrain 0.2.1). If
+  you installed it, uninstall it (`/plugin uninstall secondbrain-wiki-llm@stefano-wiki` in Claude
+  Code). Codebase Wiki LLM is unchanged; format stays `0.12.0`.
+
 ## 0.14.1
 
 - The context rule no longer mentions `search_wiki`, which the Codebase Wiki

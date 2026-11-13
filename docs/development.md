@@ -4,17 +4,16 @@ Notes for maintainers of this repository. Users only need the [README](../README
 
 ## Why multiple plugin folders?
 
-Codex, Claude Code, and Antigravity use different plugin formats. Each product
-therefore has one package per host:
+Codex, Claude Code, and Antigravity use different plugin formats, so the plugin
+has one package per host:
 
 | Aspect       | Codex                              | Claude Code                         | Antigravity                            |
 | ------------ | ---------------------------------- | ----------------------------------- | -------------------------------------- |
 | Discovery    | `.agents/plugins/marketplace.json` | `.claude-plugin/marketplace.json`   | `~/.gemini/config/plugins/` auto-scan  |
 | Codebase path | `plugins/codebase-wiki-llm`       | `plugins/claude-codebase-wiki-llm`  | `plugins/antigravity-codebase-wiki-llm` |
-| SecondBrain path | `plugins/secondbrain-wiki-llm` | `plugins/claude-secondbrain-wiki-llm` | `plugins/antigravity-secondbrain-wiki-llm` |
 | Manifest     | `.codex-plugin/plugin.json`        | `plugin.json`                       | `plugin.json` + `rules/` + `skills/`   |
 | Triggers     | Skills (one per operation)         | Slash commands + skills             | Skills + always-on rule                |
-| Package names | `codebase-wiki-llm`, `secondbrain-wiki-llm` | `codebase-wiki-llm`, `secondbrain-wiki-llm` | `codebase-wiki-llm`, `secondbrain-wiki-llm` |
+| Package name | `codebase-wiki-llm` | `codebase-wiki-llm` | `codebase-wiki-llm` |
 
 The host-specific paths do not collide, so a single repo serves all variants
 while keeping each host's expected format intact.
@@ -26,37 +25,26 @@ Edit shared behavior only in the relevant canonical domain:
 
 ```text
 canonical/
-├── codebase/
-│   ├── VERSION                  (release version for the plugin)
-│   ├── maintainer.md
-│   ├── default-schema.md
-│   ├── partials/
-│   ├── references/              (templates: context, handoff, decision, ...)
-│   ├── rules/
-│   │   └── wiki-context.md
-│   ├── scripts/                 (resolve-wiki-root, remind-wiki-sync, check-private-terms)
-│   └── workflows/
-│       ├── wiki-init.md
-│       ├── wiki-ingest.md
-│       ├── wiki-sync.md
-│       └── wiki-lint.md
-└── secondbrain/
-    ├── VERSION
+└── codebase/
+    ├── VERSION                  (release version for the plugin)
     ├── maintainer.md
     ├── default-schema.md
+    ├── partials/
+    ├── references/              (templates: context, handoff, decision, ...)
     ├── rules/
-    │   └── secondbrain-context.md
+    │   └── wiki-context.md
+    ├── scripts/                 (resolve-wiki-root, remind-wiki-sync, check-private-terms)
     └── workflows/
-        ├── secondbrain-init.md
-        ├── secondbrain-ingest.md
-        ├── secondbrain-sync.md
-        └── secondbrain-lint.md
+        ├── wiki-init.md
+        ├── wiki-ingest.md
+        ├── wiki-sync.md
+        └── wiki-lint.md
 ```
 
 Then regenerate the host packages:
 
 ```bash
-python3 scripts/generate-host-packages.py   # wraps the two generators below
+python3 scripts/generate-host-packages.py   # wraps generate-codebase-packages.py
 scripts/check-generated.sh
 ```
 
@@ -65,9 +53,6 @@ The generator writes the host-specific files required by each environment:
 - Codex skills, hooks and scripts under `plugins/codebase-wiki-llm/`
 - Claude Code commands, hooks, scripts and skills under `plugins/claude-codebase-wiki-llm/`
 - Antigravity plugin under `plugins/antigravity-codebase-wiki-llm/` (`plugin.json`, `hooks.json`, `rules/`, `scripts/`, `skills/`)
-- Codex SecondBrain skills under `plugins/secondbrain-wiki-llm/skills/`
-- Claude Code SecondBrain commands and skills under `plugins/claude-secondbrain-wiki-llm/`
-- Antigravity SecondBrain plugin under `plugins/antigravity-secondbrain-wiki-llm/`
 - generic Agent Skills under `skills/`
 
 Generated files include a `Generated from ...` marker and should not be edited directly. Commit both the canonical changes and the generated package updates before pushing.
@@ -107,10 +92,8 @@ the copy from the Install section.
 .agents/plugins/marketplace.json            <- Codex
 .claude-plugin/marketplace.json             <- Claude Code
 canonical/                                  <- shared prompt sources and VERSION files by domain
-scripts/generate-host-packages.py           <- wrapper: generates all host package files
+scripts/generate-host-packages.py           <- wrapper: generates all host package files and the marketplace
 scripts/generate-codebase-packages.py       <- generates Codebase Wiki packages
-scripts/generate-secondbrain-packages.py    <- generates SecondBrain packages
-scripts/check-generated.sh                  <- verifies generated files are current
 scripts/run-tests.sh                        <- runs every test
 scripts/install-dev-hooks.sh                <- installs this repo's pre-commit drift guard
 scripts/validate-agent-handoff.py           <- validates agent context/handoff pages in a target wiki
@@ -135,41 +118,17 @@ plugins/
 │   └── skills/
 │       ├── wiki-maintainer/
 │       └── wiki-context/
-├── antigravity-codebase-wiki-llm/          Antigravity Codebase variant
-│   ├── plugin.json
-│   ├── hooks.json                          (PreInvocation note)
-│   ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
-│   ├── rules/AGENTS.md                     (always-on rule)
-│   └── skills/
-│       ├── wiki-maintainer/                 (knowledge + default schema)
-│       ├── wiki-init/
-│       ├── wiki-ingest/
-│       ├── wiki-sync/
-│       └── wiki-lint/
-├── secondbrain-wiki-llm/                   Codex SecondBrain variant
-│   ├── .codex-plugin/plugin.json
-│   └── skills/
-│       ├── secondbrain-maintainer/
-│       ├── secondbrain-context/
-│       ├── secondbrain-init/
-│       ├── secondbrain-ingest/
-│       ├── secondbrain-sync/
-│       └── secondbrain-lint/
-├── claude-secondbrain-wiki-llm/            Claude Code SecondBrain variant
-│   ├── plugin.json
-│   ├── commands/                           (/secondbrain-init, /secondbrain-ingest, /secondbrain-sync, /secondbrain-lint)
-│   └── skills/
-│       ├── secondbrain-maintainer/
-│       └── secondbrain-context/
-└── antigravity-secondbrain-wiki-llm/        Antigravity SecondBrain variant
+└── antigravity-codebase-wiki-llm/          Antigravity Codebase variant
     ├── plugin.json
+    ├── hooks.json                          (PreInvocation note)
+    ├── scripts/                            (resolve-wiki-root.sh, remind-wiki-sync.sh)
     ├── rules/AGENTS.md                     (always-on rule)
     └── skills/
-        ├── secondbrain-maintainer/
-        ├── secondbrain-init/
-        ├── secondbrain-ingest/
-        ├── secondbrain-sync/
-        └── secondbrain-lint/
+        ├── wiki-maintainer/                 (knowledge + default schema)
+        ├── wiki-init/
+        ├── wiki-ingest/
+        ├── wiki-sync/
+        └── wiki-lint/
 ```
 
 

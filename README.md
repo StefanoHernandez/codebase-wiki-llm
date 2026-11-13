@@ -15,11 +15,6 @@ per decision, risks, and a handoff so the next session does not redo work.
 > Inspired by Andrej Karpathy's **LLM Wiki** idea: let LLM agents compile and maintain a linked
 > Markdown knowledge base as the durable memory of a project, for people and agents alike.
 
-This repository is a marketplace with two plugins:
-
-- **Codebase Wiki LLM**: the engineering wiki for a software repository (this README).
-- **SecondBrain Wiki LLM**: an adaptive personal and work knowledge vault ([below](#secondbrain-wiki-llm)).
-
 The companion desktop app, [Codebase Wiki](https://github.com/StefanoHernandez/codebase-wiki-app),
 shows the wiki to a person, records the approvals only a person can give and adds local code
 search for agents. The plugin works without it.
@@ -163,26 +158,9 @@ passed.
 Codex and Antigravity hooks follow their documentation and have not yet been verified in a live
 session. The note's state lives in `.git/codebase-wiki/` and is pruned after 30 days.
 
-## SecondBrain Wiki LLM
-
-An adaptive personal and work knowledge vault: a small core (`index.md`, `SCHEMA.md`, `log.md`,
-`raw/`, `inbox/`, `archive/`) plus the domains you choose at init, such as `projects/`, `meetings/`,
-`research/`, `tasks/`, `expenses/`, `people/` or `publications/`.
-
-```text
-/plugin install secondbrain-wiki-llm@stefano-wiki     # Claude Code
-```
-
-| Command | What it does |
-| --- | --- |
-| `/secondbrain-init` | Bootstraps a vault after surveying goals and existing material. |
-| `/secondbrain-ingest [path-or-topic]` | Turns raw material, inbox notes, files or links into structured notes. |
-| `/secondbrain-sync` | Updates existing notes after small changes. |
-| `/secondbrain-lint` | Read-only report on structure, sources, sensitive data and stale pages. |
-
 ## Privacy and safety
 
-The plugins are prompts, rules and local scripts: they send nothing anywhere. Wiki operations may
+The plugin is prompts, rules and local scripts: they it sends nothing anywhere. Wiki operations may
 read source files but write only inside the wiki folder, plus what `/wiki-init` installs after you
 confirm (`.wikidir`, a thin `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the optional pre-commit
 hook). They never modify source code unless you ask for that outside the wiki workflow.

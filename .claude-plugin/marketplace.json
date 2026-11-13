@@ -1,6 +1,6 @@
 {
   "name": "stefano-wiki",
-  "description": "Wiki plugins for codebase documentation and personal/work knowledge vaults.",
+  "description": "Codebase Wiki LLM: an evidence-backed project wiki maintained by coding agents.",
   "owner": {
     "name": "Stefano Paradisi",
     "url": "https://github.com/StefanoHernandez"
@@ -10,13 +10,7 @@
       "name": "codebase-wiki-llm",
       "source": "./plugins/claude-codebase-wiki-llm",
       "description": "Maintain a living, LLM-owned wiki of a codebase (wiki/ by default, or a folder you choose such as .wiki/). Adds /wiki-init, /wiki-ingest, /wiki-sync, /wiki-lint, and a wiki context skill.",
-      "version": "0.14.1"
-    },
-    {
-      "name": "secondbrain-wiki-llm",
-      "source": "./plugins/claude-secondbrain-wiki-llm",
-      "description": "Maintain an adaptive personal and work knowledge vault. Adds /secondbrain-init, /secondbrain-ingest, /secondbrain-sync, and /secondbrain-lint.",
-      "version": "0.2.1"
+      "version": "0.15.0"
     }
   ]
 }
