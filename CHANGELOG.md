@@ -3,6 +3,14 @@
 Changes to **Codebase Wiki LLM**. The wiki format has its own number (`format_version` in
 `SCHEMA.md`); `validate-wiki.py --version` prints both.
 
+## 0.15.1
+
+- The sync note reads the hook payload as JSON instead of matching it with `sed`: escaped quotes
+  and backslashes in a path, keys in any order and nested keys with the same name no longer make
+  it go silent or pick the wrong folder.
+- Antigravity has no SessionStart hook, so the first model call of a conversation now reports a
+  handoff 5 or more commits old, as Claude Code and Codex do at session start.
+
 ## 0.15.0
 
 - SecondBrain Wiki LLM is no longer part of this repository: its packages, skills and

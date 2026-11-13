@@ -50,7 +50,7 @@ PRODUCT_CLOSER = re.compile(
     re.I)
 # The validator is installed on its own, so it carries both numbers.
 # VERSION is the plugin release; it equals canonical/codebase/VERSION.
-VERSION = "0.15.0"
+VERSION = "0.15.1"
 # FORMAT_VERSION is the wiki format this validator checks. Raise it only when a
 # release adds an `upgrade:` check or changes a structure tools read.
 FORMAT_VERSION = "0.12.0"

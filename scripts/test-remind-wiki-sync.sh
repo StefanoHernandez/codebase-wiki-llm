@@ -281,5 +281,34 @@ out="$(cd "$TMP_DIR" && agy "$r" 2 | sh "$HOOK" --host antigravity)"
 printf '%s' "$out" | python3 -c 'import json,sys; m=json.load(sys.stdin)["injectSteps"][0]["ephemeralMessage"]; assert "a\"b.c" in m, m' \
   || { echo "FAIL antigravity message with a quote in a file name is not valid JSON: $out" >&2; failures=$((failures + 1)); }
 
+# JSON is read by structure: escaped characters in the path, nested keys and key order.
+jstr() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
+r="$(new_repo 'q"uote\back')"
+qp() { printf '{"prompt":"hi","session_id":"s1","cwd":%s}' "$(jstr "$r")"; }
+run "escaped quote and backslash in cwd: baseline" "" "$(qp)" --host claude
+echo x > "$r/main.c"
+run "escaped quote and backslash in cwd" "$(note main.c no)" "$(qp)" --host claude
+
+r="$(new_repo nested)"
+nested() { printf '{"tool":{"cwd":"/nonexistent","session_id":"x"},"session_id":"s1","cwd":"%s"}' "$r"; }
+run "nested cwd is ignored: baseline" "" "$(nested)" --host claude
+echo x > "$r/main.c"
+run "nested cwd is ignored" "$(note main.c no)" "$(nested)" --host claude
+
+r="$(new_repo agy-order)"
+order() { printf '{"initialNumSteps":%s,"workspacePaths":[ "%s" ],"conversationId":"c9"}' "$1" "$r"; }
+run "antigravity key order: baseline" "{}" "$(order 1)" --host antigravity
+echo x > "$r/main.c"
+run "antigravity key order" "{\"injectSteps\":[{\"ephemeralMessage\":\"$(note main.c no)\"}]}" "$(order 2)" --host antigravity
+
+# Antigravity has no SessionStart: the first call reports a handoff 5+ commits old.
+r="$(new_repo agy-handoff)"
+mkdir -p "$r/wiki/agent"; echo h > "$r/wiki/agent/handoff.md"; commit "$r" handoff
+for i in 1 2 3 4 5; do echo "$i" > "$r/f$i.c"; commit "$r" "c$i"; done
+run "antigravity first call reports an old handoff" \
+  '{"injectSteps":[{"ephemeralMessage":"Codebase Wiki LLM: handoff is 5 commits old (wiki/agent/handoff.md); read it and refresh it before relying on it."}]}' \
+  "$(agy "$r" 1)" --host antigravity
+run "antigravity reports the old handoff once" "{}" "$(agy "$r" 2)" --host antigravity
+
 [ "$failures" -eq 0 ] || { echo "$failures remind-wiki-sync test(s) failed" >&2; exit 1; }
 echo "remind-wiki-sync tests passed"

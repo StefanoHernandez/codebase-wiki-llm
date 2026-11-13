@@ -24,11 +24,59 @@ quiet() {
   [ "$host" = antigravity ] && printf '{}\n'
   exit 0
 }
-str() { printf '%s' "$payload" | sed -n 's/.*"'"$1"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'; }
-num() { printf '%s' "$payload" | sed -n 's/.*"'"$1"'"[[:space:]]*:[[:space:]]*"\{0,1\}\([0-9][0-9]*\).*/\1/p'; }
+# say <text>: hand the note to the agent and stop.
+say() {
+  if [ "$host" = antigravity ]; then
+    esc=$(printf '%s' "$1" | tr -d '\000-\037' | sed 's/\\/\\\\/g; s/"/\\"/g')
+    printf '{"injectSteps":[{"ephemeralMessage":"%s"}]}\n' "$esc"
+  else
+    printf '%s\n' "$1"
+  fi
+  exit 0
+}
+# field <key>: value of a top-level key; a string is unescaped (\" \\ \/), an array gives its
+# first string, a number its digits. Nested objects, key order and spacing do not matter.
+field() {
+  printf '%s' "$payload" | awk -v want="$1" '
+    function str(   o, c, e) {  # at an opening quote; returns the unescaped string
+      o = ""; i++
+      while (i <= n) {
+        c = substr(j, i, 1)
+        if (c == "\\") { e = substr(j, i + 1, 1); i += 2
+          if (e == "n") o = o "\n"; else if (e == "t") o = o "\t"; else if (e == "u") { o = o "\\u"; } else o = o e
+          continue }
+        if (c == "\"") { i++; return o }
+        o = o c; i++
+      }
+      return o
+    }
+    { j = j $0 }
+    END {
+      n = length(j); d = 0; key = ""; i = 1
+      while (i <= n) {
+        c = substr(j, i, 1)
+        if (c == "\"") {
+          t = str()
+          if (d == 1 && key == "") { k = t; while (substr(j, i, 1) ~ /[ \t\r]/) i++
+            if (substr(j, i, 1) == ":") { key = k; i++ } }
+          else if (key == want) { print t; exit }
+          else if (d == 1) key = ""
+          continue
+        }
+        if (d == 1 && key == want && c ~ /[0-9]/) { v = ""; while (substr(j, i, 1) ~ /[0-9]/) { v = v substr(j, i, 1); i++ } print v; exit }
+        # An object under the wanted key is not a string: stop looking there.
+        if (c == "{" || c == "[") { if (d == 1 && key == want && c == "{") key = ""; d++ }
+        else if (c == "}" || c == "]") { d--; if (d == 1) key = "" }
+        else if (c == "," && d == 1) key = ""
+        i++
+      }
+    }'
+}
+str() { field "$1"; }
+num() { field "$1" | sed -n 's/^\([0-9][0-9]*\).*/\1/p'; }
 
 if [ "$host" = antigravity ]; then
-  dir=$(printf '%s' "$payload" | sed -n 's/.*"workspacePaths"[[:space:]]*:[[:space:]]*\[[[:space:]]*"\([^"]*\)".*/\1/p')
+  dir=$(field workspacePaths)
   key=$(str conversationId)
   turn=$(num initialNumSteps)
   [ -n "$dir" ] || quiet
@@ -102,7 +150,15 @@ code_states=$(printf '%s\n' "$code" | while IFS= read -r path; do
 done) || quiet
 # Only the same content as the baseline or the latest wiki coverage is excluded.
 # Legacy path-only records cannot match a fingerprint and are ignored safely.
-if [ "$first" = yes ]; then save "covered-$key" "$code_states"; quiet; fi
+if [ "$first" = yes ]; then
+  save "covered-$key" "$code_states"
+  # Antigravity has no SessionStart hook: its first call carries the stale-handoff line instead.
+  if [ "$host" = antigravity ]; then
+    old=$(cd "$root" && sh "$script_dir/resolve-wiki-root.sh" | grep '^Codebase Wiki LLM: handoff is ')
+    [ -z "$old" ] || say "$old"
+  fi
+  quiet
+fi
 if [ -f "$covered" ]; then
   code_states=$(printf '%s\n' "$code_states" | awk -F '\t' '
     FILENAME == ARGV[1] { if (NF == 2) covered[$1] = $2; next }
@@ -171,10 +227,4 @@ msg="Codebase Wiki LLM (note, not a stop): code changed since this session start
 [ -z "$stale" ] || msg="$msg Wiki pages whose sources list these files but were not updated: $(list "$stale")."
 msg="$msg Handle the user's message first. When the task that changed the code is done, run the wiki sync workflow (/wiki-sync: log entry, tracker, handoff), or say in one line why no wiki update is needed."
 
-if [ "$host" = antigravity ]; then
-  esc=$(printf '%s' "$msg" | tr -d '\000-\037' | sed 's/\\/\\\\/g; s/"/\\"/g')
-  printf '{"injectSteps":[{"ephemeralMessage":"%s"}]}\n' "$esc"
-else
-  printf '%s\n' "$msg"
-fi
-exit 0
+say "$msg"
