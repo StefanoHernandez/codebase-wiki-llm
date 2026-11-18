@@ -119,7 +119,7 @@ move, each accepted or skipped. The same command upgrades an older wiki to the c
 Every path is a default: the **Core map** in `SCHEMA.md` maps each role to a file, so commands
 never hard-code paths. Pages are written in the language you choose; stable
 `<!-- wiki:… -->` markers keep the checks working in any language. Size budgets keep the core
-cheap to read (page 20 KB, core read at a new context 60 KB, `log.md` 30 KB).
+cheap to read (page 30 KB, core read at a new context 100 KB, `log.md` 30 KB).
 
 ### Choosing the folder
 

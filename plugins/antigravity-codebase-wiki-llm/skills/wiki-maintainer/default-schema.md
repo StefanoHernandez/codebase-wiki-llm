@@ -153,8 +153,8 @@ Off by default. When `Sensitive data` is `yes`:
 <!-- wiki:budgets -->
 | Budget | Default |
 | --- | --- |
-| Single page | 20 KB |
-| Core read at a new context (agent entry file, SCHEMA, index, context, handoff, tracker, risks, troubleshooting, glossary, last 10 log entries) | 60 KB |
+| Single page | 30 KB |
+| Core read at a new context (agent entry file, SCHEMA, index, context, handoff, tracker, risks, troubleshooting, glossary, last 10 log entries) | 100 KB |
 | log | 30 KB |
 
 ## Log format

@@ -3,6 +3,14 @@
 Changes to **Codebase Wiki LLM**. The wiki format has its own number (`format_version` in
 `SCHEMA.md`); `validate-wiki.py --version` prints both.
 
+## 0.16.0
+
+- Higher default budgets in a new `SCHEMA.md`: single page 30 KB (was 20 KB), core read at a
+  new context 100 KB (was 60 KB); `log` stays 30 KB. A real wiki of 91 pages read 112 KB at
+  a new context with eight pages packed between 16 and 20 KB. Existing wikis keep the values
+  in their own `## Budgets`; raise them there by hand if you want the new ones. Format stays
+  `0.12.0`.
+
 ## 0.15.1
 
 - The sync note reads the hook payload as JSON instead of matching it with `sed`: escaped quotes
