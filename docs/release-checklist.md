@@ -11,9 +11,14 @@ Spec: `docs/superpowers/specs/2026-11-18-release-0.16.0-design.md`; plan:
   `check-private-terms.sh --all` exit 0 and no whole-word hit.
 - [x] `python3 canonical/codebase/scripts/validate-wiki.py wiki` exit 0, no
   `upgrade:` line.
-- [ ] CI green on ubuntu + macOS (BSD awk for the `\uXXXX` decoder).
-- [ ] Whole-branch review.
-- [ ] Main fast-forward, tag `v0.16.0` and push (on explicit go-ahead).
+- [x] CI green on ubuntu + macOS, Python 3.10 and 3.x (BSD awk for the
+  `\uXXXX` decoder): https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/44302892992
+- [x] Whole-branch review (independent reviewer): no Critical; adopted-wiki
+  recovery rules restored in `/wiki-lint`, unsupported figure removed from
+  decision 0002; minors deferred.
+- [x] Main fast-forward, tag `v0.16.0` and push (Stefano: "se funziona portalo
+  su main"). Remote verified with `git ls-remote` on 2026-11-18: main, dev and
+  peeled `v0.16.0` at `eef6bfa`; tag object `e8c8dcc`.
 - [ ] After the push: `agy plugin install` to refresh Antigravity.
 - [ ] App aligned with 0.16.0 (wiki T2), deferred by Stefano.
 
