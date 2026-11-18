@@ -34,16 +34,38 @@ say() {
   fi
   exit 0
 }
-# field <key>: value of a top-level key; a string is unescaped (\" \\ \/), an array gives its
-# first string, a number its digits. Nested objects, key order and spacing do not matter.
+# field <key>: value of a top-level key; a string is unescaped (\" \\ \/ and \uXXXX, surrogate
+# pairs included, to UTF-8), an array gives its first string, a number its digits. Nested
+# objects, key order and spacing do not matter. awk runs with LC_ALL=C so %c writes bytes.
 field() {
-  printf '%s' "$payload" | awk -v want="$1" '
-    function str(   o, c, e) {  # at an opening quote; returns the unescaped string
+  printf '%s' "$payload" | LC_ALL=C awk -v want="$1" '
+    function hex4(s,   k, d, v) {  # value of 4 hex digits, or -1
+      if (length(s) < 4) return -1
+      v = 0
+      for (k = 1; k <= 4; k++) { d = index("0123456789abcdef", tolower(substr(s, k, 1))); if (!d) return -1; v = v * 16 + d - 1 }
+      return v
+    }
+    function utf8(n) {
+      if (n < 128) return sprintf("%c", n)
+      if (n < 2048) return sprintf("%c%c", 192 + int(n / 64), 128 + n % 64)
+      if (n < 65536) return sprintf("%c%c%c", 224 + int(n / 4096), 128 + int(n / 64) % 64, 128 + n % 64)
+      return sprintf("%c%c%c%c", 240 + int(n / 262144), 128 + int(n / 4096) % 64, 128 + int(n / 64) % 64, 128 + n % 64)
+    }
+    function str(   o, c, e, u, l) {  # at an opening quote; returns the unescaped string
       o = ""; i++
       while (i <= n) {
         c = substr(j, i, 1)
         if (c == "\\") { e = substr(j, i + 1, 1); i += 2
-          if (e == "n") o = o "\n"; else if (e == "t") o = o "\t"; else if (e == "u") { o = o "\\u"; } else o = o e
+          if (e == "n") o = o "\n"; else if (e == "t") o = o "\t"; else if (e == "u") {
+            u = hex4(substr(j, i, 4))
+            if (u <= 0) { o = o "\\u"; continue }  # malformed or NUL: kept literally
+            i += 4
+            if (u >= 55296 && u < 56320 && substr(j, i, 2) == "\\u") {
+              l = hex4(substr(j, i + 2, 4))
+              if (l >= 56320 && l < 57344) { u = 65536 + (u - 55296) * 1024 + (l - 56320); i += 6 }
+            }
+            o = o utf8(u)
+          } else o = o e
           continue }
         if (c == "\"") { i++; return o }
         o = o c; i++

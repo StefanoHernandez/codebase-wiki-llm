@@ -289,6 +289,21 @@ run "escaped quote and backslash in cwd: baseline" "" "$(qp)" --host claude
 echo x > "$r/main.c"
 run "escaped quote and backslash in cwd" "$(note main.c no)" "$(qp)" --host claude
 
+# \uXXXX escapes: Go's encoding/json writes & < > that way, ensure_ascii writers every non-ASCII.
+ujstr() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]).replace("&", "\\u0026"))' "$1"; }
+for c in "ampersand:R&D" "accented:caffè" "surrogate pair:x😀"; do
+  r="$(new_repo "${c#*:}")"
+  up() { printf '{"prompt":"hi","session_id":"s1","cwd":%s}' "$(ujstr "$r")"; }
+  run "unicode escape ${c%%:*}: baseline" "" "$(up)" --host claude
+  echo x > "$r/main.c"
+  run "unicode escape ${c%%:*}" "$(note main.c no)" "$(up)" --host claude
+done
+r="$(new_repo plain-escape)"
+mp() { printf '{"prompt":"\\u12zz \\uZZZZ","session_id":"s1","cwd":%s}' "$(jstr "$r")"; }
+run "malformed unicode escape: baseline" "" "$(mp)" --host claude
+echo x > "$r/main.c"
+run "malformed unicode escape" "$(note main.c no)" "$(mp)" --host claude
+
 r="$(new_repo nested)"
 nested() { printf '{"tool":{"cwd":"/nonexistent","session_id":"x"},"session_id":"s1","cwd":"%s"}' "$r"; }
 run "nested cwd is ignored: baseline" "" "$(nested)" --host claude
