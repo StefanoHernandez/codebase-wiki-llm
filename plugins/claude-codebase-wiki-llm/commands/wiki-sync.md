@@ -79,10 +79,7 @@ are never pages to update.
 
 ## Step 3 - Map changes to pages
 
-Locate core pages through SCHEMA `## Core map`. When it is missing (v1 wiki),
-use the v1 paths in the maintainer skill and suggest `/wiki-init --adopt <root>`
-in the report. A Core map row `activity (v1)` is part of the `log` (not an
-orphan) until merged.
+Locate core pages through SCHEMA `## Core map`. If SCHEMA has no `## Core map` or no `format_version`, or the validator prints `upgrade:` lines, read the maintainer skill's `references/legacy-adoption.md` before continuing.
 
 For each changed file, find pages whose `sources:` include it or whose prose
 references the relevant module/area.

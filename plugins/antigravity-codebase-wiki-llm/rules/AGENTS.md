@@ -31,7 +31,7 @@ that does not exist, stop and tell the user without guessing another location.
 ## At the start of work
 
 Read `<wiki-root>/SCHEMA.md` first and find every page below through its
-`## Core map`. If SCHEMA has no `## Core map`, use the maintainer skill's v1 paths.
+`## Core map`. If SCHEMA has no `## Core map` or no `format_version`, or the validator prints `upgrade:` lines, read the maintainer skill's `references/legacy-adoption.md` before continuing.
 
 When the conversation has no wiki context yet (a new chat, a cleared or
 compacted context, or a session line `Codebase Wiki LLM: new context`), read

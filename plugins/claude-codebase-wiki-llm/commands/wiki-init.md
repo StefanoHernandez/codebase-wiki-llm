@@ -137,7 +137,8 @@ instead. If validation fails, explain why and ask for another name.
 
 ## Step 4 - Adopt mode
 
-Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis.
+Used for option 1 "adopt", for `--adopt <folder>`, and for v1 wikis. Read the
+maintainer skill's `references/legacy-adoption.md` first.
 
 - `.wikidir` is written in Step 6.
 - If the folder has no `SCHEMA.md`, write one from the default schema,

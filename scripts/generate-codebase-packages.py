@@ -136,6 +136,7 @@ REFERENCES = (
     "references/troubleshooting-template.md",
     "references/index-template.md",
     "references/risks-template.md",
+    "references/legacy-adoption.md",
 )
 
 

@@ -41,8 +41,7 @@ verification commands, and failure modes.
 
 ## Step 4 - Determine affected pages
 
-Locate core pages through SCHEMA `## Core map`; when it is missing (v1 wiki),
-use the v1 paths in the maintainer skill.
+Locate core pages through SCHEMA `## Core map`. If SCHEMA has no `## Core map` or no `format_version`, or the validator prints `upgrade:` lines, read the maintainer skill's `references/legacy-adoption.md` before continuing.
 
 Consider:
 

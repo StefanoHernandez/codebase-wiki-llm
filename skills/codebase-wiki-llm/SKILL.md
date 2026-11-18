@@ -62,13 +62,9 @@ taken and why. Everything else is an optional topic.
   operation. Its `## Core map` is the only way to locate core pages (index,
   log, log-archive, tracker, decisions, risks, context, handoff,
   troubleshooting, glossary): never assume a path.
-- v1 wiki (SCHEMA without `## Core map`): until `/wiki-init --adopt <root>`
-  runs, use these paths under `<wiki-root>/`: index → `index.md`; log →
-  `log.md` plus `agent/activity.md`; tracker → `project/work-tracker.md`;
-  decisions → `project/decisions.md`; risks → `project/risks.md`; context →
-  `agent/context.md`; handoff → `agent/handoff.md`; troubleshooting →
-  `engineering/troubleshooting.md`; glossary → `glossary.md`. After an adopt,
-  a Core map row `activity (v1)` is part of the log until it is merged.
+- If SCHEMA has no `## Core map` or no `format_version`, or the validator
+  prints `upgrade:` lines, read `references/legacy-adoption.md` before
+  continuing (v1 paths, legacy metadata, gradual recovery).
 - Topics are listed in SCHEMA `## Topics`. The user can ask to add one at any
   time: create the page and add a row.
 - The single log replaces `agent/activity.md`. Entries follow SCHEMA
@@ -151,8 +147,7 @@ Rules:
   changed: facts, commands, a changed `status` value or `sources` list. Link,
   formatting and reordering edits, adding `type`/`description`, and a
   `source_commit` bump after re-checking an unchanged page leave `generated`
-  alone; a legacy page
-  touched only in metadata keeps `updated` and gets no `generated`.
+  alone.
 - An actor is `human:<id>`, `process:<id>`, or `<host>/<model>` with host `claude-code`,
   `codex`, or `antigravity`. Unknown model: `<host>/unknown`.
 - `verified:` is optional: `{ by, at }` or a list of them, each with an
@@ -167,8 +162,6 @@ Rules:
   actors is machine-confirmed; any `human:` actor is human-reviewed. Lint
   reports a confirmation whose sources changed afterwards as stale verified,
   a freshness signal beside the tier that never lowers it.
-- Pages that have `updated` and none of the new fields stay valid. Lint reports
-  them as info, and `/wiki-sync` upgrades them when it touches the page.
 - `sources:` must name concrete repository-relative evidence paths (files
   or directories); replace template placeholders before writing. SCHEMA is
   configuration and does not require `sources:`.
