@@ -1,4 +1,4 @@
 .venv/
 venv/
-wiki
+wiki/.private-terms
 __pycache__/

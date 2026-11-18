@@ -72,6 +72,33 @@ expect "term in a tracked file name fails --all" "$r" 1 --all
 git -C "$r" mv docs/acme-integration.md docs/integration.md
 expect "clean file names pass" "$r" 0
 
+# =term: whole word, case-insensitive; word chars are [A-Za-z0-9_] as in git grep -w.
+# ww <case> <terms> <content> <exit> [args]: content staged as a.txt
+ww() {
+  local r; r="$(new_repo "ww-$RANDOM$RANDOM")"; printf "$2" > "$r/wiki/.private-terms"
+  printf '%s\n' "$3" > "$r/a.txt"; git -C "$r" add a.txt
+  expect "$1" "$r" "$4"
+  if [ "$4" = 1 ] && grep -qi "acme\|secretco" "$TMP_DIR/err"; then echo "FAIL $1: term echoed" >&2; failures=$((failures + 1)); fi
+}
+ww "whole word blocks" '=Acme\n' "We work with acme corp" 1
+ww "whole word ignores longer words" '=Acme\n' "Acmecorp and pacme" 0
+ww "whole word stops at hyphen" '=Acme\n' "acme-client" 1
+ww "underscore is a word char" '=Acme\n' "acme_client" 0
+ww "mixed lines" '=Acme\nSecretCo\n' "mysecretcox" 1
+ww "only whole-word terms" '=Acme\n' "nothing here" 0
+ww "whole-word CRLF" '=Acme  \r\n' "the acme team" 1
+ww "bare equals ignored" '=\n' "anything" 0
+
+r="$(new_repo ww-path)"; printf '=Acme\n' > "$r/wiki/.private-terms"
+echo clean > "$r/acme-notes.txt"; git -C "$r" add acme-notes.txt
+expect "whole-word file name" "$r" 1
+r="$(new_repo ww-path-long)"; printf '=Acme\n' > "$r/wiki/.private-terms"
+echo clean > "$r/acmecorp.txt"; git -C "$r" add acmecorp.txt
+expect "whole-word file name longer word" "$r" 0
+r="$(new_repo ww-all)"; printf '=Acme\n' > "$r/wiki/.private-terms"
+echo clean > "$r/a.txt"; git -C "$r" add a.txt; echo "Acme" > "$r/a.txt"
+expect "whole-word --all" "$r" 1 --all
+
 r="$(new_repo usage)"
 expect "unknown argument" "$r" 2 --bogus
 

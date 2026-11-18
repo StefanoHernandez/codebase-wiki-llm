@@ -257,7 +257,8 @@ configuration and does not require `sources:`.
 ## Step 6 - Configuration outside the wiki (confirmed in Step 3 or Step 1 only)
 
 - `.wikidir` when the folder is not `wiki`.
-- Sensitive data `yes`: write `<wiki-root>/.private-terms` (one term per line)
+- Sensitive data `yes`: write `<wiki-root>/.private-terms` (one term per line;
+  `=term` for a whole word, when the term is also part of ordinary words)
   and add `<wiki-root>/.private-terms` and each local-only path to
   `.gitignore`, except local-only paths whose names contain a forbidden term:
   those go into `.git/info/exclude`, which is never committed. Verify with

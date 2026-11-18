@@ -313,7 +313,7 @@ user explicitly asks to save a report.
 11. Each handoff task must include start files, done criteria, and a
     verification command or an explicit `Not verified - <reason>`.
 12. Never write a term from `.private-terms` into any file other than
-    `.private-terms`.
+    `.private-terms`. A line there is a substring; `=term` is a whole word.
 13. Files outside `<wiki-root>/` are changed only by `/wiki-init` steps the user
     confirmed (`.wikidir`, `.gitignore`, `.git/info/exclude`, `.gitattributes`, the agent entry
     file, the pre-commit hook in `$(git rev-parse --git-path hooks)`).

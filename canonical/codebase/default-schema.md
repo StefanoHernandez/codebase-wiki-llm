@@ -131,7 +131,9 @@ failure. Never write invented output "by way of example" next to real output.
 Off by default. When `Sensitive data` is `yes`:
 
 - forbidden terms are listed one per line in `<wiki-root>/.private-terms`,
-  which is git-ignored and never committed; this page records only the
+  which is git-ignored and never committed; a line matches as a substring,
+  and a line `=term` matches only the whole word (for a name that is also
+  part of ordinary words); case is ignored. This page records only the
   generic wording to use instead (e.g. "the partner");
 - local-only paths must be git-ignored (`git check-ignore -v <path>`): in
   `.gitignore`, or in `.git/info/exclude` (never committed) when the path's
