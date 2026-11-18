@@ -5,7 +5,7 @@
 > - Same Global Constraints as `2026-11-11-review-fixes-0.13.0.md`: edit `canonical/` and `scripts/` only, regenerate packages, `git add` by path, never touch `SPEC.md`, never push `main` or tag.
 > - Push the branch when done.
 
-Review result: merge after fixes. The validator logic is sound, and the text output of every existing fixture is unchanged. On a copy of the Versal wiki, the only difference between 0.12.0 and 0.13.0 is the version in the suffix.
+Review result: merge after fixes. The validator logic is sound, and the text output of every existing fixture is unchanged. On a copy of the field-test wiki, the only difference between 0.12.0 and 0.13.0 is the version in the suffix.
 
 **Python for the tests on macOS:** `/usr/bin/python3` is 3.9. Run the suite with `PATH="$PWD/.venv/bin:$PATH" bash scripts/run-tests.sh` (the repo's `.venv` has 3.14).
 

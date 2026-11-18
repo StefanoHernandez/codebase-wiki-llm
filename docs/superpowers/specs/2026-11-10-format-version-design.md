@@ -5,7 +5,7 @@ Data: 2026-11-10 · Stato: bozza per revisione · Base: 0.11.0 (`d0cdfaa`) · Ri
 ## Intento
 
 Oggi una wiki non dice con quale versione del plugin è stata scritta, e il validator accetta
-wiki parzialmente aggiornate senza dirlo. Esempio reale, la wiki Versal (adottata, layout
+wiki parzialmente aggiornate senza dirlo. Esempio reale, la wiki di prova sul campo (adottata, layout
 numerato): il validator dentro `docs/` trova solo le 31 pagine senza frontmatter, ma
 - gli ADR hanno lo stato nel testo (`- **Status**: accepted`) e non `status:` nel frontmatter,
   né `## Approval`;
@@ -21,7 +21,7 @@ Successo =
 2. il validator dice, in righe leggibili da uno strumento, cosa manca per l'ultima versione;
 3. `/wiki-init --adopt` su una wiki già v2 porta a zero quelle righe senza cambiare il layout
    scelto dal progetto;
-4. tre pratiche nate sulla wiki Versal diventano disponibili a tutte le wiki: tabella
+4. tre pratiche nate sulla wiki di prova sul campo diventano disponibili a tutte le wiki: tabella
    "un argomento, una pagina" nell'indice, "Prossimi passi" nel tracker, registro dei rischi
    con ID.
 
@@ -242,7 +242,7 @@ quattro distribuzioni byte-identiche, come oggi):
 7. `wiki:next` con `T99` inesistente → finding.
 8. `wiki:risk-register` con ID duplicato, severità sconosciuta o `T<n>` inesistente → finding;
    il `wiki:risks` della handoff resta controllato come oggi.
-9. Scenario di applicazione: copia della forma Versal (layout numerato, ADR con stato nel
+9. Scenario di applicazione: copia della forma della wiki di prova sul campo (layout numerato, ADR con stato nel
    testo, Done legacy, SCHEMA senza Page frontmatter) → prima: righe upgrade attese; dopo i
    passi P6 applicati a mano sulla fixture: zero righe upgrade, codice 0, layout invariato.
 
@@ -253,7 +253,7 @@ Più: `scripts/check-generated.sh` e `test-generators.sh` per le distribuzioni r
 - `canonical/codebase/VERSION` → `0.12.0`; template e workflow aggiornati; distribuzioni
   rigenerate con gli script esistenti.
 - Release checklist con la stessa forma della 0.11.0, più: prova reale `/wiki-init --adopt` su
-  una copia della wiki Versal, con l'output del validator prima e dopo.
+  una copia della wiki di prova sul campo, con l'output del validator prima e dopo.
 - README: sezione "Changes in 0.12.0".
 
 ## Fuori scope (proposte successive)

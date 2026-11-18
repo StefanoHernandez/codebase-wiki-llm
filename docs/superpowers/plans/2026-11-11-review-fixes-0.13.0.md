@@ -160,7 +160,7 @@ SOURCE = VALIDATOR.read_text(encoding="utf-8")
 FORMAT_VERSION = re.search(r'^FORMAT_VERSION = "([^"]+)"', SOURCE, re.M)[1]
 ```
 
-In `upgrade_cases()`: build `newer` from `FORMAT_VERSION` instead of `CURRENT_VERSION`; change the "format_version older" expectation to `"is older than " + FORMAT_VERSION`. Change `current_schema(wiki, version=CURRENT_VERSION, …)` default to `version=FORMAT_VERSION` and the same in `versal_scenario()`. The `endswith(… with plugin {CURRENT_VERSION})` assertion stays as it is.
+In `upgrade_cases()`: build `newer` from `FORMAT_VERSION` instead of `CURRENT_VERSION`; change the "format_version older" expectation to `"is older than " + FORMAT_VERSION`. Change `current_schema(wiki, version=CURRENT_VERSION, …)` default to `version=FORMAT_VERSION` and the same in `numbered_layout_scenario()`. The `endswith(… with plugin {CURRENT_VERSION})` assertion stays as it is.
 
 Add and call from `run()`:
 
@@ -586,7 +586,7 @@ Add to `upgrade_cases()` (an empty list means "no upgrade line at all", so this 
     (w / "SCHEMA.md").read_text().replace("## Core map\n", "## Core map \n"))), False, []),
 ```
 
-Add `translated_extra_column()` in the style of `versal_scenario()`: `fixture(repo, localized=True)`; in the localized tracker append ` Fase |` to the Open header line, ` --- |` to its delimiter and ` WP1 |` to the T1 row; expect exit 0. Then remove the `<!-- wiki:open -->` line; expect exit 1 and `unsupported open tracker columns`. Call it from `run()`.
+Add `translated_extra_column()` in the style of `numbered_layout_scenario()`: `fixture(repo, localized=True)`; in the localized tracker append ` Fase |` to the Open header line, ` --- |` to its delimiter and ` WP1 |` to the T1 row; expect exit 0. Then remove the `<!-- wiki:open -->` line; expect exit 1 and `unsupported open tracker columns`. Call it from `run()`.
 
 - [ ] **Step 2: Run to verify they fail**
 
@@ -1015,17 +1015,17 @@ In `## Maintaining this repo` add:
 
 - [ ] **Step 1b: Release checklist**
 
-In the `## 0.12.0 format version` section: mark `Main fast-forward, v0.12.0 tag and push` done with `main`, `dev` and peeled `v0.12.0` at `a5f0a6d`; leave the Linux-tests item open and add "closed by 0.13.0 Task 1 (CI)". Add on top a `## 0.13.0 review fixes` section in the same shape: test totals, CI run, Versal comparison (filled by the reviewer), whole-branch review, merge/tag (open).
+In the `## 0.12.0 format version` section: mark `Main fast-forward, v0.12.0 tag and push` done with `main`, `dev` and peeled `v0.12.0` at `a5f0a6d`; leave the Linux-tests item open and add "closed by 0.13.0 Task 1 (CI)". Add on top a `## 0.13.0 review fixes` section in the same shape: test totals, CI run, field-test wiki comparison (filled by the reviewer), whole-branch review, merge/tag (open).
 
 - [ ] **Step 2: Compare on a real wiki (read-only, on a copy) — done by the reviewer**
 
 A cloud implementer skips this step: the folder exists only on Stefano's Mac. Claude runs it during review. Only if the folder exists:
 
 ```bash
-SRC="/Users/stefano/Downloads/versal-container-platform-main 2"
-[ -d "$SRC" ] && cp -R "$SRC" /tmp/versal-copy
-python3 -I /tmp/validate-wiki-0.12.0.py /tmp/versal-copy/docs > /tmp/v12.out 2> /tmp/v12.err; echo "0.12.0 exit=$?"
-python3 -I canonical/codebase/scripts/validate-wiki.py /tmp/versal-copy/docs > /tmp/v13.out 2> /tmp/v13.err; echo "0.13.0 exit=$?"
+SRC="<copy of the field-test wiki>"
+[ -d "$SRC" ] && cp -R "$SRC" /tmp/field-wiki-copy
+python3 -I /tmp/validate-wiki-0.12.0.py /tmp/field-wiki-copy/docs > /tmp/v12.out 2> /tmp/v12.err; echo "0.12.0 exit=$?"
+python3 -I canonical/codebase/scripts/validate-wiki.py /tmp/field-wiki-copy/docs > /tmp/v13.out 2> /tmp/v13.err; echo "0.13.0 exit=$?"
 diff /tmp/v12.out /tmp/v13.out; diff /tmp/v12.err /tmp/v13.err
 ```
 

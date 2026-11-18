@@ -605,8 +605,8 @@ def translated_extra_column():
     return failures
 
 
-def versal_scenario():
-    """Spec test 9: a 0.11.0 wiki shaped like Versal reaches zero upgrade lines after the adopt edits."""
+def numbered_layout_scenario():
+    """Spec test 9: a 0.11.0 wiki with a numbered layout reaches zero upgrade lines after the adopt edits."""
     with tempfile.TemporaryDirectory() as temp:
         repo = Path(temp)
         wiki, roles = fixture(repo)
@@ -639,7 +639,7 @@ def versal_scenario():
         schema.write_text(schema.read_text().replace("title: Schema\n", f"title: Schema\nformat_version: {FORMAT_VERSION}\n", 1) + "\n## Page frontmatter\n\nText.\n")
         code_after, out_after, err_after = validate(repo, wiki)
         ok = ok and code_after == 0 and "upgrade:" not in out_after
-        print(("PASS " if ok else "FAIL ") + "Versal-shaped wiki upgraded to zero upgrade lines")
+        print(("PASS " if ok else "FAIL ") + "numbered-layout wiki upgraded to zero upgrade lines")
         if not ok:
             print(f"  before {code}: {before}\n  after {code_after}: {(out_after + err_after).strip()}")
         return 0 if ok else 1
@@ -1175,7 +1175,7 @@ def run():
     failures += marker_cases()
     failures += translated_extra_column()
     failures += dependency_cases()
-    failures += versal_scenario()
+    failures += numbered_layout_scenario()
     failures += template_wiki_case()
     failures += encoding_cases()
     failures += upgrade_with_findings()

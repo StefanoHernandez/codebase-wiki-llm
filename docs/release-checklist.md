@@ -16,7 +16,7 @@ Spec and plan in the app repo: `docs/superpowers/specs/2026-11-12-tracker-dipend
 - [x] `bash scripts/run-tests.sh` exit 0 on macOS with `.venv` first on PATH (10 new
   `deps` validator cases: unknown ID, self, two- and three-task cycle, external text,
   ID in backticks, Done column, translated tracker).
-- [x] Versal wiki copy: output of 0.13.1 and 0.14.0 identical apart from the version
+- [x] Field-test wiki copy: output of 0.13.1 and 0.14.0 identical apart from the version
   in the `upgrade:` hint; no dependency findings (T17, T18, T20–T23 exist; `TRR` and
   `distribution received` are external).
 - [x] CI green on all four matrix jobs (tag run):
@@ -35,7 +35,7 @@ Plan: `docs/superpowers/plans/2026-11-11-review-fixes-0.13.0.md`. Branch
   https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/42933448743
 - [ ] macOS locally: run the suite with a Python ≥3.10 `python3` first on PATH
   (`PATH="$PWD/.venv/bin:$PATH" bash scripts/run-tests.sh`).
-- [ ] Versal wiki comparison (reviewer, Stefano's Mac): 0.12.0 vs 0.13.0
+- [ ] Field-test wiki comparison (reviewer, Stefano's Mac): 0.12.0 vs 0.13.0
   stdout/stderr on a copy.
 - [ ] Whole-branch review on `fix/review-0.13`.
 - [ ] Merge to `main`, tag `v0.13.0` and push (on explicit go-ahead).
@@ -43,11 +43,11 @@ Plan: `docs/superpowers/plans/2026-11-11-review-fixes-0.13.0.md`. Branch
 ## 0.12.0 format version
 
 Spec: `docs/superpowers/specs/2026-11-10-format-version-design.md`. Derived
-from the Versal wiki (the most complete wiki made with 0.11.0) and from the
+from the field-test wiki (the most complete wiki made with 0.11.0) and from the
 desktop control panel, which reads wikis only at the declared format.
 
 - [x] `bash scripts/test-wiki-validator.sh`: 149 validator fixtures (34 new:
-  18 upgrade, 14 marker, a Versal-shaped before/after scenario and upgrade
+  18 upgrade, 14 marker, a numbered-layout before/after scenario and upgrade
   lines beside findings) on the canonical script and the four byte-identical
   distributions. `check-generated`, generators (now also `FORMAT_VERSION` ==
   `VERSION`), resolve-wiki-root, private-terms, reminder and hook checks pass.
@@ -55,7 +55,7 @@ desktop control panel, which reads wikis only at the declared format.
   macOS on main too (GNU-only `tar --ignore-failed-read` and `sed -i`); closed
   by 0.13.0 (CI matrix:
   https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/42933448743).
-- [x] Application scenario on a copy of the Versal wiki: 7 `upgrade:` lines
+- [x] Application scenario on a copy of the field-test wiki: 7 `upgrade:` lines
   before; after the Step 4 format upgrade (ADR status to frontmatter,
   `## Approval`, Done `Status` with legacy rows 🟢, `## Page frontmatter`,
   `format_version: 0.12.0`) none remain and the other findings are unchanged.
@@ -69,7 +69,7 @@ desktop control panel, which reads wikis only at the declared format.
   order for owners and risks; severity tokens case-sensitive; no inferred ⚫.
 - [x] Main fast-forward, `v0.12.0` tag and push: `main`, `dev` and peeled
   `v0.12.0` at `a5f0a6d`.
-- [ ] Real-host trial: `/wiki-init --adopt` on the Versal wiki itself.
+- [ ] Real-host trial: `/wiki-init --adopt` on the field-test wiki itself.
 
 ## 0.11.0 field feedback
 
