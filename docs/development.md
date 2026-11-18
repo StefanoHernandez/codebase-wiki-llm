@@ -69,7 +69,9 @@ Generated files include a `Generated from ...` marker and should not be edited d
   `format_version` in `default-schema.md`) only when the release adds an
   `upgrade:` check or changes a structure tools read.
 - Run `scripts/install-dev-hooks.sh` once per clone to install the pre-commit
-  drift guard (blocks commits when generated files are stale).
+  drift guard (blocks commits when generated files are stale). It also blocks
+  private terms when the clone has `wiki/.private-terms`: that file is
+  git-ignored, so each collaborator creates their own (ask Stefano for the list).
 - Run `bash scripts/run-tests.sh` for the full test suite.
 
 ```bash

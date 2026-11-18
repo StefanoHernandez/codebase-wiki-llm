@@ -1,5 +1,22 @@
 # Release checklist
 
+## 0.16.0 budgets, whole-word private terms, legacy rules, plugin wiki
+
+Spec: `docs/superpowers/specs/2026-11-18-release-0.16.0-design.md`; plan:
+`docs/superpowers/plans/2026-11-18-release-0.16.0.md`. Branch `dev`.
+
+- [x] `bash scripts/run-tests.sh` exit 0 on Linux (224 validator fixtures, 11
+  new private-terms cases, 4 new reminder-hook cases), gawk only.
+- [x] Field-test references replaced in current files;
+  `check-private-terms.sh --all` exit 0 and no whole-word hit.
+- [x] `python3 canonical/codebase/scripts/validate-wiki.py wiki` exit 0, no
+  `upgrade:` line.
+- [ ] CI green on ubuntu + macOS (BSD awk for the `\uXXXX` decoder).
+- [ ] Whole-branch review.
+- [ ] Main fast-forward, tag `v0.16.0` and push (on explicit go-ahead).
+- [ ] After the push: `agy plugin install` to refresh Antigravity.
+- [ ] App aligned with 0.16.0 (wiki T2), deferred by Stefano.
+
 ## 0.14.1 context rule without `search_wiki`
 
 - [x] `bash scripts/run-tests.sh` exit 0 on macOS with `.venv` first on PATH; generated

@@ -10,6 +10,18 @@ Changes to **Codebase Wiki LLM**. The wiki format has its own number (`format_ve
   a new context with eight pages packed between 16 and 20 KB. Existing wikis keep the values
   in their own `## Budgets`; raise them there by hand if you want the new ones. Format stays
   `0.12.0`.
+- `.private-terms`: a line `=term` matches only the whole word (letters, digits and `_` are
+  word characters), for a name that is also part of ordinary words. Other lines still match
+  as substrings, so existing files keep their protection.
+- Rules for v1 and legacy wikis moved to `references/legacy-adoption.md`, read only when SCHEMA
+  has no `## Core map` or `format_version`, when the validator prints `upgrade:` lines, or
+  during `--adopt`. The common prompts are 1,355 bytes shorter (51,873 → 50,518) and send
+  older wikis to that file; behaviour for v1 and legacy wikis is unchanged.
+- The sync note decodes `\uXXXX` escapes in the hook payload, surrogate pairs included: a
+  folder such as `R&D`, written `R\u0026D` by Go's JSON encoder, is no longer missed.
+- This repository has its own wiki in `wiki/`, kept with the plugin's commands.
+  `scripts/install-dev-hooks.sh` now also runs the private-terms check when the clone has
+  `wiki/.private-terms`.
 
 ## 0.15.1
 
