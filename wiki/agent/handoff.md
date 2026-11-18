@@ -16,19 +16,17 @@ confidence: high
 ## Current Work State
 <!-- wiki:state -->
 
-- Tracker IDs: T2
-- Goal: align the desktop app with plugin 0.16.0
-- Last completed step: 0.16.0 published (CI green, tag `v0.16.0` at `eef6bfa`)
+- Tracker IDs: none
+- Goal: none open; see tracker Proposals
+- Last completed step: app 0.7.7 published, aligned with plugin 0.16.0 (T2 closed)
 - Current branch: `dev`
-- Last commit: `eef6bfa`
+- Last commit: `docs(wiki): app 0.7.7 aligned, T2 closed`
 - Worktree: clean
 
 ## Baton For Next Coding Agent
 <!-- wiki:baton -->
 
-| Order | Task | Start files | Done when | Verification command | Notes / blockers |
-| --- | --- | --- | --- | --- | --- |
-| 1 | T2 - align the app (plan Task 7) | `docs/superpowers/plans/2026-11-18-release-0.16.0.md` (Task 7) | see T2 | `cargo test --workspace && npm test` in the app repo | app changes deferred by Stefano |
+No open work.
 
 ## Blockers
 <!-- wiki:blockers -->
@@ -60,5 +58,5 @@ confidence: high
 <!-- wiki:evidence-trail -->
 
 - `log` page: latest entries
-- `tracker` page: T2 (T1 done)
+- `tracker` page: T1, T2 done
 - `decisions` folder: 0004, 0005

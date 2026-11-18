@@ -23,3 +23,8 @@ confidence: high
 - What: CI green on ubuntu and macOS; `main` fast-forwarded to `dev`, annotated tag `v0.16.0` pushed, as Stefano asked. T1 closed 🟢.
 - Evidence: CI run 44302892992 → success on 4 jobs; `git ls-remote origin` → main, dev, `v0.16.0^{}` at `eef6bfa`
 - IDs: T1, T2
+
+## 2026-11-18 · Desktop app aligned, 0.7.7 published · agent
+- What: the app takes whole-word private terms, the 0.16.0 validator and the 30/100/30 KB budget fallbacks; its field-test references are gone. App 0.7.7 published as latest, as Stefano asked. T2 closed 🟢.
+- Evidence: app CI run 44315200732 → test and three builds success; `latest.json` lists darwin-aarch64, windows-x86_64, linux-x86_64; app `main` pushed at `710a24c`
+- IDs: T2

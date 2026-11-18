@@ -19,16 +19,15 @@ pages cite IDs without repeating their status. Status icons: see SCHEMA.md
 ## Next steps
 <!-- wiki:next -->
 
-**In one line:** 0.16.0 is published (2026-11-18); the desktop app is next.
+**In one line:** 0.16.0 is published and the desktop app 0.7.7 follows it (2026-11-18); no open work.
 
-1. Align the desktop app with 0.16.0 (T2)
+1. Pick from Proposals (real-host trial, Antigravity reinstall)
 
 ## Open
 <!-- wiki:open -->
 
 | ID | Status | Goal | Done when | Owner | Next verification | Evidence | Depends on |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| T2 | ⚪ | Desktop app aligned with plugin 0.16.0: whole-word terms, budget fallbacks, bundled validator, field-test references removed | app tests and build pass; app checker exit 0 | Stefano (asked 2026-11-18, deferred until the plugin ships) | `cargo test --workspace && npm test` | [plan Task 7](../../docs/superpowers/plans/2026-11-18-release-0.16.0.md) | T1 |
 
 ## Proposals
 <!-- wiki:proposals -->
@@ -46,3 +45,4 @@ Ideas and suggested work nobody approved yet: no ID, no status icon.
 | ID | Status | Goal | Closed | Criteria met | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | T1 | 🟢 | Release plugin 0.16.0 | 2026-11-18 | suite green; CHANGELOG and checklist written; `main`, `dev` and `v0.16.0` pushed at `eef6bfa` | [CI run](https://github.com/StefanoHernandez/codebase-wiki-llm/actions/runs/44302892992); `git ls-remote origin`; [checklist](../../docs/release-checklist.md) |
+| T2 | 🟢 | Desktop app aligned with plugin 0.16.0: whole-word terms, budget fallbacks, bundled validator, field-test references removed | 2026-11-18 | app tests and tag CI green; app checker exit 0; app 0.7.7 published as latest | [app release v0.7.7](https://github.com/StefanoHernandez/codebase-wiki-app/releases/tag/v0.7.7); app CI run 44315200732 |
