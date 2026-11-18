@@ -111,10 +111,22 @@ template heading in pages without markers. Flag a `context`, `handoff` or
 
 If SCHEMA has no `## Core map` or no `format_version`, or the validator prints `upgrade:` lines, read the maintainer skill's `references/legacy-adoption.md` before continuing.
 
+In an adopted wiki (also one already at the current format), rules added in
+0.9.0 for code state on log entries and `## Approval` on decisions apply to
+content written after the wiki adopted them. Summarize those older omissions
+once as counts (for example `12 log entries without code state`), respecting
+the Decisions exception below and the local log policy. Required metadata,
+readable tracker layouts and completion proof are not exempted from
+validation. Missing legacy criteria remain recovery gaps; normalizing columns
+or adding metadata does not make old outcomes newly verified. Group gaps
+without duplicating deterministic findings.
+
 ### Core map
 
 Flag roles pointing to missing files and broken relative links. A SCHEMA
-without `## Core map` is a v1 wiki (see the legacy file above).
+without `## Core map` is a v1 wiki (see the legacy file above). A Core map
+row `activity (v1)` left by a v1 adopt is part of the log until merged:
+suggest merging it.
 An absent `log-archive` directory is a valid reservation until first use;
 flag unsafe paths, files or dangling symlinks blocking its creation instead.
 
@@ -305,8 +317,11 @@ Flag frontmatter issues:
 - general hygiene: missing mandatory fields (`title`, `sources`, `confidence`), invalid timestamps, invalid confidence level (`low|medium|high`), or missing source files.
 Sources name concrete repository-relative files or directories, including
 resolved Core map paths; SCHEMA is configuration and need not list sources.
-Sources are supporting evidence, not a mechanical copy of every link in old
-prose.
+Group adopted pages without frontmatter by count and paths, one root finding
+per page; do not repeat missing-field/date/confidence checks for absent
+metadata or count the deterministic finding twice. Sources are supporting
+evidence, not a mechanical copy of every link in old prose. Report gradual
+recovery as incomplete validation, including when structural adoption succeeded.
 
 ## Step 4 - Report
 

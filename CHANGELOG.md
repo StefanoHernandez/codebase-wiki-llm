@@ -15,8 +15,11 @@ Changes to **Codebase Wiki LLM**. The wiki format has its own number (`format_ve
   as substrings, so existing files keep their protection.
 - Rules for v1 and legacy wikis moved to `references/legacy-adoption.md`, read only when SCHEMA
   has no `## Core map` or `format_version`, when the validator prints `upgrade:` lines, or
-  during `--adopt`. The common prompts are 1,355 bytes shorter (51,873 → 50,518) and send
-  older wikis to that file; behaviour for v1 and legacy wikis is unchanged.
+  during `--adopt`. `/wiki-sync`, `/wiki-ingest`, the maintainer and the always-loaded rule no
+  longer carry v1 paths or legacy metadata rules; `/wiki-lint` keeps the recovery rules for
+  content older than an adoption, which apply to every adopted wiki. Behaviour for v1 and
+  legacy wikis is unchanged. A line of `.private-terms` that starts with `=` changes meaning:
+  it was the substring `=term`, it is now the whole word `term`.
 - The sync note decodes `\uXXXX` escapes in the hook payload, surrogate pairs included: a
   folder such as `R&D`, written `R\u0026D` by Go's JSON encoder, is no longer missed.
 - This repository has its own wiki in `wiki/`, kept with the plugin's commands.

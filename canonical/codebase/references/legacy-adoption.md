@@ -45,17 +45,7 @@ proven. New Done rows always have `Status`.
 
 ## Gradual recovery after adoption
 
-Rules added in 0.9.0 for code state on log entries and `## Approval` on
-decisions apply to content written after the wiki adopted them. Lint
-summarizes older omissions once as counts (for example `12 log entries
-without code state`), respecting the Decisions exception and the local log
-policy. Required metadata, readable tracker layouts and completion proof are
-not exempted from validation. Missing legacy criteria remain recovery gaps;
-normalizing columns or adding metadata does not make old outcomes newly
-verified. Group gaps without duplicating deterministic findings.
-
-Lint groups adopted pages without frontmatter by count and paths, one root
-finding per page; it does not repeat missing-field/date/confidence checks for
-absent metadata or count the deterministic finding twice. Report gradual
-recovery as incomplete validation, including when structural adoption
-succeeded.
+`/wiki-lint` holds the rules for content older than the adoption (counts
+instead of one finding per old entry, one root finding per page without
+frontmatter); they apply to every adopted wiki, also one already at the
+current format.

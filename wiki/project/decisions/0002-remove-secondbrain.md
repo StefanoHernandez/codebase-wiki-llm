@@ -21,7 +21,7 @@ SecondBrain packages, skills and marketplace entries are removed in 0.15.0; its 
 - Reasons not recorded.
 
 ## Consequences
-About 1,800 source lines less to maintain; users of SecondBrain uninstall it (CHANGELOG 0.15.0).
+Fewer packages and scripts to maintain; users of SecondBrain uninstall it (CHANGELOG 0.15.0).
 
 ## Approval
 <!-- wiki:approval -->
